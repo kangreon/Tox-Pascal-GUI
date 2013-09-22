@@ -30,6 +30,7 @@
 * репозиторий Tox Core - https://github.com/irungentoo/ProjectTox-Core
 * блог разработчиков Tox - http://dev.tox.im/
 * вики проекта Tox - http://wiki.tox.im/
+* альтернативное GUI - https://github.com/nurupo/ProjectTox-Qt-GUI
 
 ## Лицензия
 Лицензия на исходный код The MIT License (MIT).

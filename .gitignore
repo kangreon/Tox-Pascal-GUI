@@ -8,3 +8,5 @@ __history
 *.exe
 *.dll
 bin/*
+Win32/*
+*.so

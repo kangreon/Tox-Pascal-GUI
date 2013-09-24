@@ -10,3 +10,9 @@ __history
 bin/*
 Win32/*
 *.so
+*.ppu
+*.o
+*.bak
+*.compiled
+*.or
+tox.res

@@ -16,16 +16,19 @@ program tox;
   {$ENDIF}
   {$R images.res}
 {$ELSE}
-  {$R images.res}
   {$R tox-res.res}
+  {$R images.res}
 {$ENDIF}
 
 uses
   {$IFDEF FPC}
-    {$IFDEF UNIX}cthreads,{$ENDIF}
-    Interfaces,
-  {$ENDIF}
-  Forms, Dialogs,
+  {$IFDEF UNIX}
+  cthreads,
+  {$ENDIF }
+  Interfaces,
+  {$ENDIF }
+  Forms,
+  Dialogs,
   main in 'src\main.pas' {Form1},
   libtox in 'src\libtox.pas',
   toxcore in 'src\toxcore.pas',
@@ -44,7 +47,8 @@ uses
   PaintSprite in 'gui\PaintSprite.pas',
   ControlPanel in 'gui\ControlPanel.pas',
   ButtonActive in 'gui\ButtonActive.pas',
-  fmUserAdd in 'gui\Forms\fmUserAdd.pas';
+  fmUserAdd in 'gui\Forms\fmUserAdd.pas' {FormUserAdd},
+  fmNewName in 'gui\Forms\fmNewName.pas' {FormNewName};
 
 {*  Вывод сообщения об ошибке загрузки библиотеки libtoxcore
  *}

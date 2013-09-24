@@ -1,49 +1,21 @@
 <?xml version="1.0"?>
 <CONFIG>
-  <ProjectOptions>
-    <Version Value="9"/>
+  <ProjectSession>
     <PathDelim Value="\"/>
-    <General>
-      <Flags>
-        <MainUnitHasUsesSectionForAllUnits Value="False"/>
-        <MainUnitHasCreateFormStatements Value="False"/>
-        <MainUnitHasTitleStatement Value="False"/>
-      </Flags>
-      <SessionStorage Value="InProjectDir"/>
-      <MainUnit Value="0"/>
-      <Title Value="tox"/>
-      <UseAppBundle Value="False"/>
-      <ResourceType Value="res"/>
-    </General>
-    <i18n>
-      <EnableI18N LFM="False"/>
-    </i18n>
-    <VersionInfo>
-      <StringTable ProductVersion=""/>
-    </VersionInfo>
-    <BuildModes Count="1">
-      <Item1 Name="Default" Default="True"/>
-    </BuildModes>
-    <PublishOptions>
-      <Version Value="2"/>
-      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
-      <ExcludeFileFilter Value="*.(bak|ppu|o|so);*~;backup"/>
-    </PublishOptions>
-    <RunParams>
-      <local>
-        <FormatVersion Value="1"/>
-        <LaunchingApplication PathPlusParams="\usr\bin\xterm -T 'Lazarus Run Output' -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
-      </local>
-    </RunParams>
-    <RequiredPackages Count="1">
-      <Item1>
-        <PackageName Value="LCL"/>
-      </Item1>
-    </RequiredPackages>
+    <Version Value="9"/>
+    <BuildModes Active="Default"/>
     <Units Count="15">
       <Unit0>
         <Filename Value="tox.dpr"/>
         <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="0"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="36"/>
+        <CursorPos X="51" Y="47"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit0>
       <Unit1>
         <Filename Value="main.pas"/>
@@ -52,116 +24,109 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="main"/>
+        <UsageCount Value="20"/>
       </Unit1>
       <Unit2>
         <Filename Value="libtox.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="libtox"/>
+        <UsageCount Value="20"/>
       </Unit2>
       <Unit3>
         <Filename Value="toxcore.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="toxcore"/>
+        <UsageCount Value="20"/>
       </Unit3>
       <Unit4>
         <Filename Value="Settings.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="Settings"/>
+        <UsageCount Value="20"/>
       </Unit4>
       <Unit5>
         <Filename Value="ServerList.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="ServerList"/>
+        <UsageCount Value="20"/>
       </Unit5>
       <Unit6>
         <Filename Value="AddressUtils.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="AddressUtils"/>
+        <UsageCount Value="20"/>
       </Unit6>
       <Unit7>
         <Filename Value="ClientAddress.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="ClientAddress"/>
+        <UsageCount Value="20"/>
       </Unit7>
       <Unit8>
         <Filename Value="FriendList.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="FriendList"/>
+        <UsageCount Value="20"/>
       </Unit8>
       <Unit9>
         <Filename Value="MessageList.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="MessageList"/>
+        <UsageCount Value="20"/>
       </Unit9>
       <Unit10>
         <Filename Value="gui\ResourceImage.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="ResourceImage"/>
+        <UsageCount Value="20"/>
       </Unit10>
       <Unit11>
         <Filename Value="gui\UserStatus.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="UserStatus"/>
+        <UsageCount Value="20"/>
       </Unit11>
       <Unit12>
         <Filename Value="src\StringUtils.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="StringUtils"/>
+        <UsageCount Value="20"/>
       </Unit12>
       <Unit13>
         <Filename Value="gui\Forms\fmUserAdd.pas"/>
         <IsPartOfProject Value="True"/>
         <HasResources Value="True"/>
         <UnitName Value="fmUserAdd"/>
+        <EditorIndex Value="1"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="106"/>
+        <CursorPos X="27" Y="125"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit13>
       <Unit14>
         <Filename Value="gui\Forms\fmUserAdd.dfm"/>
         <IsPartOfProject Value="True"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="1" Y="1"/>
+        <UsageCount Value="20"/>
+        <DefaultSyntaxHighlighter Value="LFM"/>
       </Unit14>
     </Units>
-  </ProjectOptions>
-  <CompilerOptions>
-    <Version Value="11"/>
-    <PathDelim Value="\"/>
-    <SearchPaths>
-      <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="gui;src;gui\Forms"/>
-    </SearchPaths>
-    <Parsing>
-      <SyntaxOptions>
-        <SyntaxMode Value="Delphi"/>
-        <AllowLabel Value="False"/>
-      </SyntaxOptions>
-    </Parsing>
-    <Linking>
-      <Debugging>
-        <GenerateDebugInfo Value="False"/>
-        <UseExternalDbgSyms Value="True"/>
-      </Debugging>
-      <Options>
-        <Win32>
-          <GraphicApplication Value="True"/>
-        </Win32>
-      </Options>
-    </Linking>
-    <Other>
-      <CompilerMessages>
-        <MsgFileName Value=""/>
-      </CompilerMessages>
-      <CompilerPath Value="$(CompPath)"/>
-    </Other>
-  </CompilerOptions>
-  <Debugging>
-    <Exceptions Count="3">
-      <Item1>
-        <Name Value="EAbort"/>
-      </Item1>
-      <Item2>
-        <Name Value="ECodetoolError"/>
-      </Item2>
-      <Item3>
-        <Name Value="EFOpenError"/>
-      </Item3>
-    </Exceptions>
-  </Debugging>
+    <General>
+      <ActiveWindowIndexAtStart Value="0"/>
+    </General>
+    <JumpHistory Count="2" HistoryIndex="1">
+      <Position1>
+        <Filename Value="gui\Forms\fmUserAdd.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
+      </Position1>
+      <Position2>
+        <Filename Value="gui\Forms\fmUserAdd.pas"/>
+        <Caret Line="19" Column="13" TopLine="3"/>
+      </Position2>
+    </JumpHistory>
+  </ProjectSession>
 </CONFIG>

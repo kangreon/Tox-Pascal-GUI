@@ -79,6 +79,9 @@ type
 
 implementation
 
+uses
+  main;
+
 var
   ResImg: TResourceImage;
 
@@ -112,13 +115,7 @@ begin
   FImageMenu := TImageList.Create(nil);
   FImageMenu.Width := 10;
   FImageMenu.Height := 10;
-  {$IFDEF NEW_DELPHI}
-  FImageMenu.ColorDepth := cd32Bit;
-  {$ENDIF}
-  FImageMenu.BkColor := clWhite;
-  FImageMenu.DrawingStyle := dsTransparent;
-  FImageMenu.ImageType := itImage;
-  FImageMenu.Add(FOnlineMenu, nil);
+  FImageMenu.InsertMasked(0, FOnlineMenu, clBlack);
 
   FButtonAddUserNormal := LoadImageBmp('AddUserNormal');
   FButtonAddUserActive := LoadImageBmp('AddUserActive');
@@ -136,17 +133,12 @@ begin
   FUserstatusButtonDown.Free;
   FStatusOnline.Free;
   FStatusOffline.Free;
-
   FStatusOnlineTransporent.Free;
   FStatusAwayTransporent.Free;
   FStatusOfflineTransporent.Free;
-
   FLoadingAnimate10.Free;
-
   FOnlineMenu.Free;
-
   FImageMenu.Free;
-
   FButtonAddUserNormal.Free;
   FButtonAddUserActive.Free;
   FButtonAddUserDown.Free;

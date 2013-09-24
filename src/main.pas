@@ -16,7 +16,7 @@ uses
   {$I tox-uses.inc}
   SysUtils, Controls, Forms, Classes, Dialogs, StdCtrls, toxcore, Settings,
   ServerList, ClientAddress, libtox, StringUtils, ExtCtrls, UserStatus,
-  FriendList, ControlPanel;
+  FriendList, ControlPanel, fmUserAdd, fmNewName;
 
 type
   { TForm1 }
@@ -81,8 +81,6 @@ var
   Faerr: TToxFaerr;
   s: string;
 begin
-
-
   Address := TClientAddress.Create;
   try
     Address.DataHex := Edit1.Text;
@@ -183,9 +181,18 @@ end;
   Событие на нажатия на одну из кнопок панели управления
                                                                           }
 procedure TForm1.ControlPanelClick(Sender: TObject; Button: TControlButton);
+var
+  Form: TForm;
 begin
   case Button of
-    cbAddUser: ;
+    cbAddUser:
+      begin
+        Form := TFormUserAdd.Create(Self);
+        Form.Position := poOwnerFormCenter;
+        TFormUserAdd(Form).Tox := FToxCore;
+        Form.ShowModal;
+        Form.Free;
+      end;
     cbSettings: ;
     cbGroup: ;
   end;
@@ -298,14 +305,26 @@ begin
   end;
 end;
 
+{*  Событие на запрос пользователя о изменении имени
+ *}
 procedure TForm1.UserStatusChangeName(Sender: TObject);
 var
-  s: string;
+  NewName: string;
+  FormName: TFormNewName;
 begin
-  if InputQuery('New name', 'Enter new name:', s) then
+  FormName := TFormNewName.Create(Self);
+  try
+    FormName.Position := poOwnerFormCenter;
+    FormName.ShowModal;
+    NewName := FormName.NewName;
+  finally
+    FormName.Free;
+  end;
+
+  if NewName <> '' then
   begin
-    FToxCore.UserName := s;
-    FUserStatus.UserName := s;
+    FToxCore.UserName := NewName;
+    FUserStatus.UserName := NewName;
   end;
 end;
 

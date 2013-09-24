@@ -100,8 +100,8 @@ begin
   FButtonGroup.InsertImage(FImages.ButtonGroupNormal, FImages.ButtonGroupActive, FImages.ButtonGroupDown);
   FButtonGroup.Top := (Height - FButtonGroup.Height) div 2;
   FButtonGroup.Left := (Width - FButtonGroup.Width) div 2;
-  FButtonSettings.Tag := BUTTON_GROUP;
-  FButtonSettings.OnClick := ButtonClick;
+  FButtonGroup.Tag := BUTTON_GROUP;
+  FButtonGroup.OnClick := ButtonClick;
 end;
 
 destructor TControlPanel.Destroy;
@@ -118,7 +118,7 @@ end;
 
 procedure TControlPanel.ButtonClick(Sender: TObject);
 begin
-  case TButtonActive(Self).Tag of
+  case TButtonActive(Sender).Tag of
     BUTTON_ADD_USER:
       EventClick(cbAddUser);
 

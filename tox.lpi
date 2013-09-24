@@ -40,91 +40,112 @@
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="15">
+    <Units Count="22">
       <Unit0>
         <Filename Value="tox.dpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
-        <Filename Value="main.pas"/>
-        <IsPartOfProject Value="True"/>
-        <ComponentName Value="Form1"/>
-        <HasResources Value="True"/>
-        <ResourceBaseClass Value="Form"/>
-        <UnitName Value="main"/>
-      </Unit1>
-      <Unit2>
-        <Filename Value="libtox.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="libtox"/>
-      </Unit2>
-      <Unit3>
-        <Filename Value="toxcore.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="toxcore"/>
-      </Unit3>
-      <Unit4>
-        <Filename Value="Settings.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="Settings"/>
-      </Unit4>
-      <Unit5>
-        <Filename Value="ServerList.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="ServerList"/>
-      </Unit5>
-      <Unit6>
-        <Filename Value="AddressUtils.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="AddressUtils"/>
-      </Unit6>
-      <Unit7>
-        <Filename Value="ClientAddress.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="ClientAddress"/>
-      </Unit7>
-      <Unit8>
-        <Filename Value="FriendList.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="FriendList"/>
-      </Unit8>
-      <Unit9>
-        <Filename Value="MessageList.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="MessageList"/>
-      </Unit9>
-      <Unit10>
         <Filename Value="gui\ResourceImage.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="ResourceImage"/>
-      </Unit10>
-      <Unit11>
+      </Unit1>
+      <Unit2>
         <Filename Value="gui\UserStatus.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="UserStatus"/>
-      </Unit11>
-      <Unit12>
+      </Unit2>
+      <Unit3>
         <Filename Value="src\StringUtils.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="StringUtils"/>
-      </Unit12>
-      <Unit13>
+      </Unit3>
+      <Unit4>
         <Filename Value="gui\Forms\fmUserAdd.pas"/>
         <IsPartOfProject Value="True"/>
         <HasResources Value="True"/>
         <UnitName Value="fmUserAdd"/>
-      </Unit13>
-      <Unit14>
+      </Unit4>
+      <Unit5>
         <Filename Value="gui\Forms\fmUserAdd.dfm"/>
         <IsPartOfProject Value="True"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="gui\Forms\fmNewName.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="FormNewName"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="fmNewName"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="src\main.pas"/>
+        <IsPartOfProject Value="True"/>
+        <HasResources Value="True"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="src\libtox.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="src\toxcore.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="src\Settings.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit10>
+      <Unit11>
+        <Filename Value="src\ServerList.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit11>
+      <Unit12>
+        <Filename Value="src\ClientAddress.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit12>
+      <Unit13>
+        <Filename Value="src\FriendList.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit13>
+      <Unit14>
+        <Filename Value="src\MessageList.pas"/>
+        <IsPartOfProject Value="True"/>
       </Unit14>
+      <Unit15>
+        <Filename Value="gui\UserIcon.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit15>
+      <Unit16>
+        <Filename Value="gui\ImageUtils.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit16>
+      <Unit17>
+        <Filename Value="gui\UserStatusStyle.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit17>
+      <Unit18>
+        <Filename Value="gui\ActiveRegion.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit18>
+      <Unit19>
+        <Filename Value="gui\PaintSprite.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit19>
+      <Unit20>
+        <Filename Value="gui\ControlPanel.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit20>
+      <Unit21>
+        <Filename Value="gui\ButtonActive.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit21>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <SearchPaths>
-      <IncludeFiles Value="$(ProjOutDir)"/>
+      <IncludeFiles Value="src;gui;gui\Forms"/>
       <OtherUnitFiles Value="gui;src;gui\Forms"/>
     </SearchPaths>
     <Parsing>

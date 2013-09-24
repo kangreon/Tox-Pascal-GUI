@@ -4,108 +4,51 @@
     <PathDelim Value="\"/>
     <Version Value="9"/>
     <BuildModes Active="Default"/>
-    <Units Count="15">
+    <Units Count="22">
       <Unit0>
         <Filename Value="tox.dpr"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="0"/>
+        <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
         <TopLine Value="36"/>
-        <CursorPos X="51" Y="47"/>
+        <CursorPos X="19" Y="36"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit0>
       <Unit1>
-        <Filename Value="main.pas"/>
-        <IsPartOfProject Value="True"/>
-        <ComponentName Value="Form1"/>
-        <HasResources Value="True"/>
-        <ResourceBaseClass Value="Form"/>
-        <UnitName Value="main"/>
-        <UsageCount Value="20"/>
-      </Unit1>
-      <Unit2>
-        <Filename Value="libtox.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="libtox"/>
-        <UsageCount Value="20"/>
-      </Unit2>
-      <Unit3>
-        <Filename Value="toxcore.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="toxcore"/>
-        <UsageCount Value="20"/>
-      </Unit3>
-      <Unit4>
-        <Filename Value="Settings.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="Settings"/>
-        <UsageCount Value="20"/>
-      </Unit4>
-      <Unit5>
-        <Filename Value="ServerList.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="ServerList"/>
-        <UsageCount Value="20"/>
-      </Unit5>
-      <Unit6>
-        <Filename Value="AddressUtils.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="AddressUtils"/>
-        <UsageCount Value="20"/>
-      </Unit6>
-      <Unit7>
-        <Filename Value="ClientAddress.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="ClientAddress"/>
-        <UsageCount Value="20"/>
-      </Unit7>
-      <Unit8>
-        <Filename Value="FriendList.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="FriendList"/>
-        <UsageCount Value="20"/>
-      </Unit8>
-      <Unit9>
-        <Filename Value="MessageList.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="MessageList"/>
-        <UsageCount Value="20"/>
-      </Unit9>
-      <Unit10>
         <Filename Value="gui\ResourceImage.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="ResourceImage"/>
         <UsageCount Value="20"/>
-      </Unit10>
-      <Unit11>
+      </Unit1>
+      <Unit2>
         <Filename Value="gui\UserStatus.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="UserStatus"/>
         <UsageCount Value="20"/>
-      </Unit11>
-      <Unit12>
+      </Unit2>
+      <Unit3>
         <Filename Value="src\StringUtils.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="StringUtils"/>
         <UsageCount Value="20"/>
-      </Unit12>
-      <Unit13>
+      </Unit3>
+      <Unit4>
         <Filename Value="gui\Forms\fmUserAdd.pas"/>
         <IsPartOfProject Value="True"/>
         <HasResources Value="True"/>
         <UnitName Value="fmUserAdd"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="106"/>
-        <CursorPos X="27" Y="125"/>
+        <TopLine Value="165"/>
+        <CursorPos X="51" Y="186"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit13>
-      <Unit14>
+      </Unit4>
+      <Unit5>
         <Filename Value="gui\Forms\fmUserAdd.dfm"/>
         <IsPartOfProject Value="True"/>
         <WindowIndex Value="0"/>
@@ -113,19 +56,126 @@
         <CursorPos X="1" Y="1"/>
         <UsageCount Value="20"/>
         <DefaultSyntaxHighlighter Value="LFM"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="gui\Forms\fmNewName.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="FormNewName"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="fmNewName"/>
+        <EditorIndex Value="0"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="74"/>
+        <CursorPos X="41" Y="80"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="src\main.pas"/>
+        <IsPartOfProject Value="True"/>
+        <HasResources Value="True"/>
+        <UsageCount Value="20"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="src\libtox.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UsageCount Value="20"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="src\toxcore.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UsageCount Value="20"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="src\Settings.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UsageCount Value="20"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit10>
+      <Unit11>
+        <Filename Value="src\ServerList.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UsageCount Value="20"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit11>
+      <Unit12>
+        <Filename Value="src\ClientAddress.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UsageCount Value="20"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit12>
+      <Unit13>
+        <Filename Value="src\FriendList.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UsageCount Value="20"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit13>
+      <Unit14>
+        <Filename Value="src\MessageList.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UsageCount Value="20"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit14>
+      <Unit15>
+        <Filename Value="gui\UserIcon.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UsageCount Value="20"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit15>
+      <Unit16>
+        <Filename Value="gui\ImageUtils.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UsageCount Value="20"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit16>
+      <Unit17>
+        <Filename Value="gui\UserStatusStyle.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UsageCount Value="20"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit17>
+      <Unit18>
+        <Filename Value="gui\ActiveRegion.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UsageCount Value="20"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit18>
+      <Unit19>
+        <Filename Value="gui\PaintSprite.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UsageCount Value="20"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit19>
+      <Unit20>
+        <Filename Value="gui\ControlPanel.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UsageCount Value="20"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit20>
+      <Unit21>
+        <Filename Value="gui\ButtonActive.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UsageCount Value="20"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit21>
     </Units>
     <General>
       <ActiveWindowIndexAtStart Value="0"/>
     </General>
     <JumpHistory Count="2" HistoryIndex="1">
       <Position1>
-        <Filename Value="gui\Forms\fmUserAdd.pas"/>
+        <Filename Value="gui\Forms\fmNewName.pas"/>
         <Caret Line="1" Column="1" TopLine="1"/>
       </Position1>
       <Position2>
-        <Filename Value="gui\Forms\fmUserAdd.pas"/>
-        <Caret Line="19" Column="13" TopLine="3"/>
+        <Filename Value="gui\Forms\fmNewName.pas"/>
+        <Caret Line="61" Column="12" TopLine="59"/>
       </Position2>
     </JumpHistory>
   </ProjectSession>

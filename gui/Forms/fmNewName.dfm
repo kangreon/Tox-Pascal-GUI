@@ -1,6 +1,6 @@
 object FormNewName: TFormNewName
-  Left = 0
-  Top = 0
+  Left = 471
+  Top = 113
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'FormNewName'
@@ -12,7 +12,7 @@ object FormNewName: TFormNewName
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
+  OldCreateOrder = True
   OnCreate = FormCreate
   OnKeyDown = FormKeyDown
   PixelsPerInch = 96
@@ -23,6 +23,9 @@ object FormNewName: TFormNewName
     Width = 175
     Height = 13
     Caption = #1042#1074#1077#1076#1080#1090#1077' '#1085#1086#1074#1086#1077' '#1080#1084#1103' '#1087#1086#1083#1100#1079#1086#1074#1072#1090#1077#1083#1103':'
+    Color = clBtnFace
+    ParentColor = False
+    Transparent = False
   end
   object edName: TEdit
     Left = 8

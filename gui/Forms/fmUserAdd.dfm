@@ -26,9 +26,6 @@ object FormUserAdd: TFormUserAdd
     Width = 289
     Height = 137
     Caption = #1044#1086#1073#1072#1074#1083#1077#1085#1080#1077' '#1076#1088#1091#1075#1072':'
-    DoubleBuffered = True
-    ParentBackground = False
-    ParentDoubleBuffered = False
     TabOrder = 0
     object labFriendAddress: TLabel
       Left = 7

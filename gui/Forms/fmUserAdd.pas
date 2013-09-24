@@ -1,4 +1,4 @@
-﻿//  ButtonActive.pas
+﻿//  fmUserAdd.pas
 //
 //  Форма добавления нового пользователя в друзья. Происходит проверка
 //  введенных данных и вывода сообшения пользователю в случае возникновения
@@ -11,7 +11,7 @@
 unit fmUserAdd;
 
 interface
-{$I tox.inc}
+  {$I tox.inc}
 
 uses
   {$I tox-uses.inc}
@@ -122,7 +122,11 @@ end;
 procedure TFormUserAdd.FormCreate(Sender: TObject);
 begin
   InsertCaptions;
-  DoubleBuffered := True;
+  {$IFDEF NEW_DELPHI}
+  ParentBackground := False;
+  gbFriendAdd.ParentBackground := False;
+  {$ENDIF}
+  gbFriendAdd.DoubleBuffered := True;
 end;
 
 {*  Событие на нажатие клавиши на клавиатуре.
@@ -165,20 +169,25 @@ begin
   memMessage.Height := gbFriendAdd.Height - memMessage.Top - CONTROL_MARGIN * 3;
 end;
 
+function InsertTextUnicode(Text: string): string;
+begin
+  Result := {$IFDEF FPC}UTF8Encode{$ENDIF}(Text);
+end;
+
 {*  Добавление или изменение текста компонентов в зависимости
  *  от выбранного языка приложений
  *}
 procedure TFormUserAdd.InsertCaptions;
 begin
   // TODO: Добавить источник слов
-  Self.Caption := 'Добавление друга';
-  gbFriendAdd.Caption := 'Добавление друга:';
-  labFriendAddress.Caption := 'Адрес друга:';
-  labMessage.Caption := 'Сообщение:';
-  memMessage.Text := 'Insert default hello message';
+  Self.Caption := InsertTextUnicode('Добавление друга');
+  gbFriendAdd.Caption := InsertTextUnicode('Добавление друга:');
+  labFriendAddress.Caption := InsertTextUnicode('Адрес друга:');
+  labMessage.Caption := InsertTextUnicode('Сообщение:');
+  memMessage.Text := InsertTextUnicode('Insert default hello message');
 
-  btnAddFriend.Caption := 'Добавить';
-  btnCancel.Caption := 'Отмена';
+  btnAddFriend.Caption := InsertTextUnicode('Добавить');
+  btnCancel.Caption := InsertTextUnicode('Отмена');
 end;
 
 end.

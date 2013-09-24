@@ -1,10 +1,19 @@
+п»ї//  fmNewName.pas
+//
+//  Р¤РѕСЂРјР° РёР·РјРµРЅРµРЅРёСЏ СЃРѕР±СЃС‚РІРµРЅРЅРѕРіРѕ РёРјРµРЅРё РІ РїСЂРёР»РѕР¶РµРЅРёРё
+//
+//  The MIT License (MIT)
+//
+//  Copyright (c) 2013 Dmitry
+//
 unit fmNewName;
 
 interface
+  {$I tox.inc}
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls;
+  {$I tox-uses.inc}
+  SysUtils, Classes, Forms, StdCtrls, Controls;
 
 type
   TFormNewName = class(TForm)
@@ -28,16 +37,16 @@ implementation
 
 {$R *.dfm}
 
-{*  Событие на нажатие кнопки. Отмена введения нового имени
+{*  РЎРѕР±С‹С‚РёРµ РЅР° РЅР°Р¶Р°С‚РёРµ РєРЅРѕРїРєРё. РћС‚РјРµРЅР° РІРІРµРґРµРЅРёСЏ РЅРѕРІРѕРіРѕ РёРјРµРЅРё
  *}
 procedure TFormNewName.btnCancelClick(Sender: TObject);
 begin
   Close;
 end;
 
-{*  Нажатие на кнопку изменения имени. Проверяет введенное пользователем
- *  имя и выводит описание ошибки в случае ее возникновения.
- *  В случае успешного введения имени, закрывается окно
+{*  РќР°Р¶Р°С‚РёРµ РЅР° РєРЅРѕРїРєСѓ РёР·РјРµРЅРµРЅРёСЏ РёРјРµРЅРё. РџСЂРѕРІРµСЂСЏРµС‚ РІРІРµРґРµРЅРЅРѕРµ РїРѕР»СЊР·РѕРІР°С‚РµР»РµРј
+ *  РёРјСЏ Рё РІС‹РІРѕРґРёС‚ РѕРїРёСЃР°РЅРёРµ РѕС€РёР±РєРё РІ СЃР»СѓС‡Р°Рµ РµРµ РІРѕР·РЅРёРєРЅРѕРІРµРЅРёСЏ.
+ *  Р’ СЃР»СѓС‡Р°Рµ СѓСЃРїРµС€РЅРѕРіРѕ РІРІРµРґРµРЅРёСЏ РёРјРµРЅРё, Р·Р°РєСЂС‹РІР°РµС‚СЃСЏ РѕРєРЅРѕ
  *}
 procedure TFormNewName.btnChangeClick(Sender: TObject);
 begin
@@ -46,7 +55,7 @@ begin
 
   if FNewName = '' then
   begin
-    MessageBox(Handle, 'Вы не ввели имя пользователя', PWideChar(Caption), MB_ICONERROR);
+    MessageBox(Handle, 'Р’С‹ РЅРµ РІРІРµР»Рё РёРјСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ', PChar(Caption), MB_ICONERROR);
   end
   else
     Close;
@@ -58,8 +67,8 @@ begin
   InsertCaptions;
 end;
 
-{*  Событие на нажатие клавиши на клавиатуре.
- *  Закрывает окно если была нажата клавиша Escape
+{*  РЎРѕР±С‹С‚РёРµ РЅР° РЅР°Р¶Р°С‚РёРµ РєР»Р°РІРёС€Рё РЅР° РєР»Р°РІРёР°С‚СѓСЂРµ.
+ *  Р—Р°РєСЂС‹РІР°РµС‚ РѕРєРЅРѕ РµСЃР»Рё Р±С‹Р»Р° РЅР°Р¶Р°С‚Р° РєР»Р°РІРёС€Р° Escape
  *}
 procedure TFormNewName.FormKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
@@ -68,16 +77,21 @@ begin
     Close;
 end;
 
-{*  Добавление или изменение текста компонентов в зависимости
- *  от выбранного языка приложений
+function InsertTextUnicode(Text: string): string;
+begin
+  Result := {$IFDEF FPC}UTF8Encode{$ENDIF}(Text);
+end;
+
+{*  Р”РѕР±Р°РІР»РµРЅРёРµ РёР»Рё РёР·РјРµРЅРµРЅРёРµ С‚РµРєСЃС‚Р° РєРѕРјРїРѕРЅРµРЅС‚РѕРІ РІ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё
+ *  РѕС‚ РІС‹Р±СЂР°РЅРЅРѕРіРѕ СЏР·С‹РєР° РїСЂРёР»РѕР¶РµРЅРёР№
  *}
 procedure TFormNewName.InsertCaptions;
 begin
-  // TODO: Добавить источник слов
-  Caption := 'Новое имя';
-  labTitle.Caption := 'Введите новое имя:';
-  btnChange.Caption := 'Изменить';
-  btnCancel.Caption := 'Отмена';
+  // TODO: Р”РѕР±Р°РІРёС‚СЊ РёСЃС‚РѕС‡РЅРёРє СЃР»РѕРІ
+  Caption := InsertTextUnicode('РќРѕРІРѕРµ РёРјСЏ');
+  labTitle.Caption := InsertTextUnicode('Р’РІРµРґРёС‚Рµ РЅРѕРІРѕРµ РёРјСЏ:');
+  btnChange.Caption := InsertTextUnicode('РР·РјРµРЅРёС‚СЊ');
+  btnCancel.Caption := InsertTextUnicode('РћС‚РјРµРЅР°');
 end;
 
 end.

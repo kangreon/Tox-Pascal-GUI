@@ -16,3 +16,5 @@ Win32/*
 *.compiled
 *.or
 tox.res
+*.dbg
+*.db

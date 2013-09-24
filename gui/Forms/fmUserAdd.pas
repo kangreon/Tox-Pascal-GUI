@@ -120,10 +120,11 @@ begin
 end;
 
 procedure TFormUserAdd.FormCreate(Sender: TObject);
+var
+  Style: Cardinal;
 begin
   InsertCaptions;
   {$IFDEF NEW_DELPHI}
-  ParentBackground := False;
   gbFriendAdd.ParentBackground := False;
   {$ENDIF}
   gbFriendAdd.DoubleBuffered := True;

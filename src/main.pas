@@ -10,30 +10,25 @@
 unit main;
 
 interface
-{$I tox.inc}
+  {$I tox.inc}
 
 uses
   {$I tox-uses.inc}
   SysUtils, Controls, Forms, Classes, Dialogs, StdCtrls, toxcore, Settings,
   ServerList, ClientAddress, libtox, StringUtils, ExtCtrls, UserStatus,
-  FriendList, ControlPanel, fmUserAdd, fmNewName;
+  FriendList, ControlPanel, fmUserAdd, fmNewName, UserList;
 
 type
   { TForm1 }
   TForm1 = class(TForm)
     Memo1: TMemo;
     Panel1: TPanel;
-    Edit1: TEdit;
-    Button1: TButton;
-    Edit2: TEdit;
     Edit3: TEdit;
     Button2: TButton;
     ListBox1: TListBox;
     Edit4: TEdit;
     procedure FormCreate(Sender: TObject);
-    procedure btnAddUser(Sender: TObject);
     procedure Button2Click(Sender: TObject);
-    procedure Edit1Change(Sender: TObject);
   private
     FSettings: TSettings;
     FToxCore: TToxCore;
@@ -58,6 +53,7 @@ type
     procedure UserStatusStateChange(Sender: TObject; UserState: TState);
     procedure UserStatusChangeName(Sender: TObject);
   private
+    FUserList: TUserList;
     FUserStatus: TUserStatus;
     FControlPanel: TControlPanel;
     FToxLoadError: Boolean;
@@ -74,35 +70,15 @@ implementation
 
 {$R *.dfm}
 
-procedure TForm1.btnAddUser(Sender: TObject);
-var
-  Address: TClientAddress;
-  FriendNumber: Integer;
-  Faerr: TToxFaerr;
-  s: string;
-begin
-  Address := TClientAddress.Create;
-  try
-    Address.DataHex := Edit1.Text;
-    Faerr := FToxCore.AddFriend(Address, Edit2.Text, FriendNumber);
-    if Faerr <> tfFriendNumber then
-    begin
-      s := ('Ошибка добавления: ' + IntToStr(Integer(Faerr)));
-      MessageBox(Handle, PChar(s), 'Ошибка', MB_ICONERROR);
-    end;
-  finally
-    Address.Free;
-  end;
-end;
-
 procedure TForm1.Button2Click(Sender: TObject);
+var
+  i: Integer;
 begin
-  FToxCore.SendMessage(StrToInt(Edit4.Text), Edit3.Text);
-end;
-
-procedure TForm1.Edit1Change(Sender: TObject);
-begin
-  FUserStatus.UserName := Edit1.Text;
+  if TryStrToInt(Edit4.Text, i) then
+  begin
+    FToxCore.SendMessage(i, Edit3.Text);
+    Edit3.Clear;
+  end;
 end;
 
 procedure TForm1.FormCreate(Sender: TObject);
@@ -110,6 +86,7 @@ var
   FriendList: TFriendList;
   c, i: Integer;
 begin
+  Caption := 'Demo Tox GUI';
   FToxLoadError := False;
 
   FSettings := TSettings.Create;
@@ -133,7 +110,6 @@ begin
   FToxCore.OnUserStatus := ToxUserStatus;
   FToxCore.OnReadReceipt := ToxReadReceipt;
   FToxCore.OnConnectioStatus := ToxConnectionStatus;
-  //FToxCore.UserName := 'Dima';
 
   Memo1.Lines.Add(FToxCore.YourAddress.DataHex);
 
@@ -154,14 +130,26 @@ end;
 procedure TForm1.InitGui;
 var
   LeftPanel: TPanel;
+  RightPanel: TPanel;
 begin
   LeftPanel := TPanel.Create(Self);
   LeftPanel.Parent := Self;
   LeftPanel.Align := alLeft;
   LeftPanel.Width := 223;
   LeftPanel.BevelOuter := bvNone;
+//  LeftPanel.Color := 0;
+  LeftPanel.DoubleBuffered := True;
   {$IFNDEF FPC}
   LeftPanel.ParentBackground := False;
+  {$ENDIF}
+
+  RightPanel := TPanel.Create(Self);
+  RightPanel.Parent := Self;
+  RightPanel.Align := alClient;
+  RightPanel.BevelOuter := bvNone;
+  RightPanel.Color := $F2F2F1;
+  {$IFNDEF FPC}
+  RightPanel.ParentBackground := False;
   {$ENDIF}
 
   FUserStatus := TUserStatus.Create(LeftPanel);
@@ -175,6 +163,25 @@ begin
   FControlPanel.Parent := LeftPanel;
   FControlPanel.Align := alBottom;
   FControlPanel.OnClick := ControlPanelClick;
+
+  FUserList := TUserList.Create(LeftPanel);
+  FUserList.Align := alClient;
+  FUserList.Parent := LeftPanel;
+
+  //TODO: Временно. Пока не будет заменено настоящими компонентами
+  Panel1.Parent := RightPanel;
+  {$IFNDEF FPC}
+  Panel1.ParentBackground := False;
+  {$ENDIF}
+  Panel1.Visible := False;
+  ListBox1.Parent := LeftPanel;
+  ListBox1.Align := alClient;
+  ListBox1.Visible := False;
+  Memo1.Parent := RightPanel;
+  Memo1.Align := alClient;
+  Memo1.DoubleBuffered := True;
+  Memo1.Color := $F2F2F1;
+//  Memo1.Visible := False;
 end;
 
 {

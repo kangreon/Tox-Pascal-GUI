@@ -63,7 +63,9 @@
       <Unit4>
         <Filename Value="gui\Forms\fmUserAdd.pas"/>
         <IsPartOfProject Value="True"/>
+        <ComponentName Value="FormUserAdd"/>
         <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
         <UnitName Value="fmUserAdd"/>
       </Unit4>
       <Unit5>
@@ -81,7 +83,10 @@
       <Unit7>
         <Filename Value="src\main.pas"/>
         <IsPartOfProject Value="True"/>
+        <ComponentName Value="Form1"/>
         <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="main"/>
       </Unit7>
       <Unit8>
         <Filename Value="src\libtox.pas"/>
@@ -145,7 +150,7 @@
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <SearchPaths>
-      <IncludeFiles Value="src;gui;gui\Forms"/>
+      <IncludeFiles Value="src;gui;gui\Forms;$(ProjOutDir)"/>
       <OtherUnitFiles Value="gui;src;gui\Forms"/>
     </SearchPaths>
     <Parsing>
@@ -156,7 +161,6 @@
     </Parsing>
     <Linking>
       <Debugging>
-        <GenerateDebugInfo Value="False"/>
         <UseExternalDbgSyms Value="True"/>
       </Debugging>
       <Options>

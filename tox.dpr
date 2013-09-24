@@ -18,15 +18,14 @@ program tox;
 {$ELSE}
   {$R tox-res.res}
   {$R images.res}
+//  {$R tox-res.res}
+//  {$R images.res}
 {$ENDIF}
 
 uses
-  {$IFDEF FPC}
-  {$IFDEF UNIX}
-  cthreads,
-  {$ENDIF }
-  Interfaces,
-  {$ENDIF }
+//  {$IFDEF FPC}{$IFDEF UNIX}cthreads,{$ENDIF}Interfaces,{$ENDIF}
+  {$IFDEF FPC}{$IFDEF UNIX}cthreads,{$ENDIF}Interfaces,{$ENDIF}
+
   Forms,
   Dialogs,
   main in 'src\main.pas' {Form1},
@@ -48,7 +47,11 @@ uses
   ControlPanel in 'gui\ControlPanel.pas',
   ButtonActive in 'gui\ButtonActive.pas',
   fmUserAdd in 'gui\Forms\fmUserAdd.pas' {FormUserAdd},
-  fmNewName in 'gui\Forms\fmNewName.pas' {FormNewName};
+  fmNewName in 'gui\Forms\fmNewName.pas' {FormNewName},
+  UserList in 'gui\UserList.pas',
+  UserListStyle in 'gui\UserListStyle.pas',
+  ScrollBarNormal in 'gui\ScrollBarNormal.pas',
+  ScrollBarNormalStyle in 'gui\ScrollBarNormalStyle.pas';
 
 {*  Вывод сообщения об ошибке загрузки библиотеки libtoxcore
  *}

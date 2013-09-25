@@ -14,7 +14,7 @@ interface
   {$I tox.inc}
 
 uses
-  Controls, UserListStyle, ScrollBarNormal;
+  Controls, SysUtils, UserListStyle, ScrollBarNormal;
 
 type
   TUserList = class(TWinControl)
@@ -36,8 +36,6 @@ procedure TUserList.CreateWnd;
 begin
   inherited;
   DoubleBuffered := True;
-
-
   Color := TUserListStyle.BackgroundColor;
 
   FScroll := TScrollBarNormal.Create(Self);
@@ -45,7 +43,7 @@ begin
   FScroll.Align := alRight;
   FScroll.Width := TUserListStyle.ScrollWidth;
   FScroll.PageSize := Height;
-  FScroll.ListSize := Height * 3;
+  FScroll.ListSize := 500;
   FScroll.Position := 20;
 end;
 

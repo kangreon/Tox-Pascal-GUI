@@ -18,3 +18,4 @@ Win32/*
 tox.res
 *.dbg
 *.db
+.lps

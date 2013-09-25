@@ -86,6 +86,9 @@ var
   FriendList: TFriendList;
   c, i: Integer;
 begin
+  ClientHeight := 500;
+  ClientWidth := 750;
+
   Caption := 'Demo Tox GUI';
   FToxLoadError := False;
 
@@ -137,7 +140,8 @@ begin
   LeftPanel.Align := alLeft;
   LeftPanel.Width := 223;
   LeftPanel.BevelOuter := bvNone;
-//  LeftPanel.Color := 0;
+  // Устраняет проблему при изменении размера формы.
+  // Проблема заключается в проступании цвета формы-родителя.
   LeftPanel.DoubleBuffered := True;
   {$IFNDEF FPC}
   LeftPanel.ParentBackground := False;
@@ -181,7 +185,6 @@ begin
   Memo1.Align := alClient;
   Memo1.DoubleBuffered := True;
   Memo1.Color := $F2F2F1;
-//  Memo1.Visible := False;
 end;
 
 {

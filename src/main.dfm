@@ -1,7 +1,6 @@
 object Form1: TForm1
-  Left = 179
-  Top = 130
-  ActiveControl = Panel1
+  Left = 214
+  Top = 135
   Caption = 'Form1'
   ClientHeight = 180
   ClientWidth = 312
@@ -37,7 +36,6 @@ object Form1: TForm1
       Height = 33
       Align = alClient
       TabOrder = 0
-      ExplicitHeight = 21
     end
     object Button2: TButton
       Left = 220
@@ -57,7 +55,6 @@ object Form1: TForm1
       Align = alLeft
       TabOrder = 2
       Text = '0'
-      ExplicitHeight = 21
     end
   end
   object ListBox1: TListBox
@@ -65,7 +62,6 @@ object Form1: TForm1
     Top = 8
     Width = 71
     Height = 81
-    ItemHeight = 13
     TabOrder = 2
   end
 end

@@ -1,6 +1,6 @@
-//  ScrollBarNormal.pas
+п»ї//  ScrollBarNormal.pas
 //
-//  Обычная полоса прокрутки с настраиваемым стилем
+//  РћР±С‹С‡РЅР°СЏ РїРѕР»РѕСЃР° РїСЂРѕРєСЂСѓС‚РєРё СЃ РЅР°СЃС‚СЂР°РёРІР°РµРјС‹Рј СЃС‚РёР»РµРј
 //
 //  The MIT License (MIT)
 //
@@ -12,10 +12,10 @@ interface
   {$I tox.inc}
 
 uses
-  Graphics, Types, Controls, ScrollBarNormalStyle;
+  Classes, Graphics, SysUtils, Types, Controls, ScrollBarNormalStyle;
 
 type
-  TScrollBarNormal = class(TCustomControl)
+  TScrollBarNormal = class(TGraphicControl)
   private
     FPageSize: Integer;
     FPosition: Integer;
@@ -24,9 +24,11 @@ type
     procedure SetPosition(const Value: Integer);
     procedure SetListSize(const Value: Integer);
   protected
-    procedure CreateWnd; override;
     procedure Paint; override;
   public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+
     property ListSize: Integer read FListSize write SetListSize;
     property PageSize: Integer read FPageSize write SetPageSize;
     property Position: Integer read FPosition write SetPosition;
@@ -36,16 +38,20 @@ implementation
 
 { TScrollBarNormal }
 
-procedure TScrollBarNormal.CreateWnd;
+constructor TScrollBarNormal.Create(AOwner: TComponent);
 begin
   inherited;
-  DoubleBuffered := True;
-
   Constraints.MinWidth := TSBNStyle.MinWidth;
-  Color := TSBNStyle.BackgroundColor;
 end;
 
-{*  Рисование полоски прокрутки с активным стилем
+
+destructor TScrollBarNormal.Destroy;
+begin
+
+  inherited;
+end;
+
+{*  Р РёСЃРѕРІР°РЅРёРµ РїРѕР»РѕСЃРєРё РїСЂРѕРєСЂСѓС‚РєРё СЃ Р°РєС‚РёРІРЅС‹Рј СЃС‚РёР»РµРј
  *
  *}
 procedure TScrollBarNormal.Paint;
@@ -60,6 +66,10 @@ var
   SliderRect: TRect;
 begin
   inherited;
+
+  // Р—Р°СЂРёСЃРѕРІРєР° С„РѕРЅР°
+  Canvas.Brush.Color := TSBNStyle.BackgroundColor;
+  Canvas.FillRect(Canvas.ClipRect);
 
   if (ListSize <= PageSize) or (FListSize <= 0) or (FPageSize <= 0) then
   begin

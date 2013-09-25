@@ -120,8 +120,6 @@ begin
 end;
 
 procedure TFormUserAdd.FormCreate(Sender: TObject);
-var
-  Style: Cardinal;
 begin
   InsertCaptions;
   {$IFDEF NEW_DELPHI}

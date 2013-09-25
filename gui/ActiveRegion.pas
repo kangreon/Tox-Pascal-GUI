@@ -1,6 +1,6 @@
-//  ActiveRegion.pas
+п»ї//  ActiveRegion.pas
 //
-//  Отлавливает различные события мыши в указанном регионе формы
+//  РћС‚Р»Р°РІР»РёРІР°РµС‚ СЂР°Р·Р»РёС‡РЅС‹Рµ СЃРѕР±С‹С‚РёСЏ РјС‹С€Рё РІ СѓРєР°Р·Р°РЅРЅРѕРј СЂРµРіРёРѕРЅРµ С„РѕСЂРјС‹
 //
 //  The MIT License (MIT)
 //
@@ -15,11 +15,11 @@ uses
   Controls, Classes, Messages;
 
 type
-  { Перечисление событий, создаваемых классом }
+  { РџРµСЂРµС‡РёСЃР»РµРЅРёРµ СЃРѕР±С‹С‚РёР№, СЃРѕР·РґР°РІР°РµРјС‹С… РєР»Р°СЃСЃРѕРј }
   TRegionMessage = (rmMouseEnter, rmMouseLeave, rmMouseMove, rmMouseDown,
     rmMouseUp, rmMouseClick, rmMouseDblClick);
 
-  { Состоянние нажатия на регион мышью }
+  { РЎРѕСЃС‚РѕСЏРЅРЅРёРµ РЅР°Р¶Р°С‚РёСЏ РЅР° СЂРµРіРёРѕРЅ РјС‹С€СЊСЋ }
   TDownState = (dsNone, dsActive, dsDown);
 
   TProcCursorMessage = procedure(Sender: TObject; RegionMessage: TRegionMessage;
@@ -45,6 +45,13 @@ type
   public
     property OnCursorMessage: TProcCursorMessage read FOnCursorMessage write FOnCursorMessage;
   end;
+
+{$IFDEF FPC}
+const
+  CM_BASE                   = $B000;
+  CM_MOUSEENTER             = CM_BASE + 19;
+  CM_MOUSELEAVE             = CM_BASE + 20;
+{$ENDIF}
 
 implementation
 
@@ -95,15 +102,9 @@ begin
   EventCursorMessage(rmMouseUp, X, Y, Button, Shift);
 end;
 
-{*  Отловка событий входа и выхода курсора на выделенный регион
+{*  РћС‚Р»РѕРІРєР° СЃРѕР±С‹С‚РёР№ РІС…РѕРґР° Рё РІС‹С…РѕРґР° РєСѓСЂСЃРѕСЂР° РЅР° РІС‹РґРµР»РµРЅРЅС‹Р№ СЂРµРіРёРѕРЅ
  *}
 procedure TActiveRegion.WndProc(var Message: TMessage);
-{$IFDEF FPC}
-const
-  CM_BASE                   = $B000;
-  CM_MOUSEENTER             = CM_BASE + 19;
-  CM_MOUSELEAVE             = CM_BASE + 20;
-{$ENDIF}
 begin
   inherited;
   case Message.Msg of

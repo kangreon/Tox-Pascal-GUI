@@ -19,6 +19,7 @@ object Form1: TForm1
     Top = 8
     Width = 71
     Height = 81
+    TabStop = False
     TabOrder = 0
   end
   object Panel1: TPanel
@@ -29,6 +30,7 @@ object Form1: TForm1
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 1
+    Visible = False
     object Edit3: TEdit
       Left = 58
       Top = 0
@@ -36,6 +38,7 @@ object Form1: TForm1
       Height = 33
       Align = alClient
       TabOrder = 0
+      ExplicitHeight = 21
     end
     object Button2: TButton
       Left = 220
@@ -55,6 +58,7 @@ object Form1: TForm1
       Align = alLeft
       TabOrder = 2
       Text = '0'
+      ExplicitHeight = 21
     end
   end
   object ListBox1: TListBox
@@ -62,6 +66,8 @@ object Form1: TForm1
     Top = 8
     Width = 71
     Height = 81
+    TabStop = False
+    ItemHeight = 13
     TabOrder = 2
   end
 end

@@ -14,15 +14,24 @@ interface
   {$I tox.inc}
 
 uses
-  Controls, SysUtils, UserListStyle, ScrollBarNormal;
+  Controls, Classes, Types, SysUtils, UserListStyle, ScrollBarNormal, Messages,
+  ActiveRegion;
 
 type
-  TUserList = class(TWinControl)
+
+  TUserList = class(TCustomControl)
   private
     FScroll: TScrollBarNormal;
+    procedure ScrollOnScroll(Sender: TObject);
   protected
     procedure CreateWnd; override;
+    function DoMouseWheelDown(Shift: TShiftState; MousePos: TPoint): Boolean; override;
+    function DoMouseWheelUp(Shift: TShiftState; MousePos: TPoint): Boolean; override;
     procedure Resize; override;
+    procedure WndProc(var Message: TMessage); override;
+  public
+    property Scroll: TScrollBarNormal read FScroll;
+
   end;
 
 implementation
@@ -45,6 +54,19 @@ begin
   FScroll.PageSize := Height;
   FScroll.ListSize := 500;
   FScroll.Position := 20;
+  FScroll.OnScroll := ScrollOnScroll;
+end;
+
+function TUserList.DoMouseWheelDown(Shift: TShiftState;
+  MousePos: TPoint): Boolean;
+begin
+  FScroll.Position := FScroll.Position + 5;
+end;
+
+function TUserList.DoMouseWheelUp(Shift: TShiftState;
+  MousePos: TPoint): Boolean;
+begin
+  FScroll.Position := FScroll.Position - 5;
 end;
 
 procedure TUserList.Resize;
@@ -52,6 +74,20 @@ begin
   inherited;
   if Assigned(FScroll) then
     FScroll.PageSize := ClientHeight;
+end;
+
+procedure TUserList.WndProc(var Message: TMessage);
+begin
+  inherited;
+  case Message.Msg of
+    CM_MOUSEENTER:
+      SetFocus;
+  end;
+end;
+
+procedure TUserList.ScrollOnScroll(Sender: TObject);
+begin
+
 end;
 
 end.

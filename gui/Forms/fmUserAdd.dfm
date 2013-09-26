@@ -1,4 +1,4 @@
-object FormUserAdd: TFormUserAdd
+﻿object FormUserAdd: TFormUserAdd
   Left = 0
   Top = 0
   BorderIcons = [biSystemMenu]

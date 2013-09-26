@@ -1,4 +1,4 @@
-object FormNewName: TFormNewName
+﻿object FormNewName: TFormNewName
   Left = 471
   Top = 113
   BorderIcons = [biSystemMenu]

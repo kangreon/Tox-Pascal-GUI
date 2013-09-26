@@ -1,6 +1,6 @@
-//  MessageList.pas
+п»ї//  MessageList.pas
 //
-//  Осуществляет доступ к сообщениям, хранящимся в базе данных
+//  РћСЃСѓС‰РµСЃС‚РІР»СЏРµС‚ РґРѕСЃС‚СѓРї Рє СЃРѕРѕР±С‰РµРЅРёСЏРј, С…СЂР°РЅСЏС‰РёРјСЃСЏ РІ Р±Р°Р·Рµ РґР°РЅРЅС‹С…
 //
 //  The MIT License (MIT)
 //
@@ -17,7 +17,7 @@ uses
 type
   TMessageStatus = (msSending, msSend);
 
-  // Класс, описывающий одно сообщение
+  // РљР»Р°СЃСЃ, РѕРїРёСЃС‹РІР°СЋС‰РёР№ РѕРґРЅРѕ СЃРѕРѕР±С‰РµРЅРёРµ
   TMessageItem = class
   private
     FTime: TDateTime;
@@ -26,22 +26,22 @@ type
     FFriendId: AnsiString;
     FStatusSend: Boolean;
   public
-    // Время отправки сообщения
+    // Р’СЂРµРјСЏ РѕС‚РїСЂР°РІРєРё СЃРѕРѕР±С‰РµРЅРёСЏ
     property Time: TDateTime read FTime;
-    // Текст сообщения
+    // РўРµРєСЃС‚ СЃРѕРѕР±С‰РµРЅРёСЏ
     property Text: DataString read FText;
-    // Отправлено ли это сообщение пользователем для Вас
+    // РћС‚РїСЂР°РІР»РµРЅРѕ Р»Рё СЌС‚Рѕ СЃРѕРѕР±С‰РµРЅРёРµ РїРѕР»СЊР·РѕРІР°С‚РµР»РµРј РґР»СЏ Р’Р°СЃ
     property UserMessage: Boolean read FUserMessage;
-    // Публичный ключ пользователя
+    // РџСѓР±Р»РёС‡РЅС‹Р№ РєР»СЋС‡ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
     property FriendId: AnsiString read FFriendId;
-    // Состояние доставки сообщения пользователю
+    // РЎРѕСЃС‚РѕСЏРЅРёРµ РґРѕСЃС‚Р°РІРєРё СЃРѕРѕР±С‰РµРЅРёСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЋ
     property StatusSend: Boolean read FStatusSend;
   end;
 
   TMessageArray = array of TMessageItem;
 
-  //TODO: Для хранения базы данных использовать SQLite
-  //TODO: FriendId хранится в отдельной таблице и соответствует ему уникальный номер
+  //TODO: Р”Р»СЏ С…СЂР°РЅРµРЅРёСЏ Р±Р°Р·С‹ РґР°РЅРЅС‹С… РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ SQLite
+  //TODO: FriendId С…СЂР°РЅРёС‚СЃСЏ РІ РѕС‚РґРµР»СЊРЅРѕР№ С‚Р°Р±Р»РёС†Рµ Рё СЃРѕРѕС‚РІРµС‚СЃС‚РІСѓРµС‚ РµРјСѓ СѓРЅРёРєР°Р»СЊРЅС‹Р№ РЅРѕРјРµСЂ
   TMessageList = class
   public
     constructor Create;
@@ -69,26 +69,26 @@ begin
   inherited;
 end;
 
-// Возвращает количество сообщений для выбранного пользователя,
-// хранящихся в базе данных
+// Р’РѕР·РІСЂР°С‰Р°РµС‚ РєРѕР»РёС‡РµСЃС‚РІРѕ СЃРѕРѕР±С‰РµРЅРёР№ РґР»СЏ РІС‹Р±СЂР°РЅРЅРѕРіРѕ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ,
+// С…СЂР°РЅСЏС‰РёС…СЃСЏ РІ Р±Р°Р·Рµ РґР°РЅРЅС‹С…
 function TMessageList.GetMessageCount(FriendId: AnsiString): Integer;
 begin
-  Result := 0; // TODO: Реализовать
+  Result := 0; // TODO: Р РµР°Р»РёР·РѕРІР°С‚СЊ
 end;
 
-// Загружает из базы данных сообщения, которые относятся к выбранному
-// пользователю из заданного диапазона
+// Р—Р°РіСЂСѓР¶Р°РµС‚ РёР· Р±Р°Р·С‹ РґР°РЅРЅС‹С… СЃРѕРѕР±С‰РµРЅРёСЏ, РєРѕС‚РѕСЂС‹Рµ РѕС‚РЅРѕСЃСЏС‚СЃСЏ Рє РІС‹Р±СЂР°РЅРЅРѕРјСѓ
+// РїРѕР»СЊР·РѕРІР°С‚РµР»СЋ РёР· Р·Р°РґР°РЅРЅРѕРіРѕ РґРёР°РїР°Р·РѕРЅР°
 function TMessageList.GetMessageRange(FriendId: AnsiString; StartRange,
   EndRange: Integer; var Messages: TMessageArray): Boolean;
 begin
-  Result := False; // TODO: Реализовать
+  Result := False; // TODO: Р РµР°Р»РёР·РѕРІР°С‚СЊ
 end;
 
-// Добавляет новое сообщение в базу данных
+// Р”РѕР±Р°РІР»СЏРµС‚ РЅРѕРІРѕРµ СЃРѕРѕР±С‰РµРЅРёРµ РІ Р±Р°Р·Сѓ РґР°РЅРЅС‹С…
 procedure TMessageList.SetMessage(FriendId: AnsiString; Text: DataString;
   UserMessage: Boolean);
 begin
-// TODO: Реализовать
+// TODO: Р РµР°Р»РёР·РѕРІР°С‚СЊ
 end;
 
 end.

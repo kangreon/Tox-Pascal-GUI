@@ -1,7 +1,7 @@
-//  StringUtils
+п»ї//  StringUtils
 //
-//  Этот файл содержит определение нового типа строки и содержит функции
-//  кодирования строк.
+//  Р­С‚РѕС‚ С„Р°Р№Р» СЃРѕРґРµСЂР¶РёС‚ РѕРїСЂРµРґРµР»РµРЅРёРµ РЅРѕРІРѕРіРѕ С‚РёРїР° СЃС‚СЂРѕРєРё Рё СЃРѕРґРµСЂР¶РёС‚ С„СѓРЅРєС†РёРё
+//  РєРѕРґРёСЂРѕРІР°РЅРёСЏ СЃС‚СЂРѕРє.
 //
 //  The MIT License (MIT)
 //
@@ -20,7 +20,7 @@ function GetUtf8Text(text: DataString; out data_size: Integer): PByte;
 
 implementation
 
-// Конвертирует строку в кодировку UTF8
+// РљРѕРЅРІРµСЂС‚РёСЂСѓРµС‚ СЃС‚СЂРѕРєСѓ РІ РєРѕРґРёСЂРѕРІРєСѓ UTF8
 function GetUtf8Text(text: DataString; out data_size: Integer): PByte;
 var
   {$IFDEF NEW_DELPHI}

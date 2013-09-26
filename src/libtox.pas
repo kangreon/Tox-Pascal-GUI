@@ -1,6 +1,6 @@
-//  libtox.pas
+п»ї//  libtox.pas
 //
-//  Обертка для библиотеки libtox.
+//  РћР±РµСЂС‚РєР° РґР»СЏ Р±РёР±Р»РёРѕС‚РµРєРё libtox.
 //
 //  The MIT License (MIT)
 //
@@ -390,7 +390,7 @@ procedure tox_save(tox: TTox; data: PByte);
 //int tox_load(Tox *tox, uint8_t *data, uint32_t length);
 function tox_load(tox: TTox; data: PByte; length: Integer): Integer;
 
-// Возвращает результат загрузки библиотеки Tox
+// Р’РѕР·РІСЂР°С‰Р°РµС‚ СЂРµР·СѓР»СЊС‚Р°С‚ Р·Р°РіСЂСѓР·РєРё Р±РёР±Р»РёРѕС‚РµРєРё Tox
 function ToxLoaded: Boolean;
 
 implementation
@@ -648,7 +648,7 @@ begin
 end;
 
 {
-   Загрузка библиотеки и получение адресов функции
+   Р—Р°РіСЂСѓР·РєР° Р±РёР±Р»РёРѕС‚РµРєРё Рё РїРѕР»СѓС‡РµРЅРёРµ Р°РґСЂРµСЃРѕРІ С„СѓРЅРєС†РёРё
                                                                               }
 procedure LoadLibraryTox;
 var

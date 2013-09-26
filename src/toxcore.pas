@@ -1,6 +1,6 @@
-//  toxcore.pas
+п»ї//  toxcore.pas
 //
-//  Класс-обертка над заголовочным файлом для библиотеки libtox
+//  РљР»Р°СЃСЃ-РѕР±РµСЂС‚РєР° РЅР°Рґ Р·Р°РіРѕР»РѕРІРѕС‡РЅС‹Рј С„Р°Р№Р»РѕРј РґР»СЏ Р±РёР±Р»РёРѕС‚РµРєРё libtox
 //
 //  The MIT License (MIT)
 //
@@ -234,7 +234,7 @@ end;
 { TToxCore }
 
 
-// Отправка запроса на дружбу с приветственным сообщением
+// РћС‚РїСЂР°РІРєР° Р·Р°РїСЂРѕСЃР° РЅР° РґСЂСѓР¶Р±Сѓ СЃ РїСЂРёРІРµС‚СЃС‚РІРµРЅРЅС‹Рј СЃРѕРѕР±С‰РµРЅРёРµРј
 function TToxCore.AddFriend(Address: TClientAddress; HelloMessage: DataString;
   out FriendNumber: Integer): TToxFaerr;
 var
@@ -282,7 +282,7 @@ begin
   FStatusOnline := False;
   FStartThread := False;
 
-  // Загрузить Tox только в случае успешной загрузки библиотеки Tox
+  // Р—Р°РіСЂСѓР·РёС‚СЊ Tox С‚РѕР»СЊРєРѕ РІ СЃР»СѓС‡Р°Рµ СѓСЃРїРµС€РЅРѕР№ Р·Р°РіСЂСѓР·РєРё Р±РёР±Р»РёРѕС‚РµРєРё Tox
   FIsLoadLibrary := ToxLoaded;
   if IsLoadLibrary then
     InitTox;
@@ -293,8 +293,8 @@ begin
   EventAction(FriendNumber, Action);
 end;
 
-// Событие, возникаемое когда пользователь захродит в сеть или
-// выходит из нее
+// РЎРѕР±С‹С‚РёРµ, РІРѕР·РЅРёРєР°РµРјРѕРµ РєРѕРіРґР° РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ Р·Р°С…СЂРѕРґРёС‚ РІ СЃРµС‚СЊ РёР»Рё
+// РІС‹С…РѕРґРёС‚ РёР· РЅРµРµ
 procedure TToxCore.DoConnectionStatus(FriendNumber: Integer; Status: Byte);
 var
   Item: TFriendItem;
@@ -321,18 +321,18 @@ begin
     SaveData;
   end
   else
-    raise Exception.Create('Error client id');     //TODO: Изменить способ уведомления об ошибке
+    raise Exception.Create('Error client id');     //TODO: РР·РјРµРЅРёС‚СЊ СЃРїРѕСЃРѕР± СѓРІРµРґРѕРјР»РµРЅРёСЏ РѕР± РѕС€РёР±РєРµ
 end;
 
-// Событие, вызываемое при изменении имени пользоватея одного из
-// списка друзей.
+// РЎРѕР±С‹С‚РёРµ, РІС‹Р·С‹РІР°РµРјРѕРµ РїСЂРё РёР·РјРµРЅРµРЅРёРё РёРјРµРЅРё РїРѕР»СЊР·РѕРІР°С‚РµСЏ РѕРґРЅРѕРіРѕ РёР·
+// СЃРїРёСЃРєР° РґСЂСѓР·РµР№.
 procedure TToxCore.DoNameChange(FriendNumber: Integer; NewName: DataString);
 var
   Item: TFriendItem;
 begin
   EventNameChange(FriendNumber, NewName);
 
-  // Изменение имени пользователя в основном списке
+  // РР·РјРµРЅРµРЅРёРµ РёРјРµРЅРё РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РІ РѕСЃРЅРѕРІРЅРѕРј СЃРїРёСЃРєРµ
   Item := FFriendList.Item[FriendNumber];
   if Assigned(Item) then
     Item.UserName := NewName;
@@ -345,7 +345,7 @@ begin
   EventReadReceipt(FriendNumber, Receipt);
 end;
 
-// Событие изменения пользователем статусного сообщения
+// РЎРѕР±С‹С‚РёРµ РёР·РјРµРЅРµРЅРёСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»РµРј СЃС‚Р°С‚СѓСЃРЅРѕРіРѕ СЃРѕРѕР±С‰РµРЅРёСЏ
 procedure TToxCore.DoStatusMessage(FriendNumber: Integer;
   NewStatus: DataString);
 var
@@ -533,15 +533,15 @@ begin
   begin
     if not FStatusOnline then
     begin
-      // Остановка работы TOX
+      // РћСЃС‚Р°РЅРѕРІРєР° СЂР°Р±РѕС‚С‹ TOX
       tox_kill(FTox);
 
-      // Создание события остановки
+      // РЎРѕР·РґР°РЅРёРµ СЃРѕР±С‹С‚РёСЏ РѕСЃС‚Р°РЅРѕРІРєРё
       dht_on := False;
       FConnectState := csOffline;
       EventDisconnect;
 
-      // Ожидание действий пользователя
+      // РћР¶РёРґР°РЅРёРµ РґРµР№СЃС‚РІРёР№ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
       while (not Self.Terminated) and (not FStatusOnline) do
       begin
         Sleep(50);
@@ -606,7 +606,7 @@ begin
     end;
   until (count > 10) or (ret <> 0);
 
-  // Событие начала соединения с выбранным сервером
+  // РЎРѕР±С‹С‚РёРµ РЅР°С‡Р°Р»Р° СЃРѕРµРґРёРЅРµРЅРёСЏ СЃ РІС‹Р±СЂР°РЅРЅС‹Рј СЃРµСЂРІРµСЂРѕРј
   FConnectState := csConnecting;
   EventConnecting(Item);
 end;

@@ -1,7 +1,7 @@
-//  UserStatus.pas
+п»ї//  UserStatus.pas
 //
-//  Виджет текущего состояния пользователя. Генерирует события на изменения
-//  состояния в зависимости от действия пользователя.
+//  Р’РёРґР¶РµС‚ С‚РµРєСѓС‰РµРіРѕ СЃРѕСЃС‚РѕСЏРЅРёСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ. Р“РµРЅРµСЂРёСЂСѓРµС‚ СЃРѕР±С‹С‚РёСЏ РЅР° РёР·РјРµРЅРµРЅРёСЏ
+//  СЃРѕСЃС‚РѕСЏРЅРёСЏ РІ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё РѕС‚ РґРµР№СЃС‚РІРёСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ.
 //
 //  The MIT License (MIT)
 //
@@ -75,18 +75,18 @@ implementation
 constructor TUserStatus.Create(AOwner: TComponent);
 begin
   inherited;
-  // TODO: временно
+  // TODO: РІСЂРµРјРµРЅРЅРѕ
   UserIcon := TUserIcon.Create;
 
   FState := sOffline;
   FRightButtonState := dsNone;
 
-  // Получение ссылки на объект с изображениями
+  // РџРѕР»СѓС‡РµРЅРёРµ СЃСЃС‹Р»РєРё РЅР° РѕР±СЉРµРєС‚ СЃ РёР·РѕР±СЂР°Р¶РµРЅРёСЏРјРё
   FImages := TResourceImage.Clone;
 
   DoubleBuffered := True;
 
-  // Активный регион для правой кнопки изменения статуса
+  // РђРєС‚РёРІРЅС‹Р№ СЂРµРіРёРѕРЅ РґР»СЏ РїСЂР°РІРѕР№ РєРЅРѕРїРєРё РёР·РјРµРЅРµРЅРёСЏ СЃС‚Р°С‚СѓСЃР°
   FRightButtonRegion := TActiveRegion.Create(Self);
   FRightButtonRegion.Parent := Self;
   FRightButtonRegion.Width := TUserStatusStyle.RightButtonWidth;
@@ -94,7 +94,7 @@ begin
   FRightButtonRegion.OnCursorMessage := RightButtonMessage;
   FRightButtonRegion.Cursor := crHandPoint;
 
-  // Активный регион для иконки пользователя
+  // РђРєС‚РёРІРЅС‹Р№ СЂРµРіРёРѕРЅ РґР»СЏ РёРєРѕРЅРєРё РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
   FUserIconRegion := TActiveRegion.Create(Self);
   FUserIconRegion.Parent := Self;
   FUserIconRegion.Width := TUserStatusStyle.IconWidth;
@@ -112,22 +112,22 @@ begin
   FUsernameRegion.Cursor := crHandPoint;
   FUsernameRegion.OnCursorMessage := UserNameMessage;
 
-  // Создание меню для выбора статуса
+  // РЎРѕР·РґР°РЅРёРµ РјРµРЅСЋ РґР»СЏ РІС‹Р±РѕСЂР° СЃС‚Р°С‚СѓСЃР°
   FStateMenu := TPopupMenu.Create(Self);
   FStateMenu.Alignment := paRight;
   FStateMenu.Images := FImages.ImagesMenu;
   UpdateStateMenu;
 
-  // Изображение загрузки
+  // РР·РѕР±СЂР°Р¶РµРЅРёРµ Р·Р°РіСЂСѓР·РєРё
   FImageLoading := TPaintSprite.Create(FImages.LoadingAnimate10, Self);
 end;
 
-{*  Событие вызывается при создании окна
+{*  РЎРѕР±С‹С‚РёРµ РІС‹Р·С‹РІР°РµС‚СЃСЏ РїСЂРё СЃРѕР·РґР°РЅРёРё РѕРєРЅР°
  *}
 procedure TUserStatus.CreateWnd;
 begin
   inherited;
-  // Установка минимального размера компонента
+  // РЈСЃС‚Р°РЅРѕРІРєР° РјРёРЅРёРјР°Р»СЊРЅРѕРіРѕ СЂР°Р·РјРµСЂР° РєРѕРјРїРѕРЅРµРЅС‚Р°
   Constraints.MinWidth := TUserStatusStyle.MinWidth;
   Constraints.MinHeight := TUserStatusStyle.Height;
   Constraints.MaxHeight := TUserStatusStyle.Height;
@@ -135,22 +135,22 @@ begin
   ClientWidth := TUserStatusStyle.MinWidth;
   ClientHeight := TUserStatusStyle.Height;
 
-  // Установка цвета фона
+  // РЈСЃС‚Р°РЅРѕРІРєР° С†РІРµС‚Р° С„РѕРЅР°
   ParentColor := False;
   Color := TUserStatusStyle.BackgroundColor;
 end;
 
-{*  Рисование кнопки, расположенной с правой стороны
- *  компонента. Кнопка изменяет свой вид в зависимости от
- *  действий мыши
- *  Кнопка имеет размер 13xвысота
+{*  Р РёСЃРѕРІР°РЅРёРµ РєРЅРѕРїРєРё, СЂР°СЃРїРѕР»РѕР¶РµРЅРЅРѕР№ СЃ РїСЂР°РІРѕР№ СЃС‚РѕСЂРѕРЅС‹
+ *  РєРѕРјРїРѕРЅРµРЅС‚Р°. РљРЅРѕРїРєР° РёР·РјРµРЅСЏРµС‚ СЃРІРѕР№ РІРёРґ РІ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё РѕС‚
+ *  РґРµР№СЃС‚РІРёР№ РјС‹С€Рё
+ *  РљРЅРѕРїРєР° РёРјРµРµС‚ СЂР°Р·РјРµСЂ 13xРІС‹СЃРѕС‚Р°
  *}
 procedure TUserStatus.DrawRightButton;
 var
   LeftPoint, TopPoint: Integer;
   PaintRect: TRect;
 begin
-  // Обычный цвет кнопки
+  // РћР±С‹С‡РЅС‹Р№ С†РІРµС‚ РєРЅРѕРїРєРё
   case FRightButtonState of
     dsNone:
       Canvas.Brush.Color := TUserStatusStyle.RightButtonBackgroundNormal;
@@ -162,7 +162,7 @@ begin
 
   Canvas.Brush.Style := bsSolid;
 
-  // Рисование фона кнопки
+  // Р РёСЃРѕРІР°РЅРёРµ С„РѕРЅР° РєРЅРѕРїРєРё
   LeftPoint := ClientWidth - TUserStatusStyle.RightButtonWidth;
   TopPoint := 0;
 
@@ -172,20 +172,20 @@ begin
   PaintRect.Bottom := Height;
   Canvas.FillRect(PaintRect);
 
-  // Установка региона для кнопки
+  // РЈСЃС‚Р°РЅРѕРІРєР° СЂРµРіРёРѕРЅР° РґР»СЏ РєРЅРѕРїРєРё
   FRightButtonRegion.Left := LeftPoint;
   FRightButtonRegion.Top := TopPoint;
 
-  // Рисование иконки на кнопке по центру
+  // Р РёСЃРѕРІР°РЅРёРµ РёРєРѕРЅРєРё РЅР° РєРЅРѕРїРєРµ РїРѕ С†РµРЅС‚СЂСѓ
   LeftPoint := ClientWidth - TUserStatusStyle.RightButtonWidth +
     (TUserStatusStyle.RightButtonWidth - FImages.UserstatusButtonDown.Width) div 2;
 
   TopPoint := (ClientHeight - FImages.UserstatusButtonDown.Height) div 2;
   Canvas.Draw(LeftPoint, TopPoint, FImages.UserstatusButtonDown);
 
-  // Рисование иконки текущего состояния пользователя
+  // Р РёСЃРѕРІР°РЅРёРµ РёРєРѕРЅРєРё С‚РµРєСѓС‰РµРіРѕ СЃРѕСЃС‚РѕСЏРЅРёСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
   LeftPoint := ClientWidth - TUserStatusStyle.RightButtonWidth - 16;
-  TopPoint := (ClientHeight - 10) div 2; // 10 - Размер иконки
+  TopPoint := (ClientHeight - 10) div 2; // 10 - Р Р°Р·РјРµСЂ РёРєРѕРЅРєРё
 
   if FState <> sLoading then
     FImageLoading.Stop;
@@ -197,16 +197,16 @@ begin
     sOnline:
       Canvas.Draw(LeftPoint, TopPoint, FImages.StatusOnlineTransporent);
     sAway:
-      // Заменить
+      // Р—Р°РјРµРЅРёС‚СЊ
       Canvas.Draw(LeftPoint, TopPoint, FImages.StatusAwayTransporent);
     sLoading:
       FImageLoading.Draw(Canvas, LeftPoint, TopPoint);
   end;
 end;
 
-{*  Рисует собсвенное изображение пользователя в зависимости от
- *  состояния.
- *  Состояния меняются в зависимости от действий пользователя
+{*  Р РёСЃСѓРµС‚ СЃРѕР±СЃРІРµРЅРЅРѕРµ РёР·РѕР±СЂР°Р¶РµРЅРёРµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РІ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё РѕС‚
+ *  СЃРѕСЃС‚РѕСЏРЅРёСЏ.
+ *  РЎРѕСЃС‚РѕСЏРЅРёСЏ РјРµРЅСЏСЋС‚СЃСЏ РІ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё РѕС‚ РґРµР№СЃС‚РІРёР№ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
  *}
 procedure TUserStatus.DrawUserIcon;
 var
@@ -214,7 +214,7 @@ var
   TopPoint: Integer;
 begin
   LeftPoint := TUserStatusStyle.IconPositionLeft;
-  // Выравнивание по середине высоты
+  // Р’С‹СЂР°РІРЅРёРІР°РЅРёРµ РїРѕ СЃРµСЂРµРґРёРЅРµ РІС‹СЃРѕС‚С‹
   TopPoint := (ClientHeight - FUserIcon.Image.Height) div 2;
 
   FUserIconRegion.Top := TopPoint;
@@ -222,7 +222,7 @@ begin
   Canvas.Draw(LeftPoint, TopPoint, FUserIcon.Image);
 end;
 
-{*  Рисование имени пользователя
+{*  Р РёСЃРѕРІР°РЅРёРµ РёРјРµРЅРё РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
  *}
 procedure TUserStatus.DrawUserName;
 var
@@ -244,7 +244,7 @@ begin
   FUsernameRegion.Width := PaintRect.Right - PaintRect.Left;
 end;
 
-{*  Событие вызывается при перерисовке окна
+{*  РЎРѕР±С‹С‚РёРµ РІС‹Р·С‹РІР°РµС‚СЃСЏ РїСЂРё РїРµСЂРµСЂРёСЃРѕРІРєРµ РѕРєРЅР°
  *}
 procedure TUserStatus.Paint;
 begin
@@ -255,7 +255,7 @@ begin
   DrawUserName;
 end;
 
-{*  Собтие на действия мышью на правой кнопке изменения статуса
+{*  РЎРѕР±С‚РёРµ РЅР° РґРµР№СЃС‚РІРёСЏ РјС‹С€СЊСЋ РЅР° РїСЂР°РІРѕР№ РєРЅРѕРїРєРµ РёР·РјРµРЅРµРЅРёСЏ СЃС‚Р°С‚СѓСЃР°
  *}
 procedure TUserStatus.RightButtonMessage(Sender: TObject; RegionMessage: TRegionMessage;
   const x, y: Integer; Button: TMouseButton; Shift: TShiftState);
@@ -334,7 +334,7 @@ begin
   Invalidate;
 end;
 
-{*  Событие выбора нового статуса пользователя
+{*  РЎРѕР±С‹С‚РёРµ РІС‹Р±РѕСЂР° РЅРѕРІРѕРіРѕ СЃС‚Р°С‚СѓСЃР° РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
  *}
 procedure TUserStatus.StatusMenuOnClick(Sender: TObject);
 var
@@ -351,12 +351,10 @@ begin
 
   if Assigned(FOnStateChange) then
     FOnStateChange(Self, State);
-
-  //Self.State := State;
 end;
 
-{*  Обновление списка контекстного меню для переключения
- *  состояния пользователя
+{*  РћР±РЅРѕРІР»РµРЅРёРµ СЃРїРёСЃРєР° РєРѕРЅС‚РµРєСЃС‚РЅРѕРіРѕ РјРµРЅСЋ РґР»СЏ РїРµСЂРµРєР»СЋС‡РµРЅРёСЏ
+ *  СЃРѕСЃС‚РѕСЏРЅРёСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
  *}
 procedure TUserStatus.UpdateStateMenu;
 var

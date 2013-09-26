@@ -1,6 +1,6 @@
-//  UserStatusStyle.pas
+п»ї//  UserStatusStyle.pas
 //
-//  Описывает постоянные значения GUI для виджета статуса пользователя
+//  РћРїРёСЃС‹РІР°РµС‚ РїРѕСЃС‚РѕСЏРЅРЅС‹Рµ Р·РЅР°С‡РµРЅРёСЏ GUI РґР»СЏ РІРёРґР¶РµС‚Р° СЃС‚Р°С‚СѓСЃР° РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
 //
 //  The MIT License (MIT)
 //
@@ -16,7 +16,7 @@ uses
   Graphics;
 
 type
-  // TODO: ЗАМЕНИТЬ!!!!
+  // TODO: Р—РђРњР•РќРРўР¬!!!!
   TTUserStatusStyle = class
   private
     function GetBackgroundColor: TColor;
@@ -33,31 +33,31 @@ type
     function GetUserNameMarginTop: Integer;
     function GetUserNameHeight: Integer;
   public
-    // Основной цвет фона
+    // РћСЃРЅРѕРІРЅРѕР№ С†РІРµС‚ С„РѕРЅР°
     property BackgroundColor:TColor read GetBackgroundColor;
-    // Постоянная высота панели
+    // РџРѕСЃС‚РѕСЏРЅРЅР°СЏ РІС‹СЃРѕС‚Р° РїР°РЅРµР»Рё
     property Height: Integer read GetHeight;
-    // Минимальная длина панели
+    // РњРёРЅРёРјР°Р»СЊРЅР°СЏ РґР»РёРЅР° РїР°РЅРµР»Рё
     property MinWidth: Integer read GetMinWidth;
-    // Цвет фона правой кнопки в обычном состоянии
+    // Р¦РІРµС‚ С„РѕРЅР° РїСЂР°РІРѕР№ РєРЅРѕРїРєРё РІ РѕР±С‹С‡РЅРѕРј СЃРѕСЃС‚РѕСЏРЅРёРё
     property RightButtonBackgroundNormal: TColor read GetRightButtonBackgroundNormal;
-    // Цвет фона правой кнопки в состоянии наведения мыши
+    // Р¦РІРµС‚ С„РѕРЅР° РїСЂР°РІРѕР№ РєРЅРѕРїРєРё РІ СЃРѕСЃС‚РѕСЏРЅРёРё РЅР°РІРµРґРµРЅРёСЏ РјС‹С€Рё
     property RightButtonBackgroundActive: TColor read GetRightButtonBackgroundActive;
-    // Цвет фона правой кнопки в состоянии нажатия мыши
+    // Р¦РІРµС‚ С„РѕРЅР° РїСЂР°РІРѕР№ РєРЅРѕРїРєРё РІ СЃРѕСЃС‚РѕСЏРЅРёРё РЅР°Р¶Р°С‚РёСЏ РјС‹С€Рё
     property RightButtonBackgroundDown: TColor read GetRightButtonBackgroundDown;
-    // Ширина правой кнопки
+    // РЁРёСЂРёРЅР° РїСЂР°РІРѕР№ РєРЅРѕРїРєРё
     property RightButtonWidth: Integer read GetRightButtonWidth;
-    // Отступ аваторки пользователя от левого края
+    // РћС‚СЃС‚СѓРї Р°РІР°С‚РѕСЂРєРё РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РѕС‚ Р»РµРІРѕРіРѕ РєСЂР°СЏ
     property IconPositionLeft: Integer read GetIconPositionLeft;
-    // Длина иконки
+    // Р”Р»РёРЅР° РёРєРѕРЅРєРё
     property IconWidth: Integer read GetIconWidth;
-    // Ширина иконки
+    // РЁРёСЂРёРЅР° РёРєРѕРЅРєРё
     property IconHeight: Integer read GetIconHeight;
-    // Отступ для имени с левой стороны
+    // РћС‚СЃС‚СѓРї РґР»СЏ РёРјРµРЅРё СЃ Р»РµРІРѕР№ СЃС‚РѕСЂРѕРЅС‹
     property UserNameMarginLeft: Integer read GetUserNameMarginLeft;
-    // Отступ для имент сверху
+    // РћС‚СЃС‚СѓРї РґР»СЏ РёРјРµРЅС‚ СЃРІРµСЂС…Сѓ
     property UserNameMarginTop: Integer read GetUserNameMarginTop;
-    // Высота имени
+    // Р’С‹СЃРѕС‚Р° РёРјРµРЅРё
     property UserNameHeight: Integer read GetUserNameHeight;
   end;
 

@@ -1,24 +1,11 @@
-del *.o *.ppu *.a *.res~ *.dcu *.ddp *.local *.identcache *.exe *.or *.compiled *.cfg *.dbg *.dof *.lps *.res
-rd __history /S /Q
-rd backup /S /Q
-rd Win32 /S /Q
+@ECHO OFF
 
-cd src
-del *.o *.ppu *.a *.res~ *.dcu *.ddp *.local *.identcache *.exe *.or
-rd __history /S /Q
-rd backup /S /Q
+set REMOVE_EXTENTIONS=*.o *.ppu *.a *.res~ *.dcu *.ddp *.local *.identcache *.exe *.or *.compiled *.cfg *.dbg *.dof *.lps *.res
 
-cd ./../gui
-del *.o *.ppu *.a *.res~ *.dcu *.ddp *.local *.identcache *.exe *.or
-rd __history /S /Q
-rd backup /S /Q
+for /F %%A in ('dir %REMOVE_EXTENTIONS% /b /s /a:-d') do (
+	del /Q %%A
+)
 
-cd ./forms
-del *.o *.ppu *.a *.res~ *.dcu *.ddp *.local *.identcache *.exe *.or
-rd __history /S /Q
-rd backup /S /Q
-
-cd ./../../PngImage_D7
-del *.o *.ppu *.a *.res~ *.dcu *.ddp *.local *.identcache *.exe *.or
-rd __history /S /Q
-rd backup /S /Q
+for /F %%A in ('dir __history backup Win32 /b /s /a:D') do (
+	rd %%A /S /Q
+)

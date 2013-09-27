@@ -25,8 +25,8 @@ type
     IconLeft: Integer               = 8;
     IconMarginRight: Integer        = 8;
 
-    StatusIconMarginLeft: Integer   = 8;
-    StatusIconMarginRight: Integer  = 8;
+    StatusIconMarginLeft: Integer   = 0;
+    StatusIconMarginRight: Integer  = 0;
 
     NameHeight: Integer             = 14;
     StatusHeight: Integer           = 13;

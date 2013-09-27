@@ -99,12 +99,12 @@ begin
   end;
 
   case FSliderState of
-    dsNone:
-      DrawColor := TSBNStyle.SliderColorNormal;
     dsActive:
       DrawColor := TSBNStyle.SliderColorActive;
     dsDown:
       DrawColor := TSBNStyle.SliderColorDown;
+  else
+    DrawColor := TSBNStyle.SliderColorNormal;
   end;
 
   HeightMaximal := ClientHeight - 2;
@@ -140,6 +140,9 @@ var
   LeftDraw, RightDraw: Integer;
   Color, ColorExt: TColor;
 begin
+  ColorExt := TSBNStyle.SliderColorExtNormal;
+  Color := TSBNStyle.SliderColorNormal;
+
   case FSliderState of
     dsNone:
       Color := TSBNStyle.SliderColorNormal;

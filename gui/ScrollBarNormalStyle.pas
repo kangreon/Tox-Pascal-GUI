@@ -29,10 +29,10 @@ type
     SliderColorExtNormal: TColor = $302F30;
     // Цвет активной полоски
     SliderColorActive: TColor = $525051;
-    SliderColorExtActive: TColor = $525051;
+    SliderColorExtActive: TColor = $373637;
     // Цвет Нажатой полоски
     SliderColorDown: TColor = $323031;
-    SliderColorExtDown: TColor = $525051;
+    SliderColorExtDown: TColor = $272627;
     // Минимальный размер слайдера
     SliderMinHeight: Integer = 20;
 

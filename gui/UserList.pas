@@ -68,12 +68,14 @@ function TUserList.DoMouseWheelDown(Shift: TShiftState;
   MousePos: TPoint): Boolean;
 begin
   FScroll.Position := FScroll.Position + 5;
+  Result := True;
 end;
 
 function TUserList.DoMouseWheelUp(Shift: TShiftState;
   MousePos: TPoint): Boolean;
 begin
   FScroll.Position := FScroll.Position - 5;
+  Result := True;
 end;
 
 procedure TUserList.Resize;

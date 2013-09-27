@@ -15,7 +15,7 @@ interface
 uses
   { Png Image для разных компиляторов }
   {$IFDEF NEW_DELPHI}Vcl.Imaging.PngImage,{$ENDIF}
-  ActiveRegion, Graphics, Classes, Controls, Math;
+  ActiveRegion, Graphics, Classes, Controls, Math, ResourceImage;
 
 type
   { Png Image для разных компиляторов }
@@ -28,10 +28,13 @@ type
   TButtonActive = class(TActiveRegion)
   private
     FInserImage: Boolean;
+    FIsImageList: Boolean;
+    FImageListIndexStart: Integer;
     FButtonStyle: TButtonStyle;
     FNormal: TBitmap;
     FActive: TBitmap;
     FDown: TBitmap;
+    FList: TBitmapList;
     FOnClick: TNotifyEvent;
   protected
     procedure CursorMessage(RegionMessage: TRegionMessage; const x, y: Integer;
@@ -42,7 +45,8 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    procedure InsertImage(Normal, Active, Down: TBitmap);
+    procedure InsertImage(Normal, Active, Down: TBitmap); overload;
+    procedure InsertImage(ImageList: TBitmapList; StartIndex: Integer); overload;
 
     property OnClick: TNotifyEvent read FOnClick write FOnCLick;
   end;
@@ -56,6 +60,7 @@ begin
   inherited;
   FInserImage := False;
   FButtonStyle := bsNone;
+  FIsImageList := False;
 
   FActive := TBitmap.Create;
   FNormal := TBitmap.Create;
@@ -68,6 +73,43 @@ begin
   FNormal.Free;
   FDown.Free;
   inherited;
+end;
+
+procedure TButtonActive.InsertImage(ImageList: TBitmapList;
+  StartIndex: Integer);
+var
+  i: Integer;
+  MaxWidth, MaxHeight: Integer;
+begin
+  MaxWidth := 0;
+  MaxHeight := 0;
+
+  if Length(ImageList) > StartIndex + 2 then
+  begin
+    FInserImage := True;
+
+    for i := StartIndex to StartIndex + 2 do
+    begin
+      if Assigned(ImageList[i]) then
+      begin
+        MaxWidth := Max(MaxWidth, ImageList[i].Width);
+        MaxHeight := Max(MaxHeight, ImageList[i].Height);
+      end
+      else
+      begin
+        FInserImage := False;
+      end;
+    end;
+  end;
+
+  if FInserImage then
+  begin
+    Self.Width := MaxWidth;
+    Self.Height := MaxHeight;
+    FIsImageList := True;
+    FList := ImageList;
+    FImageListIndexStart := StartIndex;
+  end;
 end;
 
 {*  Установка состояни кнопки в зависимости от полученных сообщений от
@@ -134,32 +176,44 @@ end;
 procedure TButtonActive.Paint;
 var
   l, t: Integer;
+  Image: TBitmap;
 begin
   inherited;
   if not FInserImage then
     Exit;
 
+  Image := nil;
   case FButtonStyle of
     bsNone:
       begin
-        l := (Width - FNormal.Width) div 2;
-        t := (Height - FNormal.Height) div 2;
-        Canvas.Draw(l, t, FNormal);
+        if FIsImageList then
+          Image := FList[FImageListIndexStart]
+        else
+          Image := FNormal;
       end;
 
     bsActive:
       begin
-        l := (Width - FActive.Width) div 2;
-        t := (Height - FActive.Height) div 2;
-        Canvas.Draw(l, t, FActive);
+        if FIsImageList then
+          Image := FList[FImageListIndexStart + 1]
+        else
+          Image := FActive;
       end;
 
     bsDown:
       begin
-        l := (Width - FDown.Width) div 2;
-        t := (Height - FDown.Height) div 2;
-        Canvas.Draw(l, t, FDown);
+        if FIsImageList then
+          Image := FList[FImageListIndexStart + 2]
+        else
+          Image := FDown;
       end;
+  end;
+
+  if Assigned(Image) then
+  begin
+    l := (Width - Image.Width) div 2;
+    t := (Height - Image.Height) div 2;
+    Canvas.Draw(l, t, Image);
   end;
 end;
 

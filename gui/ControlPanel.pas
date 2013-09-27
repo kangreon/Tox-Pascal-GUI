@@ -79,7 +79,7 @@ begin
   FButtonAddUser := TButtonActive.Create(Self);
   FButtonAddUser.Parent := Self;
   FButtonAddUser.Cursor := crHandPoint;
-  FButtonAddUser.InsertImage(FImages.ButtonAddUserNormal, FImages.ButtonAddUserActive, FImages.ButtonAddUserDown);
+  FButtonAddUser.InsertImage(FImages.ControlButtons, 0);
   FButtonAddUser.Left := 20;
   FButtonAddUser.Top := (Height - FButtonAddUser.Height) div 2;
   FButtonAddUser.Tag := BUTTON_ADD_USER;
@@ -88,7 +88,7 @@ begin
   FButtonSettings := TButtonActive.Create(Self);
   FButtonSettings.Parent := Self;
   FButtonSettings.Cursor := crHandPoint;
-  FButtonSettings.InsertImage(FImages.ButtonSettingsNormal, FImages.ButtonSettingsActive, FImages.ButtonSettingsDown);
+  FButtonSettings.InsertImage(FImages.ControlButtons, 3);
   FButtonSettings.Top := (Height - FButtonSettings.Height) div 2;
   FButtonSettings.Left := Width - FButtonSettings.Width - 20;
   FButtonSettings.Tag := BUTTON_SETTINGS;
@@ -97,7 +97,7 @@ begin
   FButtonGroup := TButtonActive.Create(Self);
   FButtonGroup.Parent := Self;
   FButtonGroup.Cursor := crHandPoint;
-  FButtonGroup.InsertImage(FImages.ButtonGroupNormal, FImages.ButtonGroupActive, FImages.ButtonGroupDown);
+  FButtonGroup.InsertImage(FImages.ControlButtons, 6);
   FButtonGroup.Top := (Height - FButtonGroup.Height) div 2;
   FButtonGroup.Left := (Width - FButtonGroup.Width) div 2;
   FButtonGroup.Tag := BUTTON_GROUP;

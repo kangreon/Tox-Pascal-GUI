@@ -16,7 +16,7 @@ uses
   {$I tox-uses.inc}
   Graphics, Classes, Controls, UserIcon, ResourceImage, ImageUtils,
   StringUtils, SysUtils, UserStatusStyle, ActiveRegion, Menus, ImgList,
-  PaintSprite;
+  PaintSprite, libtox;
 
 type
   TState = (sOffline, sOnline, sAway, sLoading);
@@ -145,6 +145,7 @@ procedure TUserStatus.DrawRightButton;
 var
   LeftPoint, TopPoint: Integer;
   PaintRect: TRect;
+  Image: TBitmap;
 begin
   // Обычный цвет кнопки
   case FRightButtonState of
@@ -186,17 +187,24 @@ begin
   if FState <> sLoading then
     FImageLoading.Stop;
 
+  Image := nil;
 
   case FState of
     sOffline:
-      Canvas.Draw(LeftPoint, TopPoint, FImages.StatusOfflineTransporent);
+      Image := FImages.GetSelfStatusIcon(usInvalid);
     sOnline:
-      Canvas.Draw(LeftPoint, TopPoint, FImages.StatusOnlineTransporent);
+      Image := FImages.GetSelfStatusIcon(usNone);
     sAway:
-      // Заменить
-      Canvas.Draw(LeftPoint, TopPoint, FImages.StatusAwayTransporent);
+      Image := FImages.GetSelfStatusIcon(usAway);
     sLoading:
       FImageLoading.Draw(Canvas, LeftPoint, TopPoint);
+  end;
+
+  if Assigned(Image) then
+  begin
+    LeftPoint := ClientWidth - TUserStatusStyle.RightButtonWidth - Image.Width;
+    TopPoint := (ClientHeight - Image.Height) div 2;
+    Canvas.Draw(LeftPoint, TopPoint, Image);
   end;
 end;
 

@@ -18,50 +18,47 @@ uses
   {$IFDEF NEW_DELPHI}Vcl.Imaging.PngImage,{$ENDIF}
   {$IFDEF OLD_DELPHI}PngImage,{$ENDIF}
 
-  Graphics, Classes, Controls, ImgList;
+  Graphics, Classes, Controls, ImgList, ActiveRegion, libtox, SysUtils;
 
 type
   {$IFDEF FPC}TPngImage = TPortableNetworkGraphic;{$ENDIF}
   {$IFDEF OLD_DELPHI}TPngImage = TPNGObject;{$ENDIF}
-  
+
+  TBitmapList = array of TBitmap;
+
   TResourceImage = class
   private
     FUserstatusButtonDown: TBitmap;
     FStatusOnline: TBitmap;
     FStatusOffline: TBitmap;
-    FStatusOnlineTransporent: TPngImage;
-    FStatusAwayTransporent: TPngImage;
-    FStatusOfflineTransporent: TPngImage;
     FLoadingAnimate10: TPngImage;
     FOnlineMenu: TBitmap;
     FImageMenu: TImageList;
-    FButtonAddUserNormal: TBitmap;
-    FButtonAddUserActive: TBitmap;
-    FButtonAddUserDown: TBitmap;
-    FButtonSettingsNormal: TBitmap;
-    FButtonSettingsActive: TBitmap;
-    FButtonSettingsDown: TBitmap;
-    FButtonGroupDown: TBitmap;
-    FButtonGroupNormal: TBitmap;
-    FButtonGroupActive: TBitmap;
+
+    FToxSkin: TBitmap;
+    FUserListStatus: array of TBitmapList;
+    FControlButtons: TBitmapList;
+    FSelfStatusIcons: TBitmapList;
+
+    procedure LoadControlButtons(StartLeft, StartTop, Width, Height: Integer);
+    procedure LoadSelfStatusIcons(StartLeft, StartTop, Width, Height: Integer);
+    procedure LoadUserListStatus;
     function LoadImageBmp(Name: string): TBitmap;
+    function LoadImageBmpFromPng(Name: string): TBitmap;
     function LoadImagePng(name: string): TPngImage;
   public
     constructor Create;
     destructor Destroy; override;
     class function Clone: TResourceImage;
 
-    property LoadingAnimate10: TPngImage read FLoadingAnimate10;
+    function GetControlButtonIcon(ImageId: Integer; State: TDownState): TBitmap;
+    function GetSelfSTatusIcon(Status: TToxUserStatus): TBitmap;
+    function GetUserListStatusIcon(MouseState: TDownState; Status: TToxUserStatus;
+      IsNewMessage: Boolean): TBitmap;
 
-    property ButtonAddUserNormal: TBitmap read FButtonAddUserNormal;
-    property ButtonAddUserActive: TBitmap read FButtonAddUserActive;
-    property ButtonAddUserDown: TBitmap read FButtonAddUserDown;
-    property ButtonSettingsNormal: TBitmap read FButtonSettingsNormal;
-    property ButtonSettingsActive: TBitmap read FButtonSettingsActive;
-    property ButtonSettingsDown: TBitmap read FButtonSettingsDown;
-    property ButtonGroupNormal: TBitmap read FButtonGroupNormal;
-    property ButtonGroupActive: TBitmap read FButtonGroupActive;
-    property ButtonGroupDown: TBitmap read FButtonGroupDown;
+    property ControlButtons: TBitmapList read FControlButtons;
+
+    property LoadingAnimate10: TPngImage read FLoadingAnimate10;
 
     property ImagesMenu: TImageList read FImageMenu;
 
@@ -70,9 +67,7 @@ type
     property StatusOffline: TBitmap read FStatusOffline;
     property StatusOnline: TBitmap read FStatusOnline;
 
-    property StatusAwayTransporent: TPngImage read FStatusAwayTransporent;
-    property StatusOfflineTransporent: TPngImage read FStatusOfflineTransporent;
-    property StatusOnlineTransporent: TPngImage read FStatusOnlineTransporent;
+    property ToxSkin: TBitmap read FToxSkin;
 
     property UserstatusButtonDown: TBitmap read FUserstatusButtonDown;
   end;
@@ -102,10 +97,6 @@ begin
   FStatusOnline := LoadImageBmp('OnlineS');
   FStatusOffline := LoadImageBmp('OfflineS');
 
-  FStatusOnlineTransporent := LoadImagePng('OnlineTR');
-  FStatusAwayTransporent := LoadImagePng('AwayTR');
-  FStatusOfflineTransporent := LoadImagePng('OfflineTR');
-
   FLoadingAnimate10 := LoadImagePng('LoadingAnimate10');
 
   FOnlineMenu := LoadImageBmp('OnlineMenu');
@@ -117,15 +108,11 @@ begin
   FImageMenu.Height := 10;
   FImageMenu.InsertMasked(0, FOnlineMenu, clBlack);
 
-  FButtonAddUserNormal := LoadImageBmp('AddUserNormal');
-  FButtonAddUserActive := LoadImageBmp('AddUserActive');
-  FButtonAddUserDown := LoadImageBmp('AddUserDown');
-  FButtonSettingsNormal := LoadImageBmp('SettingsNormal');
-  FButtonSettingsActive := LoadImageBmp('SettingsActive');
-  FButtonSettingsDown := LoadImageBmp('SettingsDown');
-  FButtonGroupNormal := LoadImageBmp('GroupNormal');
-  FButtonGroupActive := LoadImageBmp('GroupActive');
-  FButtonGroupDown := LoadImageBmp('GroupDown');
+
+  FToxSkin := LoadImageBmpFromPng('ToxSkin');
+  LoadUserListStatus;
+  LoadControlButtons(0, 108, 20, 20);
+  LoadSelfStatusIcons(0, 128, 22, 22);
 end;
 
 destructor TResourceImage.Destroy;
@@ -133,28 +120,70 @@ begin
   FUserstatusButtonDown.Free;
   FStatusOnline.Free;
   FStatusOffline.Free;
-  FStatusOnlineTransporent.Free;
-  FStatusAwayTransporent.Free;
-  FStatusOfflineTransporent.Free;
   FLoadingAnimate10.Free;
   FOnlineMenu.Free;
   FImageMenu.Free;
-  FButtonAddUserNormal.Free;
-  FButtonAddUserActive.Free;
-  FButtonAddUserDown.Free;
-  FButtonSettingsNormal.Free;
-  FButtonSettingsActive.Free;
-  FButtonSettingsDown.Free;
-  FButtonGroupNormal.Free;
-  FButtonGroupActive.Free;
-  FButtonGroupDown.Free;
   inherited;
+end;
+
+function TResourceImage.GetControlButtonIcon(ImageId: Integer;
+  State: TDownState): TBitmap;
+var
+  i: Integer;
+begin
+  i := ImageId * 3 + Integer(State);
+  Result := FControlButtons[i];
+end;
+
+function TResourceImage.GetSelfSTatusIcon(Status: TToxUserStatus): TBitmap;
+var
+  i: Integer;
+begin
+  i := Integer(Status) * 2;
+  Result := FSelfStatusIcons[i];
+end;
+
+function TResourceImage.GetUserListStatusIcon(MouseState: TDownState;
+  Status: TToxUserStatus; IsNewMessage: Boolean): TBitmap;
+var
+  i, j: Integer;
+begin
+  i := Integer(MouseState);
+  j := Integer(Status) * 2;
+  if IsNewMessage then
+    Inc(j);
+
+  Result := FUserListStatus[i][j];
 end;
 
 {*  Загружает из ресурсов изображение с указанным идентификатором
  *  В случае успешной загрузки, вернет изображение BMP
  *  В случае ошибки, вернет изображение с текстом "no load image"
  *}
+procedure TResourceImage.LoadControlButtons(StartLeft, StartTop, Width,
+  Height: Integer);
+var
+  i: Integer;
+  Image: TBitmap;
+  DRect, SRect: TRect;
+begin
+  DRect := Bounds(0, 0, Width, Height);
+
+  SetLength(FControlButtons, 9);
+  for i := Low(FControlButtons) to High(FControlButtons) do
+  begin
+    Image := TBitmap.Create;
+    try
+      Image.SetSize(Width, Height);
+
+      SRect := Bounds(StartLeft + i * Width, StartTop, Width, Height);
+      Image.Canvas.CopyRect(DRect, FToxSkin.Canvas, SRect);
+    finally
+      FControlButtons[i] := Image;
+    end;
+  end;
+end;
+
 function TResourceImage.LoadImageBmp(Name: string): TBitmap;
 var
   Image: TBitmap;
@@ -167,10 +196,22 @@ begin
     Size := Image.Canvas.TextExtent('no load image');
     Image.Width := Size.cx;
     Image.Height := Size.cy;
-//    Image.SetSize(Size.cx, Size.cy);
     Image.Canvas.TextOut(0, 0, 'no load image');
   end;
   Result := Image;
+end;
+
+function TResourceImage.LoadImageBmpFromPng(Name: string): TBitmap;
+var
+  Png: TPngImage;
+begin
+  Png := LoadImagePng(Name);
+  try
+    Result := TBitmap.Create;
+    Result.Assign(Png);
+  finally
+    Png.Free;
+  end;
 end;
 
 function TResourceImage.LoadImagePng(name: string): TPngImage;
@@ -211,6 +252,55 @@ begin
   end;
 
   Result := Image;
+end;
+
+procedure TResourceImage.LoadSelfStatusIcons(StartLeft, StartTop, Width,
+  Height: Integer);
+var
+  i: Integer;
+  Image: TBitmap;
+  DRect, SRect: TRect;
+begin
+  DRect := Bounds(0, 0, Width, Height);
+
+  SetLength(FSelfStatusIcons, 8);
+  for i := Low(FSelfStatusIcons) to High(FSelfStatusIcons) do
+  begin
+    Image := TBitmap.Create;
+    try
+      Image.SetSize(Width, Height);
+
+      SRect := Bounds(StartLeft + i * Width, StartTop, Width, Height);
+      Image.Canvas.CopyRect(DRect, FToxSkin.Canvas, SRect);
+    finally
+      FSelfStatusIcons[i] := Image;
+    end;
+  end;
+end;
+
+procedure TResourceImage.LoadUserListStatus;
+var
+  i, j: Integer;
+  Image: TBitmap;
+  DRect, SRect: TRect;
+begin
+  DRect := Bounds(0, 0, 22, 22);
+
+  SetLength(FUserListStatus, 3);
+  for i := Low(FUserListStatus) to High(FUserListStatus) do
+  begin
+    SetLength(FUserListStatus[i], 8);
+    for j := Low(FUserListStatus[i]) to High(FUserListStatus[i]) do
+    begin
+      SRect := Bounds(22 * j, i * 22 + 42, 22, 22);
+
+      Image := TBitmap.Create;
+      Image.SetSize(22, 22);
+      Image.Canvas.CopyRect(DRect, FToxSkin.Canvas, SRect);
+
+      FUserListStatus[i][j] := Image;
+    end;
+  end;
 end;
 
 end.

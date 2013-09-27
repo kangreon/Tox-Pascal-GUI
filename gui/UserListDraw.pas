@@ -102,85 +102,7 @@ var
   HeightItem: Integer;
   Icon: TBitmap;
 begin
-  // Выбор изображения для рисования. Необходимо для правильной отрисовки
-  // под Linux, т.к. PNG там плохо отрисовывается.
-  case Status of
-    usNone:
-      case MouseState of
-        dsNone:
-          if IsNewMessage then
-            Icon := nil
-          else
-            Icon := FImages.StatusOnline;
-        dsActive:
-          if IsNewMessage then
-            Icon := nil
-          else
-            Icon := nil;
-        dsDown:
-          if IsNewMessage then
-            Icon := nil
-          else
-            Icon := nil;
-      end;
-
-    usAway:
-      case MouseState of
-        dsNone:
-          if IsNewMessage then
-            Icon := nil
-          else
-            Icon := nil;
-        dsActive:
-          if IsNewMessage then
-            Icon := nil
-          else
-            Icon := nil;
-        dsDown:
-          if IsNewMessage then
-            Icon := nil
-          else
-            Icon := nil;
-      end;
-
-    usBusy:
-      case MouseState of
-        dsNone:
-          if IsNewMessage then
-            Icon := nil
-          else
-            Icon := nil;
-        dsActive:
-          if IsNewMessage then
-            Icon := nil
-          else
-            Icon := nil;
-        dsDown:
-          if IsNewMessage then
-            Icon := nil
-          else
-            Icon := nil;
-      end;
-
-    usInvalid:
-      case MouseState of
-        dsNone:
-          if IsNewMessage then
-            Icon := nil
-          else
-            Icon := nil;
-        dsActive:
-          if IsNewMessage then
-            Icon := nil
-          else
-            Icon := nil;
-        dsDown:
-          if IsNewMessage then
-            Icon := nil
-          else
-            Icon := nil;
-      end;
-  end;
+  Icon := FImages.GetUserListStatusIcon(MouseState, Status, IsNewMessage);
 
   if Assigned(Icon) then
   begin
@@ -275,7 +197,7 @@ begin
       Break;
 
     TextStatus := {$IFDEF FPC}UTF8Encode{$ENDIF}('Я сейчас немного занят');
-    DrawItem(TopPosition, Format('Kangreon (%d)', [i + 1]), TextStatus, usNone, False,
+    DrawItem(TopPosition, Format('Kangreon (%d)', [i + 1]), TextStatus, usAway, True,
       FDefaultUserIcon, dsNone);
   end;
 

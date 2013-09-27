@@ -18,4 +18,4 @@ Win32/*
 *.res
 *.dbg
 *.db
-.lps
+*.lps

@@ -29,8 +29,6 @@ type
   TResourceImage = class
   private
     FUserstatusButtonDown: TBitmap;
-    FStatusOnline: TBitmap;
-    FStatusOffline: TBitmap;
     FLoadingAnimate10: TPngImage;
     FOnlineMenu: TBitmap;
     FImageMenu: TImageList;
@@ -61,11 +59,7 @@ type
     property LoadingAnimate10: TPngImage read FLoadingAnimate10;
 
     property ImagesMenu: TImageList read FImageMenu;
-
     property OnlineMenu: TBitmap read FOnlineMenu;
-
-    property StatusOffline: TBitmap read FStatusOffline;
-    property StatusOnline: TBitmap read FStatusOnline;
 
     property ToxSkin: TBitmap read FToxSkin;
 
@@ -94,9 +88,6 @@ constructor TResourceImage.Create;
 begin
   //TODO: Заменить на PNG
   FUserstatusButtonDown := LoadImageBmp('UserstatusButtonDown');
-  FStatusOnline := LoadImageBmp('OnlineS');
-  FStatusOffline := LoadImageBmp('OfflineS');
-
   FLoadingAnimate10 := LoadImagePng('LoadingAnimate10');
 
   FOnlineMenu := LoadImageBmp('OnlineMenu');
@@ -118,8 +109,6 @@ end;
 destructor TResourceImage.Destroy;
 begin
   FUserstatusButtonDown.Free;
-  FStatusOnline.Free;
-  FStatusOffline.Free;
   FLoadingAnimate10.Free;
   FOnlineMenu.Free;
   FImageMenu.Free;

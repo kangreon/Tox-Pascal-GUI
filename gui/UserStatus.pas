@@ -235,7 +235,12 @@ begin
   Canvas.Font.Color := clWhite;
   Canvas.Brush.Style := bsClear;
   Canvas.Font.Style := [fsBold];
+  Canvas.Font.Name := 'Fira Sans';
+  {$IFDEF FPC}
+  Canvas.Font.Size := 10;
+  {$ELSE}
   Canvas.Font.Height := TUserStatusStyle.UserNameHeight;
+  {$ENDIF}
 
   PaintRect.Left := TUserStatusStyle.IconPositionLeft + TUserStatusStyle.IconWidth +
     TUserStatusStyle.UserNameMarginLeft;

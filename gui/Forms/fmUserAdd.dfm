@@ -1,4 +1,4 @@
-﻿object FormUserAdd: TFormUserAdd
+object FormUserAdd: TFormUserAdd
   Left = 0
   Top = 0
   BorderIcons = [biSystemMenu]
@@ -35,6 +35,12 @@
       Alignment = taRightJustify
       AutoSize = False
       Caption = #1040#1076#1088#1077#1089' '#1076#1088#1091#1075#1072':'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
     end
     object labMessage: TLabel
       Left = 7

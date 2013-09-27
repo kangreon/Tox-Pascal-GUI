@@ -124,7 +124,11 @@ begin
 
   Canvas.Brush.Style := bsClear;
   Canvas.Font.Color := TULDStyle.StatusColor;
-  Canvas.Font.Height := TULDStyle.StatusHeight;
+  {$IFDEF FPC}
+  Canvas.Font.Size := 8;
+  {$ELSE}
+  Canvas.Font.Height := TULDStyle.NameHeight;
+  {$ENDIF}
   Canvas.Font.Name := 'Fira Sans';
   Canvas.Font.Style := [];
 
@@ -157,14 +161,18 @@ begin
   BlockHeight := (DrawRect.Bottom - DrawRect.Top) div 2;
   DrawRect.Top := DrawRect.Top + BlockHeight;
 
-  NewRect := Bounds(DrawRect.Left, BlockTop, BlockWidth, BlockHeight);
-  NewRect.Top := NewRect.Top + (BlockHeight - TULDStyle.NameHeight);
-
   Canvas.Brush.Style := bsClear;
   Canvas.Font.Color := TULDStyle.NameColor;
+  {$IFDEF FPC}
+  Canvas.Font.Size := 9;
+  {$ELSE}
   Canvas.Font.Height := TULDStyle.NameHeight;
+  {$ENDIF}
   Canvas.Font.Name := 'Fira Sans';
   Canvas.Font.Style := [fsBold];
+
+  NewRect := Bounds(DrawRect.Left, BlockTop, BlockWidth, BlockHeight);
+  NewRect.Top := NewRect.Top + (BlockHeight - Canvas.TextHeight('Z'));
 
   NewName := Name;
   TextRectW(Canvas, NewRect, NewName, [tfEndEllipsis]);

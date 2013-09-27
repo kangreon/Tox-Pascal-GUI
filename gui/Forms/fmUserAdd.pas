@@ -53,7 +53,7 @@ var
   TextMessage: string;
 begin
   TextMessage := Format('Ошибка добавления друга: %s.', [Text]);
-  MessageBox(Handle, PChar(TextMessage), 'Добавление друга', MB_OK or MB_ICONERROR);
+  Application.MessageBox(PChar(TextMessage), 'Добавление друга', MB_OK or MB_ICONERROR);
 end;
 
 {*  Событие нажатия на кнопку добавления нового пользователя.
@@ -126,6 +126,15 @@ begin
   gbFriendAdd.ParentBackground := False;
   {$ENDIF}
   gbFriendAdd.DoubleBuffered := True;
+
+  {$IFDEF FPC}
+  Font.Size := 0;
+  Font.Name := 'Sans';
+  labFriendAddress.AutoSize := True;
+  labMessage.AutoSize := True;
+  edFrienAddress.Top := 6;
+  labFriendAddress.Top := 8;
+  {$ENDIF}
 end;
 
 {*  Событие на нажатие клавиши на клавиатуре.
@@ -153,19 +162,21 @@ begin
   W := ClientWidth;
   H := ClientHeight;
 
-  btnAddFriend.Left := W - btnAddFriend.Width - FORM_PADDING;
-  btnCancel.Left := btnAddFriend.Left - btnCancel.Width - CONTROL_MARGIN;
-  btnAddFriend.Top := H - btnAddFriend.Height - FORM_PADDING;
-  btnCancel.Top := btnAddFriend.Top;
+  btnCancel.Left := W - btnCancel.Width - FORM_PADDING;
+  btnAddFriend.Left := btnCancel.Left - btnAddFriend.Width - CONTROL_MARGIN;
+  btnCancel.Top := H - btnCancel.Height - FORM_PADDING;
+  btnAddFriend.Top := btnCancel.Top;
 
   gbFriendAdd.Left := FORM_PADDING;
   gbFriendAdd.Top := FORM_PADDING;
   gbFriendAdd.Width := W - 2 * FORM_PADDING;
   gbFriendAdd.Height := H - FORM_PADDING - 40;
 
+  memMessage.Top := edFrienAddress.Top + edFrienAddress.Height + CONTROL_MARGIN;
+  labMessage.Top := memMessage.Top;
   edFrienAddress.Width := gbFriendAdd.Width - edFrienAddress.Left - CONTROL_MARGIN * 3;
   memMessage.Width := gbFriendAdd.Width - memMessage.Left - CONTROL_MARGIN * 3;
-  memMessage.Height := gbFriendAdd.Height - memMessage.Top - CONTROL_MARGIN * 3;
+  memMessage.Height := gbFriendAdd.Height - memMessage.Top - CONTROL_MARGIN * 3 {$IFDEF FPC} - 15{$ENDIF};
 end;
 
 function InsertTextUnicode(Text: string): string;

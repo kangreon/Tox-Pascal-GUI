@@ -123,6 +123,7 @@
       <Unit16>
         <Filename Value="gui\ImageUtils.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="ImageUtils"/>
       </Unit16>
       <Unit17>
         <Filename Value="gui\UserStatusStyle.pas"/>

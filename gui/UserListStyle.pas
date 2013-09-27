@@ -12,7 +12,6 @@ interface
   {$I tox.inc}
 
 uses
-//  {$I tox-uses.inc}
   Graphics;
 
 type

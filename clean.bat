@@ -6,6 +6,8 @@ for /F %%A in ('dir %REMOVE_EXTENTIONS% /b /s /a:-d') do (
 	del /Q %%A
 )
 
-for /F %%A in ('dir __history backup Win32 /b /s /a:D') do (
+for /F %%A in ('dir *__history *backup /b /s /a:D') do (
 	rd %%A /S /Q
 )
+
+pause

@@ -91,6 +91,8 @@
         <DCCReference Include="gui\UserListStyle.pas"/>
         <DCCReference Include="gui\ScrollBarNormal.pas"/>
         <DCCReference Include="gui\ScrollBarNormalStyle.pas"/>
+        <DCCReference Include="gui\UserListDraw.pas"/>
+        <DCCReference Include="gui\UserListDrawStyle.pas"/>
         <BuildConfiguration Include="Debug">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

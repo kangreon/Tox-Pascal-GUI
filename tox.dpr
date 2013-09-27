@@ -10,22 +10,18 @@ program tox;
 
 {$I tox.inc}
 
-{$IFDEF FPC}
-  {$IFNDEF Unix}
-    {$R tox-res.res}
-  {$ENDIF}
-  {$R images.res}
-{$ELSE}
+{$IFNDEF Unix}
   {$R tox-res.res}
-  {$R images.res}
-//  {$R tox-res.res}
-//  {$R images.res}
 {$ENDIF}
+{$R images.res}
 
 uses
-//  {$IFDEF FPC}{$IFDEF UNIX}cthreads,{$ENDIF}Interfaces,{$ENDIF}
-  {$IFDEF FPC}{$IFDEF UNIX}cthreads,{$ENDIF}Interfaces,{$ENDIF}
-
+  {$IFDEF FPC}
+  {$IFDEF UNIX}
+  cthreads,
+  {$ENDIF }
+  Interfaces,
+  {$ENDIF }
   Forms,
   Dialogs,
   main in 'src\main.pas' {Form1},
@@ -51,7 +47,9 @@ uses
   UserList in 'gui\UserList.pas',
   UserListStyle in 'gui\UserListStyle.pas',
   ScrollBarNormal in 'gui\ScrollBarNormal.pas',
-  ScrollBarNormalStyle in 'gui\ScrollBarNormalStyle.pas';
+  ScrollBarNormalStyle in 'gui\ScrollBarNormalStyle.pas',
+  UserListDraw in 'gui\UserListDraw.pas',
+  UserListDrawStyle in 'gui\UserListDrawStyle.pas';
 
 {*  Вывод сообщения об ошибке загрузки библиотеки libtoxcore
  *}

@@ -14,15 +14,11 @@ interface
 
 uses
   {$I tox-uses.inc}
-  {$IFNDEF FPC}PngImage,{$ENDIF}
   Graphics, Classes, Controls, UserIcon, ResourceImage, ImageUtils,
   StringUtils, SysUtils, UserStatusStyle, ActiveRegion, Menus, ImgList,
   PaintSprite;
 
 type
-  {$IFDEF FPC}TPngImage = TPortableNetworkGraphic;{$ENDIF}
-  {$IFDEF OLD_DELPHI}TPngImage = TPngObject;{$ENDIF}
-
   TState = (sOffline, sOnline, sAway, sLoading);
   TProcStateChange = procedure(Sender: TObject; State: TState) of object;
 

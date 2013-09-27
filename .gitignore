@@ -15,7 +15,7 @@ Win32/*
 *.bak
 *.compiled
 *.or
-tox.res
+*.res
 *.dbg
 *.db
 .lps

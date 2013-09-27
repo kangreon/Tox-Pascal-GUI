@@ -19,6 +19,8 @@ type
   TUserIcon = class
   private
     FImage: TBitmap;
+    function GetHeight: Integer;
+    function GetWidth: Integer;
   public
     constructor Create;
     destructor Destroy; override;
@@ -26,6 +28,8 @@ type
     procedure Default;
 
     property Image: TBitmap read FImage;
+    property Height: Integer read GetHeight;
+    property Width: Integer read GetWidth;
   end;
 
 implementation
@@ -61,6 +65,16 @@ destructor TUserIcon.Destroy;
 begin
   FImage.Free;
   inherited;
+end;
+
+function TUserIcon.GetHeight: Integer;
+begin
+  Result := FImage.Height;
+end;
+
+function TUserIcon.GetWidth: Integer;
+begin
+  Result := FImage.Width;
 end;
 
 end.

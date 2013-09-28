@@ -128,13 +128,14 @@ begin
   gbFriendAdd.DoubleBuffered := True;
 
   {$IFDEF FPC}
+  edFrienAddress.Top := 6;
+  labFriendAddress.Top := 8;
+  {$IFDEF Linux}
   Font.Size := 0;
   Font.Name := 'Sans';
   labFriendAddress.AutoSize := True;
   labMessage.AutoSize := True;
-  edFrienAddress.Top := 6;
-  labFriendAddress.Top := 8;
-  {$ENDIF}
+  {$ENDIF}{$ENDIF}
 end;
 
 {*  Событие на нажатие клавиши на клавиатуре.

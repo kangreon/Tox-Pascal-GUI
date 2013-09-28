@@ -22,6 +22,7 @@ uses
   {$ENDIF }
   Interfaces,
   {$ENDIF }
+  {$I tox-uses.inc}
   Forms,
   Dialogs,
   main in 'src\main.pas' {Form1},
@@ -62,12 +63,36 @@ begin
   {$ENDIF}
 end;
 
+{$IFDEF NEW_DELPHI}
+function IsRunApplication: Boolean;
+var
+  WinHandle: THandle;
 begin
-  Application.Initialize;
-  Application.CreateForm(TForm1, Form1);
-  if not Form1.ToxLoadError then
-    Application.Run
-  else
-    MessageLoadToxError;
+  CreateMutex(nil, True, 'fvb8r4hf7483hverhbv834vu8ndrsuifvhb847hvbiv4h87ghvy');
+  Result := GetLastError <> ERROR_ALREADY_EXISTS;
+
+  if not Result then
+  begin
+    WinHandle := FindWindow(nil, 'Demo Tox GUI');
+    if WinHandle <> 0 then
+      SetForegroundWindow(WinHandle);
+  end;
+end;
+{$ENDIF}
+
+begin
+  {$IFDEF NEW_DELPHI}
+  if IsRunApplication then
+  begin
+  {$ENDIF}
+    Application.Initialize;
+    Application.CreateForm(TForm1, Form1);
+    if not Form1.ToxLoadError then
+      Application.Run
+    else
+      MessageLoadToxError;
+  {$IFDEF NEW_DELPHI}
+  end;
+  {$ENDIF}
 end.
 

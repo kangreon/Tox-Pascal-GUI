@@ -34,6 +34,7 @@ type
     FActiveRegion: TActiveRegion;
     FDefaultUserIcon: TUserIcon;
     FImages: TResourceImage;
+    FIsSelectItem: Boolean;
     FItems: TUsers;
     FItemsCount: Integer;
     FPosition: Integer;
@@ -83,8 +84,6 @@ begin
   inherited;
   FDefaultUserIcon := TUserIcon.Create;
   FImages := TResourceImage.Clone;
-
-
 
   FSize := 500;
   FStopUpdate := False;
@@ -166,6 +165,8 @@ begin
   for i := 0 to FItemsCount - 1 do
     if FItems[i].State = dsActive then
       FItems[i].State := dsNone;
+
+  FIsSelectItem := False;
 end;
 
 procedure TUserListDraw.ActiveRegionMouseMessage(Sender: TObject;
@@ -191,7 +192,17 @@ begin
           if FItems[MousePosItem].State = dsNone then
           begin
             UnselectItems;
+
+            FIsSelectItem := True;
             FItems[MousePosItem].State := dsActive;
+            Invalidate;
+          end;
+        end
+        else
+        begin
+          if FIsSelectItem then
+          begin
+            UnselectItems;
             Invalidate;
           end;
         end;

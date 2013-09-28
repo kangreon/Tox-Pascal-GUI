@@ -59,6 +59,7 @@ constructor TScrollBarNormal.Create(AOwner: TComponent);
 begin
   inherited;
   Constraints.MinWidth := TSBNStyle.MinWidth;
+  FPosition := 0;
 
   FSliderState := dsNone;
 end;

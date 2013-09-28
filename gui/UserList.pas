@@ -14,10 +14,14 @@ interface
   {$I tox.inc}
 
 uses
-  Controls, Classes, Types, SysUtils, UserListStyle, ScrollBarNormal, Messages,
+  {$I tox-uses.inc}
+
+  Controls, Classes, SysUtils, UserListStyle, ScrollBarNormal, Messages,
   ActiveRegion, UserListDraw;
 
 type
+
+  { TUserList }
 
   TUserList = class(TCustomControl)
   private
@@ -27,6 +31,7 @@ type
     procedure ListOnChangeSize(Sender: TObject);
   protected
     procedure CreateWnd; override;
+    function DoMouseWheel(Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint): Boolean; override;
     function DoMouseWheelDown(Shift: TShiftState; MousePos: TPoint): Boolean; override;
     function DoMouseWheelUp(Shift: TShiftState; MousePos: TPoint): Boolean; override;
     procedure Resize; override;
@@ -54,8 +59,6 @@ begin
   FScroll.Align := alRight;
   FScroll.Width := TUserListStyle.ScrollWidth;
   FScroll.PageSize := Height;
-  FScroll.ListSize := 500;
-  FScroll.Position := 20;
   FScroll.OnScroll := ScrollOnScroll;
 
   FList := TUserListDraw.Create(Self);
@@ -64,17 +67,25 @@ begin
   FList.OnChangeSize := ListOnChangeSize;
 end;
 
+function TUserList.DoMouseWheel(Shift: TShiftState; WheelDelta: Integer;
+  MousePos: TPoint): Boolean;
+begin
+  Result := inherited DoMouseWheel(Shift, WheelDelta, MousePos);
+end;
+
 function TUserList.DoMouseWheelDown(Shift: TShiftState;
   MousePos: TPoint): Boolean;
 begin
-  FScroll.Position := FScroll.Position + 5;
+  {$IFNDEF FPC}inherited;{$ENDIF}
+  FScroll.Position := FScroll.Position + 10;
   Result := True;
 end;
 
 function TUserList.DoMouseWheelUp(Shift: TShiftState;
   MousePos: TPoint): Boolean;
 begin
-  FScroll.Position := FScroll.Position - 5;
+  {$IFNDEF FPC}inherited;{$ENDIF}
+  FScroll.Position := FScroll.Position - 10;
   Result := True;
 end;
 
@@ -85,12 +96,32 @@ begin
     FScroll.PageSize := ClientHeight;
 end;
 
+function GET_WHEEL_DELTA_WPARAM(wp: longint): smallint;
+begin
+  Result := smallint(wp shr 16);
+end;
+
 procedure TUserList.WndProc(var Message: TMessage);
 begin
   inherited;
   case Message.Msg of
     CM_MOUSEENTER:
-      SetFocus;
+      begin
+        SetFocus;
+        BringToFront;
+      end;
+
+    {$IFDEF FPC}
+    LM_MOUSEWHEEL:
+      begin
+        if GET_WHEEL_DELTA_WPARAM(Message.wParam) > 0 then
+          DoMouseWheelUp([], Point(0, 0))
+        else
+          DoMouseWheelDown([], Point(0, 0));
+
+        Message.Result := 1;
+      end;
+    {$ENDIF}
   end;
 end;
 

@@ -206,6 +206,7 @@ procedure TClientId.SetDataBin(const Value: PByte);
 begin
   FDataHex := bin_to_hex_string(Value, TOX_CLIENT_ID_SIZE);
   move(Value^, FDataBin^, TOX_CLIENT_ID_SIZE);
+
 end;
 
 procedure TClientId.SetDataHex(const Value: DataString);

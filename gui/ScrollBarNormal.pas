@@ -116,7 +116,7 @@ begin
     SliderSize := TSBNStyle.SliderMinHeight;
 
   SlideMaxHeight := HeightMaximal - SliderSize;
-  DrawTop := FPosition * SlideMaxHeight div FListSize + 1;
+  DrawTop := FPosition * SlideMaxHeight div (FListSize - FPageSize) + 1;
   DrawBottom := DrawTop + SliderSize;
   FSliderTop := DrawTop;
   FSliderHeight := SliderSize;
@@ -204,7 +204,7 @@ begin
     if FSliderTop + FSliderHeight > BarHeight then
       FSliderTop := BarHeight - FSliderHeight;
 
-    Position := FListSize * FSliderTop div (BarHeight - FSliderHeight);
+    Position := (FListSize - FPageSize) * FSliderTop div (BarHeight - FSliderHeight);
   end
   else
   begin
@@ -258,12 +258,19 @@ begin
     FPosition := FListSize;
   if FListSize < 0 then
     FListSize := 0;
+
+  if FListSize <= FPageSize then
+    FPosition := 0;
   Invalidate;
 end;
 
 procedure TScrollBarNormal.SetPageSize(const Value: Integer);
 begin
   FPageSize := Value;
+  if (FListSize - FPosition <= FPageSize) and (FPosition <> 0) then
+  begin
+    Position := FListSize - FPageSize;
+  end;
   Invalidate;
 end;
 
@@ -273,8 +280,8 @@ begin
   if FPosition < 0 then
     FPosition := 0;
 
-  if FPosition > FListSize then
-    FPosition := FListSize;
+  if FPosition > FListSize - FPageSize then
+    FPosition := FListSize - FPageSize;
 
   Invalidate;
 

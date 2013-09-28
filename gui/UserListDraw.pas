@@ -14,16 +14,31 @@ interface
 
 uses
 {$I tox-uses.inc}
-  Graphics, Classes, Controls, libtox, UserIcon, ActiveRegion,
+  Graphics, Classes, Controls, libtox, UserIcon, ActiveRegion, FriendList,
   UserListDrawStyle, ResourceImage, ImageUtils, SysUtils, StringUtils;
 
 type
+  { *  Структура, содержащая необходимую информацию для рисования элементов
+    *  списка
+    *
+    * }
+  PUser = ^TUser;
+  TUser = record
+    Item: TFriendItem;
+    State: TDownState;
+  end;
+  TUsers = array of PUser;
+
   TUserListDraw = class(TGraphicControl)
   private
+    FActiveRegion: TActiveRegion;
     FDefaultUserIcon: TUserIcon;
     FImages: TResourceImage;
+    FItems: TUsers;
+    FItemsCount: Integer;
     FPosition: Integer;
     FSize: Integer;
+    FStopUpdate: Boolean;
     FOnChangeSize: TNotifyEvent;
     procedure SetPosition(const Value: Integer);
     procedure DrawItem(Y: Integer; UserName, StatusText: DataString;
@@ -34,12 +49,24 @@ type
     procedure DrawStatusIcon(var DrawRect: TRect; Status: TToxUserStatus;
       MouseState: TDownState; IsNewMessage: Boolean);
     procedure DrawStatusText(DrawRect: TRect; Status: DataString);
+    procedure ActiveRegionMouseMessage(Sender: TObject;
+      RegionMessage: TRegionMessage; const x, y: Integer; Button: TMouseButton;
+      Shift: TShiftState);
+    procedure SetActiveRegion(const Value: TActiveRegion);
+    procedure UnselectItems;
   protected
     procedure Paint; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
+    procedure AddItem(FriendItem: TFriendItem);
+    procedure BeginUpdate;
+    procedure Clear;
+    procedure EndUpdate;
+    procedure UpdateItem(Index: Integer);
+
+    property ActiveRigion: TActiveRegion read FActiveRegion write SetActiveRegion;
     property Position: Integer read FPosition write SetPosition;
     property Size: Integer read FSize;
 
@@ -50,19 +77,130 @@ implementation
 
 { TUserListDraw }
 
+
 constructor TUserListDraw.Create(AOwner: TComponent);
 begin
   inherited;
   FDefaultUserIcon := TUserIcon.Create;
   FImages := TResourceImage.Clone;
 
+
+
   FSize := 500;
+  FStopUpdate := False;
+
+  SetLength(FItems, 20);
+  FItemsCount := 0;
 end;
 
 destructor TUserListDraw.Destroy;
 begin
   FDefaultUserIcon.Free;
   inherited;
+end;
+
+{ *  Добавляет к списку новый элемент
+  *
+  * }
+procedure TUserListDraw.AddItem(FriendItem: TFriendItem);
+begin
+  if Length(FItems) <= FItemsCount then
+  begin
+    SetLength(FItems, FItemsCount + 20);
+  end;
+
+  New(FItems[FItemsCount]);
+  FItems[FItemsCount].Item := FriendItem;
+  FItems[FItemsCount].State := dsNone;
+//  FItems[FItemsCount] := @Item;
+  Inc(FItemsCount);
+
+  if not FStopUpdate then
+    Invalidate;
+end;
+
+{ *  Предотвращает перерисовку компонента при изменении списка до вызова
+  *  функции EndUpdate
+  *
+  * }
+procedure TUserListDraw.BeginUpdate;
+begin
+  FStopUpdate := True;
+end;
+
+{ *  Разрешает перерисовку компонента при изменении списка и вызывает
+  *  немедленную перерисовку компонента
+  *
+  * }
+procedure TUserListDraw.EndUpdate;
+begin
+  if FStopUpdate then
+  begin
+    FStopUpdate := False;
+    Invalidate;
+  end;
+end;
+
+{ *  Очистка списка элементов
+  *
+  * }
+procedure TUserListDraw.Clear;
+begin
+  FItemsCount := 0;
+  if not FStopUpdate then
+    Invalidate;
+end;
+
+{ *  Обновляет указанный элемент списка, если тот находится в поле видимости
+  *
+  * }
+procedure TUserListDraw.UpdateItem(Index: Integer);
+begin
+  Invalidate;
+end;
+
+procedure TUserListDraw.UnselectItems;
+var
+  i: Integer;
+begin
+  for i := 0 to FItemsCount - 1 do
+    if FItems[i].State = dsActive then
+      FItems[i].State := dsNone;
+end;
+
+procedure TUserListDraw.ActiveRegionMouseMessage(Sender: TObject;
+  RegionMessage: TRegionMessage; const x, y: Integer; Button: TMouseButton;
+  Shift: TShiftState);
+var
+  MousePosItem: Integer;
+begin
+  MousePosItem := (y + FPosition) div TULDStyle.ItemHeight;
+
+  case RegionMessage of
+    rmMouseEnter: ;
+    rmMouseLeave:
+      begin
+        UnselectItems;
+        Invalidate;
+      end;
+
+    rmMouseMove:
+      begin
+        if (MousePosItem < FItemsCount) and (MousePosItem >= 0) then
+        begin
+          if FItems[MousePosItem].State = dsNone then
+          begin
+            UnselectItems;
+            FItems[MousePosItem].State := dsActive;
+            Invalidate;
+          end;
+        end;
+      end;
+    rmMouseDown: ;
+    rmMouseUp: ;
+    rmMouseClick: ;
+    rmMouseDblClick: ;
+  end;
 end;
 
 { *  Рисование одного элемента списка в указанной позиции
@@ -179,13 +317,13 @@ begin
 end;
 
 procedure TUserListDraw.Paint;
-const
-  ELEMENT_COUNT = 10000;
 var
-  i: Integer;
-  TopPosition: Integer;
+  TopPosition, i: Integer;
   NewSize: Integer;
   TextStatus: DataString;
+  UserName: DataString;
+  Status: TToxUserStatus;
+
 begin
   inherited;
 
@@ -194,7 +332,7 @@ begin
   Canvas.Brush.Style := bsSolid;
   Canvas.FillRect(ClientRect);
 
-  for i := 0 to ELEMENT_COUNT - 1 do
+  for i := 0 to FItemsCount - 1 do
   begin
     TopPosition := -1 * FPosition + (TULDStyle.ItemHeight * i);
 
@@ -204,18 +342,30 @@ begin
     if (TopPosition > ClientHeight) then
       Break;
 
-    TextStatus := {$IFDEF FPC}UTF8Encode{$ENDIF}('Я сейчас немного занят');
-    DrawItem(TopPosition, Format('Kangreon (%d)', [i + 1]), TextStatus, usAway, True,
-      FDefaultUserIcon, dsNone);
+    TextStatus := FItems[i].Item.StatusMessage;
+    UserName := FItems[i].Item.UserName;
+    Status := FItems[i].Item.UserStatus;
+
+    DrawItem(TopPosition, UserName, TextStatus, Status, False, FDefaultUserIcon,
+      FItems[i].State);
   end;
 
-  NewSize := (ELEMENT_COUNT * TULDStyle.ItemHeight) - ClientHeight;
+  NewSize := (FItemsCount * TULDStyle.ItemHeight);// - ClientHeight;
+  if NewSize < 0 then
+    NewSize := 0;
+
   if NewSize <> FSize then
   begin
     FSize := NewSize;
     if Assigned(FOnChangeSize) then
       FOnChangeSize(Self);
   end;
+end;
+
+procedure TUserListDraw.SetActiveRegion(const Value: TActiveRegion);
+begin
+  FActiveRegion := Value;
+  FActiveRegion.OnCursorMessage := ActiveRegionMouseMessage;
 end;
 
 procedure TUserListDraw.SetPosition(const Value: Integer);

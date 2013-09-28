@@ -256,6 +256,8 @@ begin
     begin
       Result := tfFriendNumber;
       FriendNumber := ret;
+
+      FFriendList.Add(FriendNumber, Address.DataBin);
     end;
 
   finally
@@ -402,9 +404,15 @@ begin
 end;
 
 procedure TToxCore.EventConnectioStatus(FriendNumber: Integer; Status: Byte);
+var
+  Item: TFriendItem;
 begin
   FTempFriendNumber := FriendNumber;
   FTempStatus := Status;
+
+  Item := FFriendList.Item[FriendNumber];
+  if Assigned(Item) and (Status = 0) then
+    Item.UserStatus := usInvalid;
 
   Synchronize(EventConnectioStatusSyn);
 end;

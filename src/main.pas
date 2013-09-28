@@ -168,7 +168,7 @@ begin
   FControlPanel.Align := alBottom;
   FControlPanel.OnClick := ControlPanelClick;
 
-  FUserList := TUserList.Create(LeftPanel);
+  FUserList := TUserList.Create(LeftPanel, FToxCore.FriendList);
   FUserList.Align := alClient;
   FUserList.Parent := LeftPanel;
 

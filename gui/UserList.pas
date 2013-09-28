@@ -1,53 +1,66 @@
-﻿//  UserList.pas
+﻿// UserList.pas
 //
-//  Виджет, отображающий прокручивающийся список пользователей. Здесь
-//  содержится 3 компонента: список пользователей, полоса прокрутки и
-//  панель переключения активного списка
+// Виджет, отображающий прокручивающийся список пользователей. Здесь
+// содержится 3 компонента: список пользователей, полоса прокрутки и
+// панель переключения активного списка
 //
-//  The MIT License (MIT)
+// The MIT License (MIT)
 //
-//  Copyright (c) 2013 Dmitry
+// Copyright (c) 2013 Dmitry
 //
 unit UserList;
 
 interface
-  {$I tox.inc}
+
+{$I tox.inc}
 
 uses
-  {$I tox-uses.inc}
-
+{$I tox-uses.inc}
   Controls, Classes, SysUtils, UserListStyle, ScrollBarNormal, Messages,
-  ActiveRegion, UserListDraw;
+  ActiveRegion, UserListDraw, FriendList;
 
 type
-
   { TUserList }
 
   TUserList = class(TCustomControl)
   private
+    FActiveRegion: TActiveRegion;
     FScroll: TScrollBarNormal;
     FList: TUserListDraw;
+    FFriends: TFriendList;
     procedure ScrollOnScroll(Sender: TObject);
     procedure ListOnChangeSize(Sender: TObject);
+    procedure FriendsUpdate(Sender: TObject; Index: Integer);
+    procedure LoadAllUsers;
+    procedure FriendsNewItem(Sender: TObject);
   protected
     procedure CreateWnd; override;
-    function DoMouseWheel(Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint): Boolean; override;
-    function DoMouseWheelDown(Shift: TShiftState; MousePos: TPoint): Boolean; override;
-    function DoMouseWheelUp(Shift: TShiftState; MousePos: TPoint): Boolean; override;
+    function DoMouseWheelDown(Shift: TShiftState; MousePos: TPoint)
+      : Boolean; override;
+    function DoMouseWheelUp(Shift: TShiftState; MousePos: TPoint)
+      : Boolean; override;
     procedure Resize; override;
     procedure WndProc(var Message: TMessage); override;
   public
-    property Scroll: TScrollBarNormal read FScroll;
+    constructor Create(AOwner: TComponent; FriendList: TFriendList);
+      reintroduce;
 
+    property Scroll: TScrollBarNormal read FScroll;
   end;
 
 implementation
 
 { TUserList }
 
-{*  Процедура вызывается сразу после создания нового окна. Здесь проходит
- *  инициализация всех дочерних компонентов
- *}
+constructor TUserList.Create(AOwner: TComponent; FriendList: TFriendList);
+begin
+  inherited Create(AOwner);
+  FFriends := FriendList;
+end;
+
+{ *  Процедура вызывается сразу после создания нового окна. Здесь проходит
+  *  инициализация всех дочерних компонентов
+  * }
 procedure TUserList.CreateWnd;
 begin
   inherited;
@@ -65,26 +78,59 @@ begin
   FList.Align := alClient;
   FList.Parent := Self;
   FList.OnChangeSize := ListOnChangeSize;
+
+  FFriends.OnUpdateItem := FriendsUpdate;
+  FFriends.OnNewItem := FriendsNewItem;
+  LoadAllUsers;
+
+  FActiveRegion := TActiveRegion.Create(Self);
+  FActiveRegion.Align := alClient;
+  FActiveRegion.Parent := Self;
+  FList.ActiveRigion := FActiveRegion;
 end;
 
-function TUserList.DoMouseWheel(Shift: TShiftState; WheelDelta: Integer;
-  MousePos: TPoint): Boolean;
+procedure TUserList.FriendsNewItem(Sender: TObject);
 begin
-  Result := inherited DoMouseWheel(Shift, WheelDelta, MousePos);
+  LoadAllUsers;
+end;
+
+{*  Событие на изменение любого параметра пользователя из списка друзей
+ *}
+procedure TUserList.FriendsUpdate(Sender: TObject; Index: Integer);
+begin
+  FList.UpdateItem(Index);
+end;
+
+procedure TUserList.LoadAllUsers;
+var
+  i, c: Integer;
+begin
+  FList.BeginUpdate;
+  try
+    FList.Clear;
+
+    c := FFriends.Count;
+    for i := 0 to c - 1 do
+    begin
+      FList.AddItem(FFriends.Item[i]);
+    end;
+
+  finally
+    FList.EndUpdate;
+  end;
 end;
 
 function TUserList.DoMouseWheelDown(Shift: TShiftState;
   MousePos: TPoint): Boolean;
 begin
-  {$IFNDEF FPC}inherited;{$ENDIF}
+{$IFNDEF FPC} inherited; {$ENDIF}
   FScroll.Position := FScroll.Position + 10;
   Result := True;
 end;
 
-function TUserList.DoMouseWheelUp(Shift: TShiftState;
-  MousePos: TPoint): Boolean;
+function TUserList.DoMouseWheelUp(Shift: TShiftState; MousePos: TPoint): Boolean;
 begin
-  {$IFNDEF FPC}inherited;{$ENDIF}
+{$IFNDEF FPC} inherited; {$ENDIF}
   FScroll.Position := FScroll.Position - 10;
   Result := True;
 end;
@@ -96,22 +142,19 @@ begin
     FScroll.PageSize := ClientHeight;
 end;
 
-function GET_WHEEL_DELTA_WPARAM(wp: longint): smallint;
-begin
-  Result := smallint(wp shr 16);
-end;
-
 procedure TUserList.WndProc(var Message: TMessage);
+  function GET_WHEEL_DELTA_WPARAM(wp: longint): smallint;
+  begin
+    Result := smallint(wp shr 16);
+  end;
+
 begin
   inherited;
   case Message.Msg of
     CM_MOUSEENTER:
-      begin
-        SetFocus;
-        BringToFront;
-      end;
+      SetFocus;
 
-    {$IFDEF FPC}
+{$IFDEF FPC}
     LM_MOUSEWHEEL:
       begin
         if GET_WHEEL_DELTA_WPARAM(Message.wParam) > 0 then
@@ -121,13 +164,14 @@ begin
 
         Message.Result := 1;
       end;
-    {$ENDIF}
+{$ENDIF}
   end;
 end;
 
 procedure TUserList.ListOnChangeSize(Sender: TObject);
 begin
   FScroll.ListSize := FList.Size;
+  FScroll.PageSize := FList.ClientHeight;
 end;
 
 procedure TUserList.ScrollOnScroll(Sender: TObject);

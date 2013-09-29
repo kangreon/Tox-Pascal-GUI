@@ -594,6 +594,7 @@ begin
   Result := FSettings.UserName;
 end;
 
+
 procedure TToxCore.InitConnection;
 var
   Item: TServerItem;
@@ -619,6 +620,10 @@ begin
   EventConnecting(Item);
 end;
 
+{ *   Инициальзация библиотеки Tox, загрузка настроек из файла, получение
+  *   собственного адреса и загрузка списка друзей.
+  *
+  * }
 procedure TToxCore.InitTox;
 var
   data, name: PByte;
@@ -665,7 +670,10 @@ begin
   // Get user list
   data := GetMemory(TOX_CLIENT_ID_SIZE);
   name := GetMemory(TOX_MAX_NAME_LENGTH);
+  FriendList.BeginUpdate;
   try
+    FriendList.Clear;
+
     i := 0;
     while tox_getclient_id(FTox, i, data) = 0 do
     begin
@@ -683,6 +691,7 @@ begin
       end;
     end;
   finally
+    FriendList.EndUpdate;
     FreeMem(name);
     FreeMemory(data);
   end;

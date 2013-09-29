@@ -51,6 +51,7 @@ type
   TFriendList = class
   private
     FItems: array of TFriendItem;
+    FStopUpdate: Boolean;
     FOnUpdateItem: TProcUpdateItem;
     FOnNewItem: TNotifyEvent;
     function GetCount: Integer;
@@ -61,6 +62,9 @@ type
     destructor Destroy; override;
 
     function Add(Number: Integer; ClientId: PByte): TFriendItem;
+    procedure BeginUpdate;
+    procedure Clear;
+    procedure EndUpdate;
 
     property Count: Integer read GetCount;
     property Item[Index: Integer]: TFriendItem read GetItem;
@@ -148,15 +152,40 @@ begin
     FOnNewItem(Self);
 end;
 
+procedure TFriendList.BeginUpdate;
+begin
+  FStopUpdate := True;
+end;
+
+procedure TFriendList.Clear;
+begin
+  SetLength(FItems, 0);
+
+  if (not FStopUpdate) and Assigned(FOnNewItem) then
+    FOnNewItem(Self);
+end;
+
 constructor TFriendList.Create;
 begin
   SetLength(FItems, 0);
+  FStopUpdate := False;
 end;
 
 destructor TFriendList.Destroy;
 begin
   SetLength(FItems, 0);
   inherited;
+end;
+
+procedure TFriendList.EndUpdate;
+begin
+  if FStopUpdate then
+  begin
+    FStopUpdate := False;
+
+    if Assigned(FOnNewItem) then
+      FOnNewItem(Self);
+  end;
 end;
 
 function TFriendList.GetCount: Integer;

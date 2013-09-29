@@ -94,8 +94,7 @@ begin
   if (ListSize <= PageSize) or (FListSize <= 0) or (FPageSize <= 0) then
   begin
     if Position <> 0 then
-      Position := 0;
-
+      FPosition := 0;
     Exit;
   end;
 

@@ -12,6 +12,7 @@ interface
   {$I tox.inc}
 
 uses
+{$I tox-uses.inc}
   Controls, Classes, Messages;
 
 type
@@ -63,9 +64,21 @@ begin
 end;
 
 procedure TActiveRegion.Click;
+var
+  Point: TPoint;
 begin
   inherited;
-  EventCursorMessage(rmMouseClick, 0, 0, mbLeft, []);
+  if GetCursorPos(Point) then
+  begin
+    Point := ScreenToClient(Point);
+  end
+  else
+  begin
+    Point.X := 0;
+    Point.Y := 0;
+  end;
+
+  EventCursorMessage(rmMouseClick, Point.X, Point.Y, mbLeft, []);
 end;
 
 procedure TActiveRegion.DblClick;

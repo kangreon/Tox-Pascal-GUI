@@ -32,15 +32,18 @@ type
   TUserListDraw = class(TGraphicControl)
   private
     FActiveRegion: TActiveRegion;
+    FCountRepaint: Integer;
     FDefaultUserIcon: TUserIcon;
     FImages: TResourceImage;
-    FIsSelectItem: Boolean;
+    FIsActiveItem: Boolean;
     FItems: TUsers;
     FItemsCount: Integer;
     FPosition: Integer;
     FSize: Integer;
     FStopUpdate: Boolean;
     FOnChangeSize: TNotifyEvent;
+    FOnSelectItem: TNotifyEvent;
+    FSelectedItem: Integer;
     procedure SetPosition(const Value: Integer);
     procedure DrawItem(Y: Integer; UserName, StatusText: DataString;
       Status: TToxUserStatus; IsNewMessage: Boolean; UserIcon: TUserIcon;
@@ -54,7 +57,12 @@ type
       RegionMessage: TRegionMessage; const x, y: Integer; Button: TMouseButton;
       Shift: TShiftState);
     procedure SetActiveRegion(const Value: TActiveRegion);
+    procedure UnactiveItems;
+    procedure SetActiveItem(x, y: Integer; const IsRepaint: Boolean = True);
+    function GetItemByMousePos(x, y: Integer): Integer;
+    procedure SetSelectItem(x, y: Integer);
     procedure UnselectItems;
+    procedure SetSelectItemProp(const Value: Integer);
   protected
     procedure Paint; override;
   public
@@ -69,9 +77,11 @@ type
 
     property ActiveRigion: TActiveRegion read FActiveRegion write SetActiveRegion;
     property Position: Integer read FPosition write SetPosition;
+    property SelectedItem: Integer read FSelectedItem write SetSelectItemProp;
     property Size: Integer read FSize;
 
     property OnChangeSize: TNotifyEvent read FOnChangeSize write FOnChangeSize;
+    property OnSelectItem: TNotifyEvent read FOnSelectItem write FOnSelectItem;
   end;
 
 implementation
@@ -90,6 +100,7 @@ begin
 
   SetLength(FItems, 20);
   FItemsCount := 0;
+  FCountRepaint := 0;
 end;
 
 destructor TUserListDraw.Destroy;
@@ -111,7 +122,6 @@ begin
   New(FItems[FItemsCount]);
   FItems[FItemsCount].Item := FriendItem;
   FItems[FItemsCount].State := dsNone;
-//  FItems[FItemsCount] := @Item;
   Inc(FItemsCount);
 
   if not FStopUpdate then
@@ -158,58 +168,149 @@ begin
   Invalidate;
 end;
 
-procedure TUserListDraw.UnselectItems;
+{ *  Убирает активное выделение у всех элементов списка
+  *
+  * }
+procedure TUserListDraw.UnactiveItems;
 var
   i: Integer;
 begin
   for i := 0 to FItemsCount - 1 do
     if FItems[i].State = dsActive then
+    begin
       FItems[i].State := dsNone;
+    end;
 
-  FIsSelectItem := False;
+  FIsActiveItem := False;
+end;
+
+procedure TUserListDraw.UnselectItems;
+var
+  i: Integer;
+begin
+  for i := 0 to FItemsCount - 1 do
+    if FItems[i].State = dsDown then
+      FItems[i].State := dsNone;
+end;
+
+{ *  Возвращает индекс элемента списка, расположенного в указанных координатах.
+  *  Если элемент отсутствует в указанных координатах, вернет -1
+  *
+  * }
+function TUserListDraw.GetItemByMousePos(x, y: Integer): Integer;
+begin
+  if (x >= 0) and (x < ClientWidth) and (y >= 0) and (y < CLientHeight) then
+  begin
+    Result := (y + FPosition) div TULDStyle.ItemHeight;
+
+    if (Result < 0) or (Result >= FItemsCount) then
+      Result := -1;
+  end
+  else
+    Result := -1;
+end;
+
+{ *  Устанавливает элементу списка, находящимуся в позиции Y выделенное
+  *  состояние.
+  *
+  * }
+procedure TUserListDraw.SetActiveItem(x, y: Integer; const IsRepaint: Boolean);
+var
+  SelectItem: Integer;
+begin
+  SelectItem := GetItemByMousePos(x, y);
+
+  if SelectItem >= 0 then
+  begin
+    case FItems[SelectItem].State of
+      dsNone:
+        begin
+          //if FIsActiveItem then
+            UnactiveItems;
+
+          FIsActiveItem := True;
+          FItems[SelectItem].State := dsActive;
+
+          if IsRepaint then
+            Invalidate;
+        end;
+
+      dsDown:
+        begin
+          if FIsActiveItem then
+          begin
+            UnactiveItems;
+
+            if IsRepaint then
+              Invalidate;
+          end;
+        end;
+    end;
+
+  end
+  else
+  begin
+    if FIsActiveItem then
+    begin
+      UnactiveItems;
+      if IsRepaint then
+        Invalidate;
+    end;
+  end;
+end;
+
+procedure TUserListDraw.SetSelectItem(x, y: Integer);
+var
+  Item: Integer;
+begin
+  Item := GetItemByMousePos(x, y);
+
+  if (Item >= 0) and (FItems[Item].State <> dsDown) then
+  begin
+    UnselectItems;
+    FItems[Item].State := dsDown;
+
+    FSelectedItem := Item;
+    if Assigned(FOnSelectItem) then
+      FOnSelectItem(Self);
+
+    Invalidate;
+  end;
+end;
+
+procedure TUserListDraw.SetSelectItemProp(const Value: Integer);
+begin
+  if (Value >= 0) and (Value < FItemsCount) and (Value <> FSelectedItem) then
+  begin
+    FSelectedItem := Value;
+    FItems[FSelectedItem].State := dsDown;
+    Invalidate;
+  end;
 end;
 
 procedure TUserListDraw.ActiveRegionMouseMessage(Sender: TObject;
   RegionMessage: TRegionMessage; const x, y: Integer; Button: TMouseButton;
   Shift: TShiftState);
-var
-  MousePosItem: Integer;
 begin
-  MousePosItem := (y + FPosition) div TULDStyle.ItemHeight;
-
   case RegionMessage of
     rmMouseEnter: ;
     rmMouseLeave:
       begin
-        UnselectItems;
-        Invalidate;
+        if FIsActiveItem then
+        begin
+          UnactiveItems;
+          Invalidate;
+        end;
       end;
 
     rmMouseMove:
-      begin
-        if (MousePosItem < FItemsCount) and (MousePosItem >= 0) then
-        begin
-          if FItems[MousePosItem].State = dsNone then
-          begin
-            UnselectItems;
+        SetActiveItem(x, y);
 
-            FIsSelectItem := True;
-            FItems[MousePosItem].State := dsActive;
-            Invalidate;
-          end;
-        end
-        else
-        begin
-          if FIsSelectItem then
-          begin
-            UnselectItems;
-            Invalidate;
-          end;
-        end;
-      end;
     rmMouseDown: ;
     rmMouseUp: ;
-    rmMouseClick: ;
+    rmMouseClick:
+      SetSelectItem(x, y);
+
     rmMouseDblClick: ;
   end;
 end;
@@ -334,9 +435,17 @@ var
   TextStatus: DataString;
   UserName: DataString;
   Status: TToxUserStatus;
-
+  Point: TPoint;
 begin
   inherited;
+
+  if GetCursorPos(Point) then
+  begin
+    Point := ScreenToClient(Point);
+    if (Point.X >= 0) and (Point.X < ClientWidth) and (Point.Y >= 0) and
+      (Point.Y < ClientHeight) then
+      SetActiveItem(Point.X, Point.Y, False);
+  end;
 
   // Зарисовка фона списка цветом по умолчанию
   Canvas.Brush.Color := TULDStyle.BackgroundNormal;
@@ -361,7 +470,7 @@ begin
       FItems[i].State);
   end;
 
-  NewSize := (FItemsCount * TULDStyle.ItemHeight);// - ClientHeight;
+  NewSize := (FItemsCount * TULDStyle.ItemHeight);
   if NewSize < 0 then
     NewSize := 0;
 
@@ -371,6 +480,11 @@ begin
     if Assigned(FOnChangeSize) then
       FOnChangeSize(Self);
   end;
+
+  FCountRepaint := FCountRepaint + 1;
+  Canvas.Brush.Style := bsClear;
+  Canvas.Font.Color := clWhite;
+  Canvas.TextOut(0, 0, IntToStr(FCountRepaint));
 end;
 
 procedure TUserListDraw.SetActiveRegion(const Value: TActiveRegion);
@@ -381,14 +495,23 @@ end;
 
 procedure TUserListDraw.SetPosition(const Value: Integer);
 begin
-  FPosition := Value;
-  if FPosition < 0 then
-    FPosition := 0;
+  if FPosition <> Value then
+  begin
+    if (Value <= 0) and (FPosition = 0) then
+      Exit;
 
-  if FPosition > FSize then
-    FPosition := FSize;
+    if (Value >= FSize) and (FPosition = FSize) then
+      Exit;
 
-  Invalidate;
+    FPosition := Value;
+    if FPosition < 0 then
+      FPosition := 0;
+
+    if FPosition > FSize then
+      FPosition := FSize;
+
+    Invalidate;
+  end;
 end;
 
 end.

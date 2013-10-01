@@ -633,7 +633,14 @@ var
 begin
   FConfigPath := FSettings.ConfigPath;
 
-  FTox := tox_new();
+  FTox := tox_new(0);
+  if not Assigned(FTox) then
+  begin
+    IsToxLoaded := False;
+    FIsLoadLibrary := False;
+    Exit;
+  end;
+
 
   // Start callback function
   tox_callback_friendrequest(FTox, OnFriendRequest_, Self);

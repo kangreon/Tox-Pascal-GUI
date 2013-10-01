@@ -94,8 +94,8 @@ const
 // *  return allocated instance of tox on success.
 // *  return 0 if there are problems.
 // */
-//Tox *tox_new(void);
-function tox_new: TTox;
+//void *tox_new(uint8_t ipv6enabled)
+function tox_new(ipv6enabled: Byte): TTox;
 
 ///*  return FRIEND_ADDRESS_SIZE byte address to give to others.
 // * format: [client_id (32 bytes)][nospam number (4 bytes)][checksum (2 bytes)]
@@ -392,15 +392,15 @@ function tox_load(tox: TTox; data: PByte; length: Integer): Integer;
 
 // Возвращает результат загрузки библиотеки Tox
 function ToxLoaded: Boolean;
+var
+  IsToxLoaded: Boolean;
 
 implementation
 
-type
-  TToxNew = function: TTox; cdecl;
 
 var
-  IsToxLoaded: Boolean;
-	tox_new_: TToxNew;
+  //IsToxLoaded: Boolean;
+	tox_new_: function(ipv6enabled: Byte): TTox; cdecl;
 	tox_getaddress_: procedure(tox: TTox; address: PByte); cdecl;
 	tox_addfriend_: function(tox: TTox; address: PByte; data: PByte; length: Word): Integer; cdecl;
 	tox_addfriend_norequest_: function(tox: TTox; client_id: PByte): Integer; cdecl;
@@ -447,9 +447,9 @@ begin
   Result := IsToxLoaded;
 end;
 
-function tox_new: TTox;
+function tox_new(ipv6enabled: Byte): TTox;
 begin
-	Result := tox_new_;
+	Result := tox_new_(ipv6enabled);
 end;
 
 procedure tox_getaddress(tox: TTox; address: PByte);
@@ -661,6 +661,8 @@ begin
 		Exit;
 
   tox_new_ := GetProcAddress(hlib, 'tox_new');
+  IsToxLoaded := IsToxLoaded and Assigned(tox_new_);
+
   tox_getaddress_ := GetProcAddress(hlib, 'tox_getaddress');
 	tox_addfriend_ := GetProcAddress(hlib, 'tox_addfriend');
 	tox_addfriend_norequest_ := GetProcAddress(hlib, 'tox_addfriend_norequest');

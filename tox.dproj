@@ -104,6 +104,11 @@
         <DCCReference Include="gui\ScrollBarNormalStyle.pas"/>
         <DCCReference Include="gui\UserListDraw.pas"/>
         <DCCReference Include="gui\UserListDrawStyle.pas"/>
+        <DCCReference Include="gui\Forms\fmFriendRequest.pas">
+            <Form>FormFriendRequest</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
+        <DCCReference Include="gui\FriendRequestController.pas"/>
         <BuildConfiguration Include="Debug">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -174,6 +179,7 @@
                 <Platform value="Win32">True</Platform>
                 <Platform value="Win64">False</Platform>
             </Platforms>
+            <ModelSupport>False</ModelSupport>
         </BorlandProject>
         <ProjectFileVersion>12</ProjectFileVersion>
     </ProjectExtensions>

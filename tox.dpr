@@ -1,28 +1,27 @@
-//  tox
+п»ї// tox
 //
-//  Заголовочный файл проекта
+// Р—Р°РіРѕР»РѕРІРѕС‡РЅС‹Р№ С„Р°Р№Р» РїСЂРѕРµРєС‚Р°
 //
-//  The MIT License (MIT)
+// The MIT License (MIT)
 //
-//  Copyright (c) 2013 Dmitry
+// Copyright (c) 2013 Dmitry
 //
 program tox;
 
 {$I tox.inc}
-
 {$IFNDEF Unix}
-  {$R tox-res.res}
+{$R tox-res.res}
 {$ENDIF}
 {$R images.res}
 
 uses
-  {$IFDEF FPC}
-  {$IFDEF UNIX}
+{$IFDEF FPC}
+{$IFDEF UNIX}
   cthreads,
-  {$ENDIF }
+{$ENDIF }
   Interfaces,
-  {$ENDIF }
-  {$I tox-uses.inc}
+{$ENDIF }
+{$I tox-uses.inc}
   Forms,
   Dialogs,
   main in 'src\main.pas' {Form1},
@@ -50,20 +49,23 @@ uses
   ScrollBarNormal in 'gui\ScrollBarNormal.pas',
   ScrollBarNormalStyle in 'gui\ScrollBarNormalStyle.pas',
   UserListDraw in 'gui\UserListDraw.pas',
-  UserListDrawStyle in 'gui\UserListDrawStyle.pas';
+  UserListDrawStyle in 'gui\UserListDrawStyle.pas',
+  fmFriendRequest in 'gui\Forms\fmFriendRequest.pas' {FormFriendRequest},
+  FriendRequestController in 'gui\FriendRequestController.pas';
 
-{*  Вывод сообщения об ошибке загрузки библиотеки libtoxcore
- *}
+{ *  Р’С‹РІРѕРґ СЃРѕРѕР±С‰РµРЅРёСЏ РѕР± РѕС€РёР±РєРµ Р·Р°РіСЂСѓР·РєРё Р±РёР±Р»РёРѕС‚РµРєРё libtoxcore
+  * }
 procedure MessageLoadToxError;
 begin
-  {$IFDEF Win32}
-    ShowMessage('Cannot load library libtoxcore-0.dll');
-  {$ELSE}
-    ShowMessage('Cannot load library libtoxcore-0.so');
-  {$ENDIF}
+{$IFDEF Win32}
+  ShowMessage('Cannot load library libtoxcore-0.dll');
+{$ELSE}
+  ShowMessage('Cannot load library libtoxcore-0.so');
+{$ENDIF}
 end;
 
 {$IFDEF NEW_DELPHI}
+
 function IsRunApplication: Boolean;
 var
   WinHandle: THandle;
@@ -81,18 +83,18 @@ end;
 {$ENDIF}
 
 begin
-  {$IFDEF NEW_DELPHI}
+{$IFDEF NEW_DELPHI}
   if IsRunApplication then
   begin
-  {$ENDIF}
+{$ENDIF}
     Application.Initialize;
     Application.CreateForm(TForm1, Form1);
-    if not Form1.ToxLoadError then
+  if not Form1.ToxLoadError then
       Application.Run
     else
       MessageLoadToxError;
-  {$IFDEF NEW_DELPHI}
+{$IFDEF NEW_DELPHI}
   end;
-  {$ENDIF}
-end.
+{$ENDIF}
 
+end.

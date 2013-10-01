@@ -16,12 +16,13 @@ uses
   {$I tox-uses.inc}
   SysUtils, Controls, Forms, Classes, Dialogs, StdCtrls, toxcore, Settings,
   ServerList, ClientAddress, libtox, StringUtils, ExtCtrls, UserStatus,
-  FriendList, ControlPanel, fmUserAdd, fmNewName, UserList;
+  FriendList, ControlPanel, fmUserAdd, fmNewName, UserList,
+  FriendRequestController;
 
 type
   { TForm1 }
   TForm1 = class(TForm)
-    Memo1: TMemo;
+    ActivityList: TMemo;
     Panel1: TPanel;
     Edit3: TEdit;
     Button2: TButton;
@@ -30,6 +31,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure Button2Click(Sender: TObject);
   private
+    FRequestConrtoller: TFriendRequestController;
     FSettings: TSettings;
     FToxCore: TToxCore;
     procedure ToxOnConnect(Sender: TObject);
@@ -59,6 +61,8 @@ type
     FToxLoadError: Boolean;
     procedure InitGui;
     procedure ControlPanelClick(Sender: TObject; Button: TControlButton);
+    procedure RequestOnAddFriend(Sender: TObject;
+      ClientAddress: TClientAddress);
   public
     property ToxLoadError: Boolean read FToxLoadError;
   end;
@@ -89,6 +93,8 @@ begin
   ClientHeight := 500;
   ClientWidth := 750;
 
+  Position := poScreenCenter;
+
   Caption := 'Demo Tox GUI';
   FToxLoadError := False;
 
@@ -114,7 +120,10 @@ begin
   FToxCore.OnReadReceipt := ToxReadReceipt;
   FToxCore.OnConnectioStatus := ToxConnectionStatus;
 
-  Memo1.Lines.Add(FToxCore.YourAddress.DataHex);
+  FRequestConrtoller := TFriendRequestController.Create(Self);
+  FRequestConrtoller.OnAddFriend := RequestOnAddFriend;
+
+  ActivityList.Lines.Add(FToxCore.YourAddress.DataHex);
 
   FriendList := FToxCore.FriendList;
   c := FriendList.Count;
@@ -181,10 +190,10 @@ begin
   ListBox1.Parent := LeftPanel;
   ListBox1.Align := alClient;
   ListBox1.Visible := False;
-  Memo1.Parent := RightPanel;
-  Memo1.Align := alClient;
-  Memo1.DoubleBuffered := True;
-  Memo1.Color := $F2F2F1;
+  ActivityList.Parent := RightPanel;
+  ActivityList.Align := alClient;
+  ActivityList.DoubleBuffered := True;
+  ActivityList.Color := $F2F2F1;
 end;
 
 {
@@ -211,39 +220,39 @@ end;
 procedure TForm1.ToxOnAction(Sender: TObject; FriendNumber: Integer;
   Action: DataString);
 begin
-  Memo1.Lines.Add('Action from user ' + IntToStr(FriendNumber) +
+  ActivityList.Lines.Add('Action from user ' + IntToStr(FriendNumber) +
     ' with text: ' + Action);
 end;
 
 procedure TForm1.ToxOnConnect(Sender: TObject);
 begin
-  Memo1.Lines.Add('connect');
+  ActivityList.Lines.Add('connect');
   FUserStatus.State := sOnline;
 end;
 
 procedure TForm1.ToxOnConnecting(Sender: TObject; Server: TServerItem);
 begin
-  Memo1.Lines.Add('Try connect to ' + Server.Name);
+  ActivityList.Lines.Add('Try connect to ' + Server.Name);
   FUserStatus.State := sLoading;
 end;
 
 procedure TForm1.ToxConnectionStatus(Sender: TObject; FriendNumber: Integer;
   Status: Byte);
 begin
-  Memo1.Lines.Add('User ' + IntToStr(FriendNumber) +
+  ActivityList.Lines.Add('User ' + IntToStr(FriendNumber) +
     ' change connection status to ' + IntToStr(Status));
 end;
 
 procedure TForm1.ToxOnDisconnect(Sender: TObject);
 begin
-  Memo1.Lines.Add('desconnect');
+  ActivityList.Lines.Add('desconnect');
   FUserStatus.State := sOffline;
 end;
 
 procedure TForm1.ToxFriendMessage(Sender: TObject; FriendNumber: Integer;
   MessageStr: DataString);
 begin
-  Memo1.Lines.Add('New message from user ' + IntToStr(FriendNumber) +
+  ActivityList.Lines.Add('New message from user ' + IntToStr(FriendNumber) +
     ' with text: ' + MessageStr);
 
   FUserStatus.UserName := MessageStr;
@@ -252,20 +261,20 @@ end;
 procedure TForm1.ToxFriendRequest(Sender: TObject; ClientAddress: TClientAddress;
   HelloMessage: DataString);
 begin
-  Memo1.Lines.Add('User ' + ClientAddress.DataHex + ' send request with text: ' + HelloMessage);
-  FToxCore.AddFriendNoRequest(ClientAddress);
+  ActivityList.Lines.Add('User ' + ClientAddress.DataHex + ' send request with text: ' + HelloMessage);
+  FRequestConrtoller.InsertRequest(ClientAddress, HelloMessage);
 end;
 
 procedure TForm1.ToxNameChange(Sender: TObject; FriendNumber: Integer;
   NewName: DataString);
 begin
-  Memo1.Lines.Add('User ' + IntToStr(FriendNumber) + ' change name to ' + NewName)
+  ActivityList.Lines.Add('User ' + IntToStr(FriendNumber) + ' change name to ' + NewName)
 end;
 
 procedure TForm1.ToxStatusMessage(Sender: TObject; FriendNumber: Integer;
   NewStatus: DataString);
 begin
-  Memo1.Lines.Add('User ' + IntToStr(FriendNumber) + ' change status message to ' + NewStatus);
+  ActivityList.Lines.Add('User ' + IntToStr(FriendNumber) + ' change status message to ' + NewStatus);
 end;
 
 procedure TForm1.ToxUserStatus(Sender: TObject; FriendNumber: Integer;
@@ -280,13 +289,13 @@ begin
     usInvalid: Status := 'invalid';
   end;
 
-  Memo1.Lines.Add('User ' + IntToStr(FriendNumber) + ' change user status to ' + Status);
+  ActivityList.Lines.Add('User ' + IntToStr(FriendNumber) + ' change user status to ' + Status);
 end;
 
 procedure TForm1.ToxReadReceipt(Sender: TObject; FriendNumber, Receipt: Integer
   );
 begin
-  Memo1.Lines.Add('User ' + IntToStr(FriendNumber) + ' read you message ' + IntToStr(Receipt));
+  ActivityList.Lines.Add('User ' + IntToStr(FriendNumber) + ' read you message ' + IntToStr(Receipt));
 end;
 
 {*  Событие на выбор пользователем состояния
@@ -336,6 +345,18 @@ begin
     FToxCore.UserName := NewName;
     FUserStatus.UserName := NewName;
   end;
+end;
+
+{ *  Событие, вызываемое после согласия на добавления нового друга в
+  *  список.
+  *
+  *  ClientAddress - адрес пользователя, который добавляется к вам в список
+  *
+  * }
+procedure TForm1.RequestOnAddFriend(Sender: TObject;
+  ClientAddress: TClientAddress);
+begin
+  FToxCore.AddFriendNoRequest(ClientAddress);
 end;
 
 end.

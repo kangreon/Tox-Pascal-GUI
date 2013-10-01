@@ -14,7 +14,7 @@ object Form1: TForm1
   OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
-  object Memo1: TMemo
+  object ActivityList: TMemo
     Left = 85
     Top = 8
     Width = 71

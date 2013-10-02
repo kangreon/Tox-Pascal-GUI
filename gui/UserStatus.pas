@@ -20,34 +20,43 @@ uses
 
 type
   TState = (sOffline, sOnline, sAway, sLoading);
-  TProcStateChange = procedure(Sender: TObject; State: TState) of object;
+  TProcChangeState = procedure(Sender: TObject; State: TState) of object;
 
   TUserStatus = class(TCustomControl)
   private
     FUserIcon: TUserIcon;
     FImages: TResourceImage;
     FImageLoading: TPaintSprite;
-    FState: TState;
-    FStateMenu: TPopupMenu;
     FRightButtonRegion: TActiveRegion;
     FRightButtonState: TDownState;
+    FState: TState;
+    FStateMenu: TPopupMenu;
+    FStatusRegion: TActiveRegion;
+    FStatusText: DataString;
     FUserIconRegion: TActiveRegion;
     FUserName: DataString;
     FUsernameRegion: TActiveRegion;
-    FOnStateChange: TProcStateChange;
+    FOnChangeState: TProcChangeState;
     FOnChangeUserName: TNotifyEvent;
-    procedure DrawRightButton;
+    FOnChangeStatus: TNotifyEvent;
+    procedure DrawRightButton(var Rect: TRect);
     procedure SetUserIcon(const Value: TUserIcon);
-    procedure DrawUserIcon;
+    procedure DrawUserIcon(var Rect: TRect);
     procedure SetState(const Value: TState);
     procedure SetUserString(const Value: DataString);
-    procedure DrawUserName;
+    procedure DrawUserName(var Rect: TRect);
     procedure RightButtonMessage(Sender: TObject; RegionMessage: TRegionMessage;
       const x, y: Integer; Button: TMouseButton; Shift: TShiftState);
     procedure UpdateStateMenu;
     procedure StatusMenuOnClick(Sender: TObject);
     procedure UserNameMessage(Sender: TObject; RegionMessage: TRegionMessage;
       const x, y: Integer; Button: TMouseButton; Shift: TShiftState);
+    procedure SetStatusText(const Value: DataString);
+    procedure DrawStatusIcon(var Rect: TRect);
+    procedure DrawUserStatusMessage(var Rect: TRect);
+    procedure StatusRegionMessage(Sender: TObject;
+      RegionMessage: TRegionMessage; const x, y: Integer; Button: TMouseButton;
+      Shift: TShiftState);
   protected
     procedure CreateWnd; override;
     procedure Paint; override;
@@ -57,10 +66,12 @@ type
 
     property UserIcon: TUserIcon read FUserIcon write SetUserIcon;
     property UserName: DataString read FUserName write SetUserString;
+    property StatusText: DataString read FStatusText write SetStatusText;
     property State: TState read FState write SetState;
 
+    property OnChangeState: TProcChangeState read FOnChangeState write FOnChangeState;
+    property OnChangeStatus: TNotifyEvent read FOnChangeStatus write FOnChangeStatus;
     property OnChangeUserName: TNotifyEvent read FOnChangeUserName write FOnChangeUserName;
-    property OnStateChange: TProcStateChange read FOnStateChange write FOnStateChange;
   end;
 
 
@@ -108,6 +119,11 @@ begin
   FUsernameRegion.Cursor := crHandPoint;
   FUsernameRegion.OnCursorMessage := UserNameMessage;
 
+  FStatusRegion := TActiveRegion.Create(Self);
+  FStatusRegion.Parent := Self;
+  FStatusRegion.Cursor := crHandPoint;
+  FStatusRegion.OnCursorMessage := StatusRegionMessage;
+
   // Создание меню для выбора статуса
   FStateMenu := TPopupMenu.Create(Self);
   FStateMenu.Alignment := paRight;
@@ -136,18 +152,20 @@ begin
   Color := TUserStatusStyle.BackgroundColor;
 end;
 
-{*  Рисование кнопки, расположенной с правой стороны
- *  компонента. Кнопка изменяет свой вид в зависимости от
- *  действий мыши
- *  Кнопка имеет размер 13xвысота
- *}
-procedure TUserStatus.DrawRightButton;
+{ *  Рисование кнопки, расположенной с правой стороны
+  *  компонента. Кнопка изменяет свой вид в зависимости от
+  *  действий мыши
+  *
+  *  Rect - доступная зона для рисования
+  * }
+procedure TUserStatus.DrawRightButton(var Rect: TRect);
 var
   LeftPoint, TopPoint: Integer;
   PaintRect: TRect;
-  Image: TBitmap;
+  ImageWidth: Integer;
+  ImageHeight: Integer;
 begin
-  // Обычный цвет кнопки
+  Canvas.Brush.Style := bsSolid;
   case FRightButtonState of
     dsNone:
       Canvas.Brush.Color := TUserStatusStyle.RightButtonBackgroundNormal;
@@ -157,83 +175,106 @@ begin
       Canvas.Brush.Color := TUserStatusStyle.RightButtonBackgroundDown;
   end;
 
-  Canvas.Brush.Style := bsSolid;
+  LeftPoint := Rect.Right - TUserStatusStyle.RightButtonWidth;
+  TopPoint := Rect.Top;
 
   // Рисование фона кнопки
-  LeftPoint := ClientWidth - TUserStatusStyle.RightButtonWidth;
-  TopPoint := 0;
-
   PaintRect.Left := LeftPoint;
   PaintRect.Top := TopPoint;
-  PaintRect.Right := LeftPoint + TUserStatusStyle.RightButtonWidth;
-  PaintRect.Bottom := Height;
+  PaintRect.Right := Rect.Right;
+  PaintRect.Bottom := Rect.Bottom;
   Canvas.FillRect(PaintRect);
 
-  // Установка региона для кнопки
+  // Установка позиции региона для кнопки
   FRightButtonRegion.Left := LeftPoint;
   FRightButtonRegion.Top := TopPoint;
 
-  // Рисование иконки на кнопке по центру
-  LeftPoint := ClientWidth - TUserStatusStyle.RightButtonWidth +
-    (TUserStatusStyle.RightButtonWidth - FImages.UserstatusButtonDown.Width) div 2;
-
-  TopPoint := (ClientHeight - FImages.UserstatusButtonDown.Height) div 2;
+  // Рисование иконки  на кнопке по центру
+  ImageWidth := FImages.UserstatusButtonDown.Width;
+  ImageHeight := FImages.UserstatusButtonDown.Height;
+  LeftPoint := ((PaintRect.Right - PaintRect.Left) - ImageWidth) div 2 + LeftPoint;
+  TopPoint := ((Rect.Bottom - Rect.Top) - ImageHeight) div 2;
   Canvas.Draw(LeftPoint, TopPoint, FImages.UserstatusButtonDown);
 
-  // Рисование иконки текущего состояния пользователя
-  LeftPoint := ClientWidth - TUserStatusStyle.RightButtonWidth - 16;
-  TopPoint := (ClientHeight - 10) div 2; // 10 - Размер иконки
+  Rect.Right := PaintRect.Left;
+end;
 
-  if FState <> sLoading then
+procedure TUserStatus.DrawStatusIcon(var Rect: TRect);
+var
+  Image: TBitmap;
+  LeftPoint, TopPoint: Integer;
+begin
+  // Остановка анимации в случае изменения статуса
+  if (FState <> sLoading) and (FImageLoading.Active) then
     FImageLoading.Stop;
-
-  Image := nil;
 
   case FState of
     sOffline:
       Image := FImages.GetSelfStatusIcon(usInvalid);
+
     sOnline:
       Image := FImages.GetSelfStatusIcon(usNone);
+
     sAway:
       Image := FImages.GetSelfStatusIcon(usAway);
+
     sLoading:
-      FImageLoading.Draw(Canvas, LeftPoint, TopPoint);
+      begin
+        Image := nil;
+
+        // 6 - разница в размере изображений
+        LeftPoint := Rect.Right - FImageLoading.Width - 6;
+        TopPoint := ((Rect.Bottom - Rect.Top) - FImageLoading.Height) div 2;
+        FImageLoading.Draw(Canvas, LeftPoint, TopPoint);
+
+        Rect.Right := LeftPoint;
+      end;
+
+  else
+    Image := nil;
   end;
 
+  // Рисование выбранной иконки
   if Assigned(Image) then
   begin
-    LeftPoint := ClientWidth - TUserStatusStyle.RightButtonWidth - Image.Width;
-    TopPoint := (ClientHeight - Image.Height) div 2;
+    LeftPoint := Rect.Right - Image.Width;
+    TopPoint := ((Rect.Bottom - Rect.Top) - Image.Height) div 2;
     Canvas.Draw(LeftPoint, TopPoint, Image);
+
+    Rect.Right := LeftPoint;
   end;
 end;
 
-{*  Рисует собсвенное изображение пользователя в зависимости от
- *  состояния.
- *  Состояния меняются в зависимости от действий пользователя
- *}
-procedure TUserStatus.DrawUserIcon;
+
+{ *  Рисует собсвенное изображение пользователя.
+  *
+  *  Rect - доступная зона для рисования
+  * }
+procedure TUserStatus.DrawUserIcon(var Rect: TRect);
 var
   LeftPoint: Integer;
   TopPoint: Integer;
+  HeightRect: Integer;
 begin
-  LeftPoint := TUserStatusStyle.IconPositionLeft;
-  // Выравнивание по середине высоты
-  TopPoint := (ClientHeight - FUserIcon.Image.Height) div 2;
+  HeightRect := Rect.Bottom - Rect.Top;
+  LeftPoint := TUserStatusStyle.IconPositionLeft + Rect.Left;
+  TopPoint := (HeightRect - FUserIcon.Image.Height) div 2 + Rect.Top;
+
+  Rect.Left := LeftPoint + FUserIcon.Image.Width + TUserStatusStyle.IconMarginRight;
 
   FUserIconRegion.Top := TopPoint;
-
   Canvas.Draw(LeftPoint, TopPoint, FUserIcon.Image);
 end;
 
-{*  Рисование имени пользователя
- *}
-procedure TUserStatus.DrawUserName;
+{ *  Рисование имени пользователя
+  * }
+procedure TUserStatus.DrawUserName(var Rect: TRect);
 var
   PaintRect: TRect;
+  CharHeight: Integer;
 begin
-  Canvas.Font.Color := clWhite;
   Canvas.Brush.Style := bsClear;
+  Canvas.Font.Color := TUserStatusStyle.UserNameColor;
   Canvas.Font.Style := [fsBold];
   Canvas.Font.Name := 'Fira Sans';
   {$IFDEF FPC}
@@ -242,26 +283,64 @@ begin
   Canvas.Font.Height := TUserStatusStyle.UserNameHeight;
   {$ENDIF}
 
-  PaintRect.Left := TUserStatusStyle.IconPositionLeft + TUserStatusStyle.IconWidth +
-    TUserStatusStyle.UserNameMarginLeft;
-  PaintRect.Top := TUserStatusStyle.UserNameMarginTop;
-  PaintRect.Right := ClientWidth - 35;
-  PaintRect.Bottom := ClientHeight;
+  CharHeight := Canvas.TextExtent('Q').cy;
+
+  PaintRect.Left := Rect.Left + TUserStatusStyle.UserNameMarginLeft;
+  PaintRect.Top := (Rect.Bottom - Rect.Top) div 2 - CharHeight;
+  PaintRect.Right := Rect.Right;
+  PaintRect.Bottom := PaintRect.Top + CharHeight;
   TextRectW(Canvas, PaintRect, FUserName, [tfEndEllipsis]);
 
   FUsernameRegion.Top := PaintRect.Top;
   FUsernameRegion.Width := PaintRect.Right - PaintRect.Left;
+
+  Rect.Top := PaintRect.Bottom;
 end;
 
-{*  Событие вызывается при перерисовке окна
- *}
+{ *  Рисование текста состояния пользователя
+  *
+  * }
+procedure TUserStatus.DrawUserStatusMessage(var Rect: TRect);
+var
+  CharHeight: Integer;
+  PaintRect: TRect;
+begin
+  Canvas.Brush.Style := bsClear;
+  Canvas.Font.Color := TUserStatusStyle.StatusMessageColor;
+  Canvas.Font.Style := [];
+  Canvas.Font.Name := 'Fira Sans';
+  {$IFDEF FPC}
+  Canvas.Font.Size := 9;
+  {$ELSE}
+  Canvas.Font.Height := TUserStatusStyle.StatusMessageHeight;
+  {$ENDIF}
+
+  CharHeight := Canvas.TextExtent('Q').cy;
+  PaintRect := Rect;
+  PaintRect.Left := PaintRect.Left + TUserStatusStyle.UserNameMarginLeft;
+  PaintRect.Bottom := PaintRect.Top + CharHeight;
+  TextRectW(Canvas, PaintRect, FStatusText, [tfEndEllipsis]);
+
+  FStatusRegion.SetRect(PaintRect);
+
+  Rect.Top := PaintRect.Bottom;
+end;
+
+{ *  Событие вызывается при перерисовке окна
+  * }
 procedure TUserStatus.Paint;
+var
+  DrawRect: TRect;
 begin
   inherited;
 
-  DrawRightButton;
-  DrawUserIcon;
-  DrawUserName;
+  DrawRect := ClientRect;
+
+  DrawUserIcon(DrawRect);
+  DrawRightButton(DrawRect);
+  DrawStatusIcon(DrawRect);
+  DrawUserName(DrawRect);
+  DrawUserStatusMessage(DrawRect);
 end;
 
 {*  Собтие на действия мышью на правой кнопке изменения статуса
@@ -326,9 +405,25 @@ begin
     FOnChangeUserName(Self);
 end;
 
+{ *  Событие нажатия на строку статуса пользователя
+  *
+  * }
+procedure TUserStatus.StatusRegionMessage(Sender: TObject; RegionMessage: TRegionMessage;
+  const x, y: Integer; Button: TMouseButton; Shift: TShiftState);
+begin
+  if (RegionMessage = rmMouseClick) and Assigned(FOnChangeStatus) then
+    FOnChangeStatus(Self);
+end;
+
 procedure TUserStatus.SetState(const Value: TState);
 begin
   FState := Value;
+  Invalidate;
+end;
+
+procedure TUserStatus.SetStatusText(const Value: DataString);
+begin
+  FStatusText := Value;
   Invalidate;
 end;
 
@@ -358,8 +453,8 @@ begin
     State := sOffline;
   end;
 
-  if Assigned(FOnStateChange) then
-    FOnStateChange(Self, State);
+  if Assigned(FOnChangeState) then
+    FOnChangeState(Self, State);
 end;
 
 {*  Обновление списка контекстного меню для переключения

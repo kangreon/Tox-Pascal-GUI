@@ -44,6 +44,8 @@ type
       X, Y: Integer); override;
     procedure WndProc(var Message: TMessage); override;
   public
+    procedure SetRect(Rect: TRect);
+
     property OnCursorMessage: TProcCursorMessage read FOnCursorMessage write FOnCursorMessage;
   end;
 
@@ -113,6 +115,14 @@ procedure TActiveRegion.MouseUp(Button: TMouseButton; Shift: TShiftState; X,
 begin
   inherited;
   EventCursorMessage(rmMouseUp, X, Y, Button, Shift);
+end;
+
+procedure TActiveRegion.SetRect(Rect: TRect);
+begin
+  Left := Rect.Left;
+  Top := Rect.Top;
+  Width := Rect.Right - Left;
+  Height := Rect.Bottom - Top;
 end;
 
 {*  Отловка событий входа и выхода курсора на выделенный регион

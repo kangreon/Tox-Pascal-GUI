@@ -14,6 +14,14 @@ object Form1: TForm1
   OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
+  object Splitter1: TSplitter
+    Left = 0
+    Top = 0
+    Height = 147
+    ExplicitLeft = 72
+    ExplicitTop = 112
+    ExplicitHeight = 100
+  end
   object ActivityList: TMemo
     Left = 85
     Top = 8

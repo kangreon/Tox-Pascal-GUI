@@ -52,6 +52,7 @@ type
     procedure SetInterval(const Value: Integer);
     procedure Repaint(Sender: TObject);
     procedure TimerTime(Sender: TObject);
+    function GetActive: Boolean;
   public
     constructor Create(AImage: TPngImage; AControl: TControl);
     destructor Destroy; override;
@@ -59,6 +60,7 @@ type
     procedure Draw(Canvas: TCanvas; X, Y: Integer);
     procedure Stop;
 
+    property Active: Boolean read GetActive;
     property Count: Integer read FCount;
     property Interval: Integer read GetInterval write SetInterval;
     property Height: Integer read FHeignt;
@@ -135,6 +137,11 @@ begin
     FControl.Parent := TWinControl(FOwnControl);
     FControl.Invalidate;
   end;
+end;
+
+function TPaintSprite.GetActive: Boolean;
+begin
+  Result := FTimer.Enabled;
 end;
 
 function TPaintSprite.GetInterval: Integer;

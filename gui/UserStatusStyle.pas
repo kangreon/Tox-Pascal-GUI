@@ -59,6 +59,15 @@ type
     property UserNameMarginTop: Integer read GetUserNameMarginTop;
     // Высота имени
     property UserNameHeight: Integer read GetUserNameHeight;
+  public const
+    // Отступ аваторки пользователя справа
+    IconMarginRight: Integer          = 5;
+    // Цвет имени пользователя
+    UserNameColor: TColor             = clWhite;
+    //
+    StatusMessageColor: TColor        = $EEEEEE;
+    // Высота текста со статусом пользователя
+    StatusMessageHeight: Integer      = 13;
   end;
 
 function TUserStatusStyle: TTUserStatusStyle;
@@ -129,12 +138,12 @@ end;
 
 function TTUserStatusStyle.GetUserNameHeight: Integer;
 begin
-  Result := 15;
+  Result := 16;
 end;
 
 function TTUserStatusStyle.GetUserNameMarginLeft: Integer;
 begin
-  Result := 10;
+  Result := 5;
 end;
 
 function TTUserStatusStyle.GetUserNameMarginTop: Integer;

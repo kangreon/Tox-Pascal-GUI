@@ -28,6 +28,7 @@ type
     Button2: TButton;
     ListBox1: TListBox;
     Edit4: TEdit;
+    Splitter1: TSplitter;
     procedure FormCreate(Sender: TObject);
     procedure Button2Click(Sender: TObject);
   private
@@ -156,6 +157,10 @@ begin
   LeftPanel.ParentBackground := False;
   {$ENDIF}
 
+  Splitter1.Parent := nil;
+  Splitter1.Parent := Self;
+  Splitter1.ResizeStyle := rsUpdate;
+
   RightPanel := TPanel.Create(Self);
   RightPanel.Parent := Self;
   RightPanel.Align := alClient;
@@ -168,9 +173,10 @@ begin
   FUserStatus := TUserStatus.Create(LeftPanel);
   FUserStatus.Parent := LeftPanel;
   FUserStatus.Align := alTop;
-  FUserStatus.OnStateChange := UserStatusStateChange;
+  FUserStatus.OnChangeState := UserStatusStateChange;
   FUserStatus.OnChangeUserName := UserStatusChangeName;
   FUserStatus.UserName := FToxCore.UserName;
+  FUserStatus.StatusText := 'Это текст моего состояния';
 
   FControlPanel := TControlPanel.Create(LeftPanel);
   FControlPanel.Parent := LeftPanel;

@@ -322,11 +322,26 @@ begin
     sOnline:
       begin
         if FToxCore.ConnectState = csOffline then
+        begin
           FToxCore.StartTox;
+        end
+        else
+          FUserStatus.State := sOnline;
+
+        FToxCore.SetUserStatus(usNone);
       end;
 
-    sAway: ;
-    sLoading: ;
+    sAway:
+      begin
+        FToxCore.SetUserStatus(usAway);
+        FUserStatus.State := sAway;
+      end;
+
+    sBusy:
+      begin
+        FToxCore.SetUserStatus(usBusy);
+        FUserStatus.State := sBusy;
+      end;
   end;
 end;
 

@@ -112,6 +112,7 @@ type
       out FriendNumber: Integer): TToxFaerr;
     function AddFriendNoRequest(Address: TClientAddress): Boolean;
     procedure SendMessage(FriendNumber: Integer; Text: DataString);
+    procedure SetUserStatus(Status: TToxUserStatus);
     procedure StartTox;
     procedure StopTox;
 
@@ -752,6 +753,11 @@ begin
   end;
 
   SaveData;
+end;
+
+procedure TToxCore.SetUserStatus(Status: TToxUserStatus);
+begin
+  tox_set_userstatus(FTox, Status);
 end;
 
 procedure TToxCore.StartTox;

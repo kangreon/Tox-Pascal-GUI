@@ -19,7 +19,7 @@ uses
   PaintSprite, libtox;
 
 type
-  TState = (sOffline, sOnline, sAway, sLoading);
+  TState = (sOffline, sOnline, sAway, sBusy, sLoading);
   TProcChangeState = procedure(Sender: TObject; State: TState) of object;
 
   TUserStatus = class(TCustomControl)
@@ -217,6 +217,9 @@ begin
 
     sAway:
       Image := FImages.GetSelfStatusIcon(usAway);
+
+    sBusy:
+      Image := FImages.GetSelfSTatusIcon(usBusy);
 
     sLoading:
       begin
@@ -447,7 +450,7 @@ begin
   case TMenuItem(Sender).Tag of
     0: State := sOnline;
     1: State := sAway;
-    2: State := sLoading;
+    2: State := sBusy;
     3: State := sOffline;
   else
     State := sOffline;

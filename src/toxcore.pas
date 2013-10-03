@@ -66,6 +66,8 @@ type
     FOnConnectioStatus: TProcConnectioStatus;
     FFriendList: TFriendList;
     FIsLoadLibrary: Boolean;
+    FUserName: DataString;
+    FStatusMessage: DataString;
     procedure EventConnect;
     procedure EventConnectSyn;
     procedure EventConnecting(Server: TServerItem);
@@ -92,7 +94,6 @@ type
     procedure InitTox;
     procedure InitConnection;
     procedure SaveData;
-    function GetUserName: DataString;
     procedure SetUserName(const Value: DataString);
     procedure DoFriendRequest(ClientAddress: TClientAddress;
       HelloMessage: DataString);
@@ -103,6 +104,8 @@ type
     procedure DoUserStatus(FriendNumber: Integer; Kind: TToxUserStatus);
     procedure DoReadReceipt(FriendNumber: Integer; Receipt: Integer);
     procedure DoConnectionStatus(FriendNumber: Integer; Status: Byte);
+    procedure UpdateFriends(const Clear: Boolean = True);
+    procedure SetStatusMessage(const Value: DataString);
   protected
     procedure Execute; override;
   public
@@ -120,7 +123,8 @@ type
     property FriendList: TFriendList read FFriendList;
     property IsLoadLibrary: Boolean read FIsLoadLibrary;
     property SelectedServer: TServerItem read FSelectedServer;
-    property UserName: DataString read GetUserName write SetUserName;
+    property StatusMessage: DataString read FStatusMessage write SetStatusMessage;
+    property UserName: DataString read FUserName write SetUserName;
     property YourAddress: TClientAddress read FYourAddress;
 
     property OnAction: TProcAction read FOnAction write FOnAction;
@@ -306,7 +310,13 @@ begin
 
   Item := FFriendList.Item[FriendNumber];
   if Assigned(Item) then
-    Item.Online := Status = 1;
+  begin
+    Item.Online := Status = 1
+  end
+  else
+  begin
+    UpdateFriends(False);
+  end;
 end;
 
 procedure TToxCore.DoFriendMessage(FriendNumber: Integer;
@@ -322,9 +332,7 @@ begin
   begin
     EventFriendRequest(ClientAddress, HelloMessage);
     SaveData;
-  end
-  else
-    raise Exception.Create('Error client id');     //TODO: Изменить способ уведомления об ошибке
+  end;
 end;
 
 // Событие, вызываемое при изменении имени пользоватея одного из
@@ -563,7 +571,6 @@ begin
       InitTox;
     end;
 
-
     Inc(conn_try);
     if (not dht_on) and (tox_isconnected(FTox) <> 1) and (conn_try mod 100 = 0) then
     begin
@@ -589,12 +596,6 @@ begin
     Sleep(60);
   end;          
 end;
-
-function TToxCore.GetUserName: DataString;
-begin
-  Result := FSettings.UserName;
-end;
-
 
 procedure TToxCore.InitConnection;
 var
@@ -627,10 +628,9 @@ end;
   * }
 procedure TToxCore.InitTox;
 var
-  data, name: PByte;
+  data: PByte;
   size: Integer;
   UserName: DataString;
-  i: Integer;
 begin
   FConfigPath := FSettings.ConfigPath;
 
@@ -641,7 +641,6 @@ begin
     FIsLoadLibrary := False;
     Exit;
   end;
-
 
   // Start callback function
   tox_callback_friendrequest(FTox, OnFriendRequest_, Self);
@@ -675,25 +674,98 @@ begin
     FreeMemory(data);
   end;
 
+  // Получение собственного имени
+  data := GetMemory(TOX_MAX_NAME_LENGTH);
+  try
+    size := tox_getselfname(FTox, data, TOX_MAX_NAME_LENGTH);
+    if size >= 1 then
+      FUserName := GetTextFromUTF8Byte(data, size)
+    else
+      FUserName := '';
+  finally
+    FreeMemory(data);
+  end;
+
+  // Получение собственного статуса
+  data := GetMemory(TOX_MAX_STATUSMESSAGE_LENGTH);
+  try
+    size := tox_copy_self_statusmessage(FTox, data, TOX_MAX_STATUSMESSAGE_LENGTH);
+    if size >= 1 then
+      FStatusMessage := GetTextFromUTF8Byte(data, size)
+    else
+      FStatusMessage := '';
+  finally
+    FreeMemory(data);
+  end;
+
+  UpdateFriends(True);
+
+  UserName := FSettings.UserName;
+end;
+
+{ *  Обновляет список друзей путем загрузки всего списка и сверкой с уже
+  *  загруженным
+  * }
+procedure TToxCore.UpdateFriends(const Clear: Boolean);
+var
+  Data, Name, Status: Pointer;
+  size: Integer;
+  i: Integer;
+  ClientId: TClientId;
+  Item: TFriendItem;
+begin
   // Get user list
   data := GetMemory(TOX_CLIENT_ID_SIZE);
   name := GetMemory(TOX_MAX_NAME_LENGTH);
   FriendList.BeginUpdate;
   try
-    FriendList.Clear;
+    if Clear then
+      FriendList.Clear;
 
     i := 0;
     while tox_getclient_id(FTox, i, data) = 0 do
     begin
       try
-        FriendList.Add(i, data);
-
-        size := tox_getname(FTox, i, name);
-        if size > 1 then
+        if i < FriendList.Count then
         begin
-          FFriendList.Item[i].UserName := GetTextFromUTF8Byte(name, size);
+          ClientId := TClientId.Create(data);
+          try
+            // Заменяет в списке элемент, если он не правильный
+            if FriendList.Item[i].ClientId.DataHex <> ClientId.DataHex then
+              Item := FriendList.Replcae(i, data)
+            else
+              Item := FriendList.Item[i];
+
+          finally
+            ClientId.Free;
+          end;
+
+        end
+        else
+        begin
+          Item := FriendList.Add(i, data);
         end;
 
+        if Assigned(Item) then
+        begin
+          i := Item.Index;
+
+          // Получение имени пользователя
+          size := tox_getname(FTox, i, name);
+          if size > 0 then
+            Item.UserName := GetTextFromUTF8Byte(name, size);
+
+          // Копирование статуса
+          size := tox_get_statusmessage_size(FTox, i);
+          Status := GetMemory(size);
+          try
+            tox_copy_statusmessage(FTox, i, Status, size);
+            Item.StatusMessage := GetTextFromUTF8Byte(Status, size);
+          finally
+            FreeMemory(Status);
+          end;
+
+        end;
       finally
         Inc(i);
       end;
@@ -703,8 +775,6 @@ begin
     FreeMem(name);
     FreeMemory(data);
   end;
-
-  UserName := FSettings.UserName;
 end;
 
 procedure TToxCore.SaveData;
@@ -738,13 +808,28 @@ begin
   end;
 end;
 
+procedure TToxCore.SetStatusMessage(const Value: DataString);
+var
+  Data: PByte;
+  DataLength: Integer;
+begin
+  FStatusMessage := Value;
+  Data := GetUtf8Text(Value, DataLength);
+  try
+    tox_set_statusmessage(FTox, Data, DataLength)
+  finally
+    FreeMemory(Data);
+  end;
+
+  SaveData;
+end;
+
 procedure TToxCore.SetUserName(const Value: DataString);
 var
   Data: PByte;
   DataLength: Integer;
 begin
-  FSettings.UserName := Value;
-
+  FUserName := Value;
   Data := GetUtf8Text(Value, DataLength);
   try
     tox_setname(FTox, Data, DataLength);
@@ -757,7 +842,8 @@ end;
 
 procedure TToxCore.SetUserStatus(Status: TToxUserStatus);
 begin
-  tox_set_userstatus(FTox, Status);
+  if FConnectState = csOnline then
+    tox_set_userstatus(FTox, Status);
 end;
 
 procedure TToxCore.StartTox;

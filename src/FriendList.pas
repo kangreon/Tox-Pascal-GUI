@@ -65,6 +65,7 @@ type
     procedure BeginUpdate;
     procedure Clear;
     procedure EndUpdate;
+    function Replcae(Number: Integer; ClientId: PByte): TFriendItem;
 
     property Count: Integer read GetCount;
     property Item[Index: Integer]: TFriendItem read GetItem;
@@ -152,6 +153,26 @@ begin
     FOnNewItem(Self);
 end;
 
+
+function TFriendList.Replcae(Number: Integer; ClientId: PByte): TFriendItem;
+var
+  Item: TFriendItem;
+begin
+  if (Number >= 0) and (Number < Count) then
+  begin
+    Item := TFriendItem.Create(Number, ClientId);
+    Item.OnUpdate := ItemOnUpdate;
+    Result := Item;
+
+    FItems[Number] := Item;
+
+    if Assigned(FOnNewItem) then
+      FOnNewItem(Self);
+  end
+  else
+    Result := nil;
+end;
+
 procedure TFriendList.BeginUpdate;
 begin
   FStopUpdate := True;
@@ -208,5 +229,6 @@ begin
     FOnUpdateItem(Self, TFriendItem(Sender).Index);
   end;
 end;
+
 
 end.

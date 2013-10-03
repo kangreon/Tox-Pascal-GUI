@@ -91,10 +91,12 @@
       <Unit8>
         <Filename Value="src\libtox.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="libtox"/>
       </Unit8>
       <Unit9>
         <Filename Value="src\toxcore.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="toxcore"/>
       </Unit9>
       <Unit10>
         <Filename Value="src\Settings.pas"/>

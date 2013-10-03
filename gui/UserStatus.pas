@@ -66,7 +66,7 @@ type
 
     property UserIcon: TUserIcon read FUserIcon write SetUserIcon;
     property UserName: DataString read FUserName write SetUserString;
-    property StatusText: DataString read FStatusText write SetStatusText;
+    property StatusMessage: DataString read FStatusText write SetStatusText;
     property State: TState read FState write SetState;
 
     property OnChangeState: TProcChangeState read FOnChangeState write FOnChangeState;

@@ -71,6 +71,7 @@ type
 //    TOX_USERSTATUS_INVALID
 //}
 //TOX_USERSTATUS;
+  PToxUserStatus = ^TToxUserStatus;
   TToxUserStatus = (usNone, usAway, usBusy, usInvalid);
 
   TProcFriendRequest = procedure(public_key: PByte; data: PByte; length: Word; UserData: Pointer); cdecl;
@@ -196,7 +197,7 @@ function tox_setname(tox: TTox; name: PByte; length: Word): Integer;
 // *  return 0 on error.
 // */
 //uint16_t tox_getselfname(Tox *tox, uint8_t *name, uint16_t nlen);
-function tox_getselfname(tox: TTox; name: PAnsiChar; nlen: Word): Word;
+function tox_getselfname(tox: TTox; name: PByte; nlen: Word): Word;
 
 ///* Get name of friendnumber and put it in name.
 // * name needs to be a valid memory location with a size of at least MAX_NAME_LENGTH (128) bytes.
@@ -214,7 +215,7 @@ function tox_getname(tox: TTox; friendnumber: Integer; name: PByte): Integer;
 // *  returns -1 on failure.
 // */
 //int tox_set_statusmessage(Tox *tox, uint8_t *status, uint16_t length);
-function tox_set_statusmessage(tox: TTox; status: PAnsiChar; length: Word): Integer;
+function tox_set_statusmessage(tox: TTox; status: PByte; length: Word): Integer;
 
 //int tox_set_userstatus(Tox *tox, TOX_USERSTATUS status);
 function tox_set_userstatus(tox: TTox; status: TToxUserStatus): Integer;
@@ -230,10 +231,10 @@ function tox_get_statusmessage_size(tox: TTox; friendnumber: Integer): Integer;
 // * The self variant will copy our own status message.
 // */
 //int tox_copy_statusmessage(Tox *tox, int friendnumber, uint8_t *buf, uint32_t maxlen);
-function tox_copy_statusmessage(tox: TTox; friendnumber: Integer; buf: PAnsiChar; maxlen: Integer): Integer;
+function tox_copy_statusmessage(tox: TTox; friendnumber: Integer; buf: PByte; maxlen: Integer): Integer;
 
 //int tox_copy_self_statusmessage(Tox *tox, uint8_t *buf, uint32_t maxlen);
-function tox_copy_self_statusmessage(tox: TTox; buf: PAnsiChar; maxlen: Integer): Integer;
+function tox_copy_self_statusmessage(tox: TTox; buf: PByte; maxlen: Integer): Integer;
 
 ///*  return one of USERSTATUS values.
 // *  Values unknown to your application should be represented as USERSTATUS_NONE.
@@ -412,13 +413,13 @@ var
 	tox_sendmessage_withid_: function(tox: TTox; friendnumber: Integer; theid: Integer; message: PAnsiChar; length: Integer): Integer; cdecl;
 	tox_sendaction_: function(tox: TTox; friendnumber: Integer; action: PAnsiChar; length: Integer): Integer; cdecl;
 	tox_setname_: function(tox: TTox; name: PByte; length: Word): Integer; cdecl;
-  tox_getselfname_: function(tox: TTox; name: PAnsiChar; nlen: Word): Word; cdecl;
+  tox_getselfname_: function(tox: TTox; name: PByte; nlen: Word): Word; cdecl;
   tox_getname_: function(tox: TTox; friendnumber: Integer; name: PByte): Integer; cdecl;
-  tox_set_statusmessage_: function(tox: TTox; status: PAnsiChar; length: Word): Integer; cdecl;
-  tox_set_userstatus_: function(tox: TTox; status: TToxUserStatus): Integer; cdecl;
+  tox_set_statusmessage_: function(tox: TTox; status: PByte; length: Word): Integer; cdecl;
+  tox_set_userstatus_: function(tox: TTox; status: Cardinal): Integer; cdecl;
   tox_get_statusmessage_size_: function(tox: TTox; friendnumber: Integer): Integer; cdecl;
-  tox_copy_statusmessage_: function(tox: TTox; friendnumber: Integer; buf: PAnsiChar; maxlen: Integer): Integer; cdecl;
-  tox_copy_self_statusmessage_: function(tox: TTox; buf: PAnsiChar; maxlen: Integer): Integer; cdecl;
+  tox_copy_statusmessage_: function(tox: TTox; friendnumber: Integer; buf: PByte; maxlen: Integer): Integer; cdecl;
+  tox_copy_self_statusmessage_: function(tox: TTox; buf: PByte; maxlen: Integer): Integer; cdecl;
   tox_get_userstatus_: function(tox: TTox; friendnumber: Integer): TToxUserStatus; cdecl;
   tox_get_selfuserstatus_: function(tox: TTox): TToxUserStatus; cdecl;
   tox_set_sends_receipts_: procedure(tox: TTox; friendnumber: Integer; yesno: Integer); cdecl;
@@ -507,7 +508,7 @@ begin
   Result := tox_setname_(tox, name, length);
 end;
 
-function tox_getselfname(tox: TTox; name: PAnsiChar; nlen: Word): Word;
+function tox_getselfname(tox: TTox; name: PByte; nlen: Word): Word;
 begin
   Result := tox_getselfname_(tox, name, nlen);
 end;
@@ -517,14 +518,14 @@ begin
   Result := tox_getname_(tox, friendnumber, name);
 end;
 
-function tox_set_statusmessage(tox: TTox; status: PAnsiChar; length: Word): Integer;
+function tox_set_statusmessage(tox: TTox; status: PByte; length: Word): Integer;
 begin
   Result := tox_set_statusmessage_(tox, status, length);
 end;
 
 function tox_set_userstatus(tox: TTox; status: TToxUserStatus): Integer;
 begin
-  Result := tox_set_userstatus_(tox, status);
+  Result := tox_set_userstatus_(tox, Integer(status));
 end;
 
 function tox_get_statusmessage_size(tox: TTox; friendnumber: Integer): Integer;
@@ -532,12 +533,12 @@ begin
   Result := tox_get_statusmessage_size_(tox, friendnumber);
 end;
 
-function tox_copy_statusmessage(tox: TTox; friendnumber: Integer; buf: PAnsiChar; maxlen: Integer): Integer;
+function tox_copy_statusmessage(tox: TTox; friendnumber: Integer; buf: PByte; maxlen: Integer): Integer;
 begin
   Result := tox_copy_statusmessage_(tox, friendnumber, buf, maxlen);
 end;
 
-function tox_copy_self_statusmessage(tox: TTox; buf: PAnsiChar; maxlen: Integer): Integer;
+function tox_copy_self_statusmessage(tox: TTox; buf: PByte; maxlen: Integer): Integer;
 begin
   Result := tox_copy_self_statusmessage_(tox, buf, maxlen);
 end;

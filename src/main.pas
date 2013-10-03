@@ -64,6 +64,7 @@ type
     procedure ControlPanelClick(Sender: TObject; Button: TControlButton);
     procedure RequestOnAddFriend(Sender: TObject;
       ClientAddress: TClientAddress);
+    procedure UserStatusChangeStatus(Sender: TObject);
   public
     property ToxLoadError: Boolean read FToxLoadError;
   end;
@@ -175,10 +176,11 @@ begin
   FUserStatus := TUserStatus.Create(LeftPanel);
   FUserStatus.Parent := LeftPanel;
   FUserStatus.Align := alTop;
+  FUserStatus.UserName := FToxCore.UserName;
+  FUserStatus.StatusMessage := FToxCore.StatusMessage;
   FUserStatus.OnChangeState := UserStatusStateChange;
   FUserStatus.OnChangeUserName := UserStatusChangeName;
-  FUserStatus.UserName := FToxCore.UserName;
-  FUserStatus.StatusText := {$IFDEF FPC}UTF8Encode{$ENDIF}('Это текст моего состояния 2222222222222222222');
+  FUserStatus.OnChangeStatus := UserStatusChangeStatus;
 
   FControlPanel := TControlPanel.Create(LeftPanel);
   FControlPanel.Parent := LeftPanel;
@@ -262,8 +264,6 @@ procedure TForm1.ToxFriendMessage(Sender: TObject; FriendNumber: Integer;
 begin
   ActivityList.Lines.Add('New message from user ' + IntToStr(FriendNumber) +
     ' with text: ' + MessageStr);
-
-  FUserStatus.UserName := MessageStr;
 end;
 
 procedure TForm1.ToxFriendRequest(Sender: TObject; ClientAddress: TClientAddress;
@@ -317,32 +317,60 @@ begin
           csOnline, csConnecting:
             begin
               FToxCore.StopTox;
+              FUserStatus.State := sOffline;
             end;
         end;
       end;
 
     sOnline:
       begin
-        if FToxCore.ConnectState = csOffline then
-        begin
-          FToxCore.StartTox;
-        end
-        else
-          FUserStatus.State := sOnline;
+        case FToxCore.ConnectState of
+          csOnline:
+            begin
+              FToxCore.SetUserStatus(usNone);
+              FUserStatus.State := sOnline;
+            end;
 
-        FToxCore.SetUserStatus(usNone);
+          csOffline:
+            begin
+              FToxCore.StartTox;
+              FUserStatus.State := sLoading;
+            end;
+        end;
       end;
 
     sAway:
       begin
-        FToxCore.SetUserStatus(usAway);
-        FUserStatus.State := sAway;
+        case FToxCore.ConnectState of
+          csOnline:
+            begin
+              FToxCore.SetUserStatus(usAway);
+              FUserStatus.State := sAway;
+            end;
+
+          csOffline:
+            begin
+              FToxCore.StartTox;
+              FUserStatus.State := sLoading;
+            end;
+        end;
       end;
 
     sBusy:
       begin
-        FToxCore.SetUserStatus(usBusy);
-        FUserStatus.State := sBusy;
+        case FToxCore.ConnectState of
+          csOnline:
+            begin
+              FToxCore.SetUserStatus(usBusy);
+              FUserStatus.State := sBusy;
+            end;
+
+          csOffline:
+            begin
+              FToxCore.StartTox;
+              FUserStatus.State := sLoading;
+            end;
+        end;
       end;
   end;
 end;
@@ -354,7 +382,7 @@ var
   NewName: string;
   FormName: TFormNewName;
 begin
-  FormName := TFormNewName.Create(Self);
+  FormName := TFormNewName.Create(Self, fmtChangeName);
   try
     FormName.Position := poOwnerFormCenter;
     FormName.ShowModal;
@@ -367,6 +395,29 @@ begin
   begin
     FToxCore.UserName := NewName;
     FUserStatus.UserName := NewName;
+  end;
+end;
+
+procedure TForm1.UserStatusChangeStatus(Sender: TObject);
+var
+  NewStatus: string;
+  FormStatus: TFormNewName;
+  IsChange: Boolean;
+begin
+  FormStatus := TFormNewName.Create(Self, fmtChangeStatus);
+  try
+    FormStatus.Position := poOwnerFormCenter;
+    FormStatus.ShowModal;
+    IsChange := FormStatus.ModalResult = 1;
+    NewStatus := FormStatus.NewName;
+  finally
+    FormStatus.Free;
+  end;
+
+  if IsChange then
+  begin
+    FToxCore.StatusMessage := NewStatus;
+    FUserStatus.StatusMessage := NewStatus;
   end;
 end;
 

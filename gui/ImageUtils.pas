@@ -26,7 +26,6 @@ type
     tfPrefixOnly, tfTabStop, tfWordEllipsis, tfComposited);
 
   TTextFormat = set of TTextFormats;
-  TDrawTextFlags = Cardinal;
 {$ENDIF}
 
 function TextExtentW(Canvas: TCanvas; const Text: DataString): TSize;
@@ -42,12 +41,8 @@ type
 
 procedure TextRectW(Canvas: TCanvas; var Rect: TRect; var Text: DataString;
   TextFormat: TTextFormat = []);
-  {$IFNDEF NEW_DELPHI}
-var
-  Format: TDrawTextFlags;
-  i: TTextFormats;
-  {$ENDIF}
   {$IFDEF FPC}
+var
   TextStyle: TTextStyle;
   {$ENDIF}
 begin
@@ -55,38 +50,12 @@ begin
   Canvas.TextRect(Rect, Text, TextFormat);
   {$ELSE}
     {$IFDEF FPC}
-  //Format := 0;
-  //for i := Low(TTextFormats) to High(TTextFormats) do
-  //begin
-  //  if i in TextFormat then
-  //  case i of
-  //    tfEndEllipsis:
-  //      Format := Format or DT_END_ELLIPSIS;
-  //  end
-  //end;
-  TextStyle := Canvas.TextStyle;
-  TextStyle.EndEllipsis := tfEndEllipsis in TextFormat;
+    TextStyle := Canvas.TextStyle;
+    TextStyle.EndEllipsis := tfEndEllipsis in TextFormat;
+    TextStyle.Wordbreak := False;
+    TextStyle.SingleLine := True;
 
-  Canvas.TextRect(Rect, Rect.Left, Rect.Top, Text, TextStyle);
-
-  //DrawText(TCanvasEx(Canvas).Handle, PChar(Text), Length(Text), Rect, Format);
-
-    {$ELSE}
-      TCanvasEx(Canvas).RequiredState([csHandleValid, csFontValid]);
-
-      Format := 0;
-      for i := Low(TTextFormats) to High(TTextFormats) do
-      begin
-        if i in TextFormat then
-        case i of
-          tfEndEllipsis:
-            Format := Format or DT_END_ELLIPSIS;
-        end
-      end;
-      
-      Windows.DrawTextExW(TCanvasEx(Canvas).Handle, PWideChar(Text), Length(Text), Rect, Format, nil);
-//      if tfModifyString in TextFormat then
-//        SetLength(Text, StrLen(PWideChar(Text)));
+    Canvas.TextRect(Rect, Rect.Left, Rect.Top, Text, TextStyle);
     {$ENDIF}
   {$ENDIF}
 end;

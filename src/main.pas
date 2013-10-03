@@ -97,6 +97,7 @@ begin
   Position := poScreenCenter;
 
   Caption := 'Demo Tox GUI';
+  Application.Title := Caption;
   FToxLoadError := False;
 
   FSettings := TSettings.Create;
@@ -156,9 +157,10 @@ begin
   {$IFNDEF FPC}
   LeftPanel.ParentBackground := False;
   {$ENDIF}
+  LeftPanel.TabOrder := 0;
+  LeftPanel.TabStop := True;
 
-  Splitter1.Parent := nil;
-  Splitter1.Parent := Self;
+  Splitter1.Left := LeftPanel.Width;
   Splitter1.ResizeStyle := rsUpdate;
 
   RightPanel := TPanel.Create(Self);
@@ -176,7 +178,7 @@ begin
   FUserStatus.OnChangeState := UserStatusStateChange;
   FUserStatus.OnChangeUserName := UserStatusChangeName;
   FUserStatus.UserName := FToxCore.UserName;
-  FUserStatus.StatusText := 'Это текст моего состояния';
+  FUserStatus.StatusText := {$IFDEF FPC}UTF8Encode{$ENDIF}('Это текст моего состояния 2222222222222222222');
 
   FControlPanel := TControlPanel.Create(LeftPanel);
   FControlPanel.Parent := LeftPanel;

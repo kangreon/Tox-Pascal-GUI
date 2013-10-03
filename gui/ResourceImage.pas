@@ -30,7 +30,6 @@ type
   private
     FUserstatusButtonDown: TBitmap;
     FLoadingAnimate10: TPngImage;
-    FOnlineMenu: TBitmap;
     FImageMenu: TImageList;
 
     FToxSkin: TBitmap;
@@ -59,7 +58,6 @@ type
     property LoadingAnimate10: TPngImage read FLoadingAnimate10;
 
     property ImagesMenu: TImageList read FImageMenu;
-    property OnlineMenu: TBitmap read FOnlineMenu;
 
     property ToxSkin: TBitmap read FToxSkin;
 
@@ -90,10 +88,6 @@ var
 begin
   FUserstatusButtonDown := LoadImageBmp('UserstatusButtonDown');
   FLoadingAnimate10 := LoadImagePng('LoadingAnimate10');
-
-  FOnlineMenu := LoadImageBmp('OnlineMenu');
-  FOnlineMenu.Transparent := True;
-  FOnlineMenu.TransparentColor := clBlack;
 
   FToxSkin := LoadImageBmpFromPng('ToxSkin');
   LoadUserListStatus;
@@ -129,7 +123,6 @@ destructor TResourceImage.Destroy;
 begin
   FUserstatusButtonDown.Free;
   FLoadingAnimate10.Free;
-  FOnlineMenu.Free;
   FImageMenu.Free;
   inherited;
 end;

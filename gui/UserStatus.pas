@@ -479,22 +479,25 @@ begin
   Item := TMenuItem.Create(FStateMenu);
   FStateMenu.Items.Add(Item);
   Item.Caption := 'Away';
+  Item.ImageIndex := 1;
   Item.Tag := 1;
   Item.OnClick := StatusMenuOnClick;
 
   Item := TMenuItem.Create(FStateMenu);
   FStateMenu.Items.Add(Item);
   Item.Caption := 'Busy';
+  Item.ImageIndex := 2;
   Item.Tag := 2;
   Item.OnClick := StatusMenuOnClick;
 
-  Item := TMenuItem.Create(nil);
+  Item := TMenuItem.Create(FStateMenu);
   FStateMenu.Items.Add(Item);
   Item.Caption := '-';
 
   Item := TMenuItem.Create(FStateMenu);
   FStateMenu.Items.Add(Item);
   Item.Caption := 'Disconnect';
+  Item.ImageIndex := 3;
   Item.Tag := 3;
   Item.OnClick := StatusMenuOnClick;
 end;

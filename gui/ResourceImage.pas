@@ -85,8 +85,9 @@ begin
 end;
 
 constructor TResourceImage.Create;
+var
+  Image: TBitmap;
 begin
-  //TODO: Заменить на PNG
   FUserstatusButtonDown := LoadImageBmp('UserstatusButtonDown');
   FLoadingAnimate10 := LoadImagePng('LoadingAnimate10');
 
@@ -94,16 +95,34 @@ begin
   FOnlineMenu.Transparent := True;
   FOnlineMenu.TransparentColor := clBlack;
 
-  FImageMenu := TImageList.Create(nil);
-  FImageMenu.Width := 10;
-  FImageMenu.Height := 10;
-  FImageMenu.InsertMasked(0, FOnlineMenu, clBlack);
-
-
   FToxSkin := LoadImageBmpFromPng('ToxSkin');
   LoadUserListStatus;
   LoadControlButtons(0, 108, 20, 20);
   LoadSelfStatusIcons(0, 128, 22, 22);
+
+  FImageMenu := TImageList.Create(nil);
+
+  Image := TBitmap.Create;
+  Image.SetSize(16, 16);
+  Image.TransparentColor := 33554432;
+  Image.Transparent := True;
+  Image.TransparentMode := tmFixed;
+  Image.PixelFormat := pf24bit;
+  try
+    Image.Canvas.CopyRect(Bounds(0, 0, 16, 16), FToxSkin.Canvas, Bounds(3, 153, 16, 16));
+    FImageMenu.InsertMasked(0, Image, clFuchsia);
+
+    Image.Canvas.CopyRect(Bounds(0, 0, 16, 16), FToxSkin.Canvas, Bounds(47, 153, 16, 16));
+    FImageMenu.InsertMasked(1, Image, clFuchsia);
+
+    Image.Canvas.CopyRect(Bounds(0, 0, 16, 16), FToxSkin.Canvas, Bounds(91, 153, 16, 16));
+    FImageMenu.InsertMasked(2, Image, clFuchsia);
+
+    Image.Canvas.CopyRect(Bounds(0, 0, 16, 16), FToxSkin.Canvas, Bounds(135, 153, 16, 16));
+    FImageMenu.InsertMasked(3, Image, clFuchsia);
+  finally
+    Image.Free;
+  end;
 end;
 
 destructor TResourceImage.Destroy;

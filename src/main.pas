@@ -17,7 +17,7 @@ uses
   SysUtils, Controls, Forms, Classes, Dialogs, StdCtrls, toxcore, Settings,
   ServerList, ClientAddress, libtox, StringUtils, ExtCtrls, UserStatus,
   FriendList, ControlPanel, fmUserAdd, fmNewName, UserList,
-  FriendRequestController;
+  FriendRequestController, MessageControl, MessageList;
 
 type
   { TForm1 }
@@ -60,6 +60,8 @@ type
     FUserStatus: TUserStatus;
     FControlPanel: TControlPanel;
     FToxLoadError: Boolean;
+    FMessageControl: TMessageControl;
+    FMessageList: TMessageList;
     procedure InitGui;
     procedure ControlPanelClick(Sender: TObject; Button: TControlButton);
     procedure RequestOnAddFriend(Sender: TObject;
@@ -110,6 +112,8 @@ begin
     FToxLoadError := True;
     Exit;
   end;
+
+  FMessageList := TMessageList.Create;
 
   FToxCore.OnConnect := ToxOnConnect;
   FToxCore.OnConnecting := ToxOnConnecting;
@@ -169,9 +173,14 @@ begin
   RightPanel.Align := alClient;
   RightPanel.BevelOuter := bvNone;
   RightPanel.Color := $F2F2F1;
+  RightPanel.DoubleBuffered := True;
   {$IFNDEF FPC}
   RightPanel.ParentBackground := False;
   {$ENDIF}
+
+  FMessageControl := TMessageControl.Create(RightPanel, FMessageList);
+  FMessageControl.Align := alClient;
+  FMessageControl.Parent := RightPanel;
 
   FUserStatus := TUserStatus.Create(LeftPanel);
   FUserStatus.Parent := LeftPanel;
@@ -192,18 +201,19 @@ begin
   FUserList.Parent := LeftPanel;
 
   //TODO: Временно. Пока не будет заменено настоящими компонентами
-  Panel1.Parent := RightPanel;
-  {$IFNDEF FPC}
-  Panel1.ParentBackground := False;
-  {$ENDIF}
+  Panel1.Parent := nil;
+//  {$IFNDEF FPC}
+//  Panel1.ParentBackground := False;
+//  {$ENDIF}
   Panel1.Visible := False;
-  ListBox1.Parent := LeftPanel;
+  ListBox1.Parent := nil;
   ListBox1.Align := alClient;
   ListBox1.Visible := False;
-  ActivityList.Parent := RightPanel;
+  //ActivityList.Parent := RightPanel;
   ActivityList.Align := alClient;
   ActivityList.DoubleBuffered := True;
   ActivityList.Color := $F2F2F1;
+  ActivityList.Visible := False;
 end;
 
 {

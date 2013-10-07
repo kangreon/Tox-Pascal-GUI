@@ -141,14 +141,16 @@ begin
       begin
         if FButtonStyle = bsDown then
           FButtonStyle := bsActive;
+
         Invalidate;
       end;
 
     rmMouseClick:
       begin
+        Invalidate;
+
         if Assigned(FOnClick) then
           FOnClick(Self);
-        Invalidate;
       end;
   end;
 end;

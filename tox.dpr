@@ -51,7 +51,10 @@ uses
   UserListDraw in 'gui\UserListDraw.pas',
   UserListDrawStyle in 'gui\UserListDrawStyle.pas',
   fmFriendRequest in 'gui\Forms\fmFriendRequest.pas' {FormFriendRequest},
-  FriendRequestController in 'gui\FriendRequestController.pas';
+  FriendRequestController in 'gui\FriendRequestController.pas',
+  MessageControl in 'gui\MessageWidget\MessageControl.pas',
+  MessageDraw in 'gui\MessageWidget\MessageDraw.pas',
+  TextLineInfo in 'gui\MessageWidget\TextLineInfo.pas';
 
 { *  Вывод сообщения об ошибке загрузки библиотеки libtoxcore
   * }

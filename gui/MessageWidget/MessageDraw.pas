@@ -16,7 +16,7 @@ interface
 
 uses
   {$I tox-uses.inc}
-  Classes, Types, SysUtils, Controls, Graphics, StringUtils, MessageList,
+  Classes, {$IFNDEF FPC}Types, {$ENDIF}SysUtils, Controls, Graphics, StringUtils, MessageList,
   TextLineInfo, Math;
 
 type
@@ -212,7 +212,7 @@ begin
   while i <= c do
   begin
     Inc(i);
-    CharWidth := Canvas.TextWidth(Text[i]);
+    CharWidth := Canvas.TextWidth(DataString(Text[i]));
     if LineWidth + CharWidth < MaxWidth then
     begin
       Inc(LineWidth, CharWidth);

@@ -12,7 +12,7 @@ interface
   {$I tox.inc}
 
 uses
-  StringUtils, SYsUtils;
+  StringUtils, SysUtils;
 
 type
   TMessageStatus = (msSending, msSend, msError);
@@ -26,13 +26,14 @@ type
     FFriendId: AnsiString;
     FStatusSend: Boolean;
     FIndex: Integer;
+    procedure SetText(const Value: DataString);
   public
     class function FromText(Text: DataString): TMessageItem;
     property Index: Integer read FIndex write FIndex;
     // Время отправки сообщения
     property Time: TDateTime read FTime write FTime;
     // Текст сообщения
-    property Text: DataString read FText write FText;
+    property Text: DataString read FText write SetText;
     // Отправлено ли это сообщение пользователем для Вас
     property UserMessage: Boolean read FUserMessage write FUserMessage;
     // Публичный ключ пользователя
@@ -96,7 +97,7 @@ begin
   FTemp[16] := TMessageItem.FromText('https никто не отменял ');
   FTemp[17] := TMessageItem.FromText('Бывали же случаи кражи ключей из центра сертификации. Кто знает, возможно какие-то ещё центры обокрали, но пропажу пока не обнаружили. ');
   FTemp[18] := TMessageItem.FromText('Да хрен с ним с Лизвебом, но эти же ДНС являются авторитативными для множества клиентских доменов, они так же могли перенаправить их куда угодно, в том числе, как написал CrazyAngel сделать фишинг и прочее ');
-  FTemp[19] := TMessageItem.FromText('Вы уверене, что лизвеб дает мастер-ns клиентам? В какой услуге? ');
+  FTemp[19] := TMessageItem.FromText('Вы уверене, что лизвеб дает мастер-ns клиентам? '#13#10#13#10'В какой услуге?');
 
   {$IFDEF fpc}
   for i := Low(FTemp) to High(FTemp) do
@@ -219,6 +220,11 @@ begin
   Item.Text := Text;
   Item.Time := Now;
   Result := Item;
+end;
+
+procedure TMessageItem.SetText(const Value: DataString);
+begin
+  FText := Value;
 end;
 
 end.

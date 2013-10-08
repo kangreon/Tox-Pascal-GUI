@@ -20,13 +20,16 @@ uses
   TextLineInfo, Math;
 
 type
+  TWordArray = array of Word;
+
   PDrawItem = ^TDrawItem;
   TDrawItem = record
     BottomPosition: Integer;    // Положение элемента относительно нижнего края
     Height: Integer;            // Высота, занимаемая этим сообщением
     CalcWidth: Integer;         // Ширина, для которой актуальна информация
     MessageItem: TMessageItem;  // Само выводимое сообщение
-    LineWidth: array of Word;   // Ширина всех строк
+    LineStart: TWordArray;      //
+    LineWidth: TWordArray;      // Ширина всех строк
     LinesCount: Integer;        // Количество строк, занимаемое сообщением
   end;
   TDrawItemList = array of PDrawItem;
@@ -126,6 +129,7 @@ begin
   begin
     TopDraw := ClientHeight - Item.BottomPosition - ((c - i) * FTextHeight) ;
 
+    // Вывод времени
     if i = 0 then
     begin
       Canvas.Font.Style := [fsBold];
@@ -136,9 +140,10 @@ begin
 
     if c > 1 then
     begin
+      StartCopy := Item.LineStart[i];
       CountCopy := Item.LineWidth[i];
       TextOut := {$IFDEF FPC}UTF8Copy{$ELSE}Copy{$ENDIF}(Text, StartCopy, CountCopy);
-      StartCopy := StartCopy + CountCopy;
+      //StartCopy := StartCopy + CountCopy;
     end
     else
       TextOut := Text;
@@ -176,6 +181,12 @@ begin
   Canvas.TextOut(0, 26, 'Paint time: ' + FormatDateTime('ss.zzz', PaintTime));
 end;
 
+procedure ReallocArray(var a: TWordArray; UsedSize: Integer);
+begin
+  if Length(a) <= UsedSize then
+    SetLength(a, Length(a) + 10);
+end;
+
 { *  Процедура рассчета переносов в элементах диалога
   * }
 function TMessageDraw.CalcBreakItem(MessageItem: TMessageItem;
@@ -184,13 +195,23 @@ var
   Item: PDrawItem;
   CharCount, CharStart: Integer;
   CharWidth, LineWidth: Integer;
-  Text: DataString;
+  Text, TextLaz: DataString;
   i, c: Integer;
+  WordsInfo: PWordInfo;
+
+  SelectChar: DataString;
+  IsNextLine: Boolean;
+  IsInsertStartChar: Boolean;
+  IsSpace: Boolean;
+  StartLineIndex: Integer;
 begin
   New(Item);
   Result := Item;
 
   Text := MessageItem.Text;
+  {$IFDEF FPC}
+  TextLaz := UTF8Decode(MessageItem.Text);
+  {$ENDIF}
   LineWidth := 0;
   CharStart := 1;
 
@@ -198,48 +219,73 @@ begin
   Item.MessageItem := MessageItem;
   Item.CalcWidth := MaxWidth;
 
-  if Canvas.TextWidth(Text) <= MaxWidth then
-  begin
-    Item.LinesCount := 1;
-    Item.Height := Item.LinesCount * FTextHeight;
-    Exit;
-  end;
-
   SetLength(Item.LineWidth, 10);
+  SetLength(Item.LineStart, 10);
 
-  c := Length(Text);
+  c := Length({$IFDEF FPC}TextLaz{$ELSE}Text{$ENDIF});
   i := 0;
+
+  // Первый символ строки
+  Item.LineStart[Item.LinesCount] := 1;
+  IsInsertStartChar := False;
+
   while i <= c do
   begin
     Inc(i);
-    CharWidth := Canvas.TextWidth({$IFDEF FPC}UTF8Copy(Text, i, 1){$ELSE}Text[i]{$ENDIF});
-    if LineWidth + CharWidth < MaxWidth then
+
+    // Копирование активного символа
+    SelectChar := {$IFDEF FPC}TextLaz[i]{$ELSE}Text[i]{$ENDIF};
+    if Length(SelectChar) > 0 then
     begin
+      IsNextLine := SelectChar[1] in [#$0A, #$0D];
+      IsSpace := SelectChar[1] in [#$09, #$20];
+    end;
+    CharWidth := Canvas.TextWidth({$IFDEF FPC}UTF8Encode{$ENDIF}(SelectChar));
+
+    if (LineWidth + CharWidth < MaxWidth) and not IsNextLine then
+    begin
+      if not IsInsertStartChar then
+      begin
+        if IsSpace then
+          Continue;
+
+        ReallocArray(Item.LineStart, Item.LinesCount);
+        Item.LineStart[Item.LinesCount] := i;
+
+        IsInsertStartChar := True;
+      end;
+
       Inc(LineWidth, CharWidth);
     end
     else
     begin
-      // Добавление информации о переносе строки.
-      //TODO: В дальнейшем сделать перенос по пробелу
-      CharCount := i - CharStart;
-      CharStart := i;
+      if not IsInsertStartChar then
+        Continue;
+
       LineWidth := 0;
-      Dec(i);
+      IsInsertStartChar := False;
 
-      if Length(Item.LineWidth) <= Item.LinesCount then
-        SetLength(Item.LineWidth, Length(Item.LineWidth) + 10);
-
+      CharCount := i - Item.LineStart[Item.LinesCount];
+      ReallocArray(Item.LineWidth, Item.LinesCount);
       Item.LineWidth[Item.LinesCount] := CharCount;
-      Item.LinesCount := Item.LinesCount + 1
+      Item.LinesCount := Item.LinesCount + 1;
+
+      if not IsNextLine then
+        Dec(i);
     end;
   end;
 
-  CharCount := i + 1 - CharStart;
-  if Length(Item.LineWidth) <= Item.LinesCount then
-    SetLength(Item.LineWidth, Length(Item.LineWidth) + 10);
+  if IsInsertStartChar then
+  begin
+    CharCount := i - Item.LineStart[Item.LinesCount];
+    if CharCount > 0 then
+    begin
+      ReallocArray(Item.LineWidth, Item.LinesCount);
+      Item.LineWidth[Item.LinesCount] := CharCount;
+      Item.LinesCount := Item.LinesCount + 1;
+    end;
+  end;
 
-  Item.LineWidth[Item.LinesCount] := CharCount;
-  Item.LinesCount := Item.LinesCount + 1;
   Item.Height := Item.LinesCount * FTextHeight;
 end;
 

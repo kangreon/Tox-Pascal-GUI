@@ -117,6 +117,7 @@
       <Unit14>
         <Filename Value="src\MessageList.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="MessageList"/>
       </Unit14>
       <Unit15>
         <Filename Value="gui\UserIcon.pas"/>

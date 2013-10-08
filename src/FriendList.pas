@@ -28,6 +28,7 @@ type
     FUserStatus: TToxUserStatus;
     FOnUpdate: TNotifyEvent;
     FIndex: Integer;
+    FData: Pointer;
     procedure EventUpdate;
     procedure SetUserName(const Value: DataString);
     procedure SetStatusMessage(const Value: DataString);
@@ -37,12 +38,13 @@ type
     constructor Create(Number: Integer; ClientId: PByte);
     destructor Destroy; override;
 
+    property ClientId: TClientId read FClientId;
+    property Data: Pointer read FData write FData;
     property Index: Integer read FIndex write FIndex;
     property Number: Integer read FNumber;
-    property UserName: DataString read FUserName write SetUserName;
-    property ClientId: TClientId read FClientId;
     property Online: Boolean read FOnline write SetOnline;
     property StatusMessage: DataString read FStatusMessage write SetStatusMessage;
+    property UserName: DataString read FUserName write SetUserName;
     property UserStatus: TToxUserStatus read FUserStatus write SetUserStatus;
 
     property OnUpdate: TNotifyEvent read FOnUpdate write FOnUpdate;

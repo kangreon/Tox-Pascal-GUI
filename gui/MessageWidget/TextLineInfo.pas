@@ -63,6 +63,12 @@ type
     property Item[Index: Integer]: PLineInfo read GetItem;
   end;
 
+  PWordInfo = ^TWordsInfo;
+  TWordsInfo = record
+    WordCount: Integer;
+    WordWidth: array of Integer;
+  end;
+
 implementation
 
 { TTextLineInfo }
@@ -172,5 +178,7 @@ begin
   FSelected := @FItems[FCount];
   FCount := FCount + 1;
 end;
+
+{ TWordInfo }
 
 end.

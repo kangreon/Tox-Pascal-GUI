@@ -16,7 +16,7 @@ interface
 
 uses
   {$I tox-uses.inc}
-  Classes, {$IFNDEF FPC}Types, {$ENDIF}SysUtils, Controls, Graphics, StringUtils, MessageList,
+  {$IFDEF FPC}LazUTF8,{$ENDIF} Classes, {$IFNDEF FPC}Types, {$ENDIF}SysUtils, Controls, Graphics, StringUtils, MessageList,
   TextLineInfo, Math;
 
 type
@@ -137,7 +137,7 @@ begin
     if c > 1 then
     begin
       CountCopy := Item.LineWidth[i];
-      TextOut := Copy(Text, StartCopy, CountCopy);
+      TextOut := {$IFDEF FPC}UTF8Copy{$ELSE}Copy{$ENDIF}(Text, StartCopy, CountCopy);
       StartCopy := StartCopy + CountCopy;
     end
     else
@@ -212,7 +212,7 @@ begin
   while i <= c do
   begin
     Inc(i);
-    CharWidth := Canvas.TextWidth(DataString(Text[i]));
+    CharWidth := Canvas.TextWidth({$IFDEF FPC}UTF8Copy(Text, i, 1){$ELSE}Text[i]{$ENDIF});
     if LineWidth + CharWidth < MaxWidth then
     begin
       Inc(LineWidth, CharWidth);

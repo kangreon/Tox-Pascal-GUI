@@ -7,8 +7,6 @@
 //
 //  Copyright (c) 2013 Dmitry
 //
-
-// При изменении размера, переопределять размеры элементов
 unit MessageDraw;
 
 interface
@@ -32,7 +30,7 @@ type
     LineWidth: TWordArray;      // Ширина всех строк
     LinesCount: Integer;        // Количество строк, занимаемое сообщением
   end;
-  TDrawItemList = array of PDrawItem;
+  TDrawItemList = array of TMessageInfo;
 
   TProcGet = procedure(Sender: TObject; const Index: Integer; out Exist: Boolean;
     out Mess: TMessageItem) of object;
@@ -41,9 +39,9 @@ type
   private
     FDrawItems: TDrawItemList;
     FCalcTime: TDateTime;
-    FLineInfo: TTextLineInfo;
     FIsCreateList: Boolean;
 
+    FSpaceWidth: Integer;
     FTextHeight: Integer;
     FTextMarginLeft: Integer;
     FTextMarginRight: Integer;
@@ -53,12 +51,14 @@ type
     FBottomMessagePosition: Integer;
     procedure SetDrawFont;
     function EventGet(Index: Integer; out Mess: TMessageItem): Boolean;
-    procedure DrawItem(Item: PDrawItem);
+    procedure DrawItem(Item: TMessageInfo);
     procedure RecreateItems;
-    function CalcBreakItem(MessageItem: TMessageItem; MaxWidth: Integer): PDrawItem;
+    function CalcBreakItem(MessageItem: TMessageItem;
+      MaxWidth: Integer): TMessageInfo;
     function GetOldPositionInfo(Mess: TMessageItem; NewWidth: Integer;
-      var ItemInfo: PDrawItem): Boolean;
+      var ItemInfo: TMessageInfo): Boolean;
     procedure CombineDrawInfoArrays(var ItemOld, ItemNew: TDrawItemList);
+    function CalcWordPosition(MessageItem: TMessageItem): TWordsInfo;
   protected
     procedure Paint; override;
     procedure Resize; override;
@@ -85,8 +85,6 @@ var
 begin
   inherited;
   Cursor := crIBeam;
-
-  FLineInfo := TTextLineInfo.Create;
   FBottomMessageIndex := -1;
   FIsCreateList := False;
 
@@ -97,6 +95,7 @@ begin
     Bitmap.Canvas.Brush.Style := bsSolid;
     Bitmap.Canvas.Brush.Color := Color;
 
+    FSpaceWidth := Bitmap.Canvas.TextWidth(' ');
     FTextHeight := Bitmap.Canvas.TextHeight('Q');
     FTextMarginLeft := 40;
     FTextMarginRight := Bitmap.Canvas.TextWidth(FormatDateTime('  dd/mm/yyyy  ', Now));
@@ -107,27 +106,30 @@ end;
 
 destructor TMessageDraw.Destroy;
 begin
-  FLineInfo.Free;
   inherited;
 end;
 
 { *  Выводит заранее подготовленное сообщение на экран
   * }
-procedure TMessageDraw.DrawItem(Item: PDrawItem);
+procedure TMessageDraw.DrawItem(Item: TMessageInfo);
 var
   i, c: Integer;
   LeftDraw, TopDraw: Integer;
   Text, TextOut: DataString;
   StartCopy, CountCopy: Integer;
+  LineInfo: TLineInfoEx;
 begin
-  c := Item.LinesCount;
+  c := Item.Count;
   LeftDraw := FTextMarginLeft;
   Text := Item.MessageItem.Text;
-  StartCopy := 1;
 
-  for i := 0 to c - 1 do
+  TopDraw := ClientHeight - Item.BottomPosition;
+  for i := c - 1 downto 0 do
   begin
-    TopDraw := ClientHeight - Item.BottomPosition - ((c - i) * FTextHeight) ;
+    LineInfo := Item.Item[i]^;
+
+    TopDraw := TopDraw - LineInfo.LineHeight;
+//    TopDraw := ClientHeight - Item.BottomPosition - ((c - i) * FTextHeight) ;
 
     // Вывод времени
     if i = 0 then
@@ -140,8 +142,9 @@ begin
 
     if c > 1 then
     begin
-      StartCopy := Item.LineStart[i];
-      CountCopy := Item.LineWidth[i];
+      StartCopy := LineInfo.StartPosition;
+      CountCopy := LineInfo.Length;
+
       TextOut := {$IFDEF FPC}UTF8Copy{$ELSE}Copy{$ENDIF}(Text, StartCopy, CountCopy);
       //StartCopy := StartCopy + CountCopy;
     end
@@ -187,106 +190,213 @@ begin
     SetLength(a, Length(a) + 10);
 end;
 
-{ *  Процедура рассчета переносов в элементах диалога
+{ *  Рассчитывает позиции и размеры всех слов в строке
   * }
-function TMessageDraw.CalcBreakItem(MessageItem: TMessageItem;
-  MaxWidth: Integer): PDrawItem;
+function TMessageDraw.CalcWordPosition(MessageItem: TMessageItem): TWordsInfo;
 var
-  Item: PDrawItem;
-  CharCount, CharStart: Integer;
-  CharWidth, LineWidth: Integer;
-  Text, TextLaz: DataString;
-  i, c: Integer;
-  WordsInfo: PWordInfo;
-
-  SelectChar: DataString;
+  CharSize: TSize;
   IsNextLine: Boolean;
-  IsInsertStartChar: Boolean;
+  IsOldNextLine: Boolean;
   IsSpace: Boolean;
-  StartLineIndex: Integer;
+  IsOldSpace: Boolean;
+  IsStartChar: Boolean;
+  MaxHeight: Integer;
+  SelectChar: WideChar;
+  StartCharPosition: Integer;
+  Text: DataString;
+  TextLength, i: Integer;
+  TextWidth: Integer;
+  WordsInfo: TWordsInfo;
 begin
-  New(Item);
-  Result := Item;
+  if Assigned(MessageItem.Data) and (MessageItem.Data is TWordsInfo) then
+  begin
+    Result := TWordsInfo(MessageItem.Data);
+    Exit;
+  end;
 
-  Text := MessageItem.Text;
   {$IFDEF FPC}
-  TextLaz := UTF8Decode(MessageItem.Text);
+  Text := UTF8Decode(MessageItem.Text);
+  {$ELSE}
+  Text := MessageItem.Text;
   {$ENDIF}
-  LineWidth := 0;
-  CharStart := 1;
+  TextLength := Length(Text);
 
-  Item.LinesCount := 0;
-  Item.MessageItem := MessageItem;
-  Item.CalcWidth := MaxWidth;
+  IsStartChar := False;
+  IsOldNextLine := False;
+  IsOldSpace := False;
+  MaxHeight := 0;
+  TextWidth := 0;
+  StartCharPosition := 1;
 
-  SetLength(Item.LineWidth, 10);
-  SetLength(Item.LineStart, 10);
-
-  c := Length({$IFDEF FPC}TextLaz{$ELSE}Text{$ENDIF});
+  WordsInfo := TWordsInfo.Create;
   i := 0;
-
-  // Первый символ строки
-  Item.LineStart[Item.LinesCount] := 1;
-  IsInsertStartChar := False;
-
-  while i <= c do
+  while i < TextLength do
   begin
     Inc(i);
 
-    // Копирование активного символа
-    SelectChar := {$IFDEF FPC}TextLaz[i]{$ELSE}Text[i]{$ENDIF};
-    if Length(SelectChar) > 0 then
+    SelectChar := Text[i];
+    IsNextLine := SelectChar in [#$000A, #$000D];
+    IsSpace := SelectChar in [#$0009, #$0020];
+
+    if (IsNextLine and IsOldNextLine) or (IsSpace and IsOldSpace) then
     begin
-      IsNextLine := SelectChar[1] in [#$0A, #$0D];
-      IsSpace := SelectChar[1] in [#$09, #$20];
+      IsOldNextLine := IsNextLine;
+      IsOldSpace := IsSpace;
+      Continue;
     end;
-    CharWidth := Canvas.TextWidth({$IFDEF FPC}UTF8Encode{$ENDIF}(SelectChar));
 
-    if (LineWidth + CharWidth < MaxWidth) and not IsNextLine then
+    IsOldNextLine := IsNextLine;
+    IsOldSpace := IsSpace;
+
+    if IsNextLine or IsSpace then
     begin
-      if not IsInsertStartChar then
+      if IsNextLine then
       begin
-        if IsSpace then
-          Continue;
+        if IsStartChar then
+          WordsInfo.Insert(StartCharPosition, i - StartCharPosition, TextWidth,
+            MaxHeight);
 
-        ReallocArray(Item.LineStart, Item.LinesCount);
-        Item.LineStart[Item.LinesCount] := i;
-
-        IsInsertStartChar := True;
+        WordsInfo.InsertNewLine;
       end;
 
-      Inc(LineWidth, CharWidth);
+      if IsSpace and IsStartChar then
+      begin
+        WordsInfo.Insert(StartCharPosition, i - StartCharPosition, TextWidth,
+          MaxHeight);
+      end;
+
+      IsStartChar := False;
     end
     else
     begin
-      if not IsInsertStartChar then
+      {$IFDEF FPC}
+      CharSize := Canvas.TextExtent(UTF8Encode(WideString(SelectChar)));
+      {$ELSE}
+      CharSize := Canvas.TextExtent(SelectChar);
+      {$ENDIF}
+
+      if not IsStartChar then
+      begin
+        TextWidth := CharSize.cx;
+        MaxHeight := CharSize.cy;
+
+        IsStartChar := True;
+        StartCharPosition := i;
+      end
+      else
+      begin
+
+        TextWidth := TextWidth + CharSize.cx;
+        MaxHeight := Max(MaxHeight, CharSize.cy);
+      end;
+    end;
+  end;
+
+  if IsStartChar then
+  begin
+    WordsInfo.Insert(StartCharPosition, i - StartCharPosition, TextWidth,
+      MaxHeight);
+  end;
+
+  //Вы уверене, что лизвеб дает мастер-ns клиентам? '#13#10#13#10'В какой услуге?
+  WordsInfo.Resize;
+  MessageItem.Data := WordsInfo;
+  Result := WordsInfo;
+end;
+
+{ *  Процедура рассчета переносов в элементах диалога
+  * }
+function TMessageDraw.CalcBreakItem(MessageItem: TMessageItem;
+  MaxWidth: Integer): TMessageInfo;
+var
+  LineWidth: Integer;
+  i, c: Integer;
+
+  LineInfo: TLineInfoEx;
+  MessageInfo: TMessageInfo;
+  WordsInfo: TWordsInfo;
+  wIsNewLine: Boolean;
+  wStart, wLength: Integer;
+  wWidth, wHeight: Integer;
+  LineLength: Integer;
+begin
+  // Рассчет размера каждого слова в сообщении
+  WordsInfo := CalcWordPosition(MessageItem);
+  MessageInfo := TMessageInfo.Create(MaxWidth, MessageItem);
+  LineWidth := 0;
+  LineLength := 0;
+
+  c := WordsInfo.Count;
+  i := -1;
+  while i + 1 < c do
+  begin
+    Inc(i);
+
+    WordsInfo.Get(i, wIsNewLine, wStart, wLength, wWidth, wHeight);
+
+    if wIsNewLine then
+    begin
+      if LineWidth <= 0 then
         Continue;
 
+      LineInfo.LineWidth := LineWidth;
+      LineInfo.Length := LineLength;
+      MessageInfo.Add(LineInfo);
+
       LineWidth := 0;
-      IsInsertStartChar := False;
-
-      CharCount := i - Item.LineStart[Item.LinesCount];
-      ReallocArray(Item.LineWidth, Item.LinesCount);
-      Item.LineWidth[Item.LinesCount] := CharCount;
-      Item.LinesCount := Item.LinesCount + 1;
-
-      if not IsNextLine then
-        Dec(i);
-    end;
-  end;
-
-  if IsInsertStartChar then
-  begin
-    CharCount := i - Item.LineStart[Item.LinesCount];
-    if CharCount > 0 then
+      LineLength := 0;
+    end
+    else
     begin
-      ReallocArray(Item.LineWidth, Item.LinesCount);
-      Item.LineWidth[Item.LinesCount] := CharCount;
-      Item.LinesCount := Item.LinesCount + 1;
+      if (LineWidth + FSpaceWidth + wWidth > MaxWidth) then
+      begin
+        if LineWidth > 0 then
+        begin
+          LineInfo.LineWidth := LineWidth;
+          LineInfo.Length := LineLength;
+          MessageInfo.Add(LineInfo);
+
+          LineWidth := 0;
+          LineLength := 0;
+          Dec(i);
+        end
+        else
+        begin
+          //TODO: ИСПРАВИТЬ!! Пересчет размеров для переноса по буквам
+          LineInfo.StartPosition := wStart;
+          LineInfo.LineHeight := wHeight;
+          LineInfo.LineWidth := wWidth;
+          LineInfo.Length := wLength;
+          MessageInfo.Add(LineInfo);
+
+          LineWidth := 0;
+          LineLength := 0;
+        end;
+      end
+      else
+      begin
+        // Увеличение количества слов в линии
+        if LineWidth = 0 then
+        begin
+          LineInfo.StartPosition := wStart;
+          LineInfo.LineHeight := wHeight;
+        end;
+
+        LineWidth := LineWidth + FSpaceWidth + wWidth;
+        LineLength := LineLength + wLength + 1;
+        LineInfo.LineHeight := Max(LineInfo.LineHeight, wHeight);
+      end;
     end;
   end;
 
-  Item.Height := Item.LinesCount * FTextHeight;
+  if LineWidth > 0 then
+  begin
+    LineInfo.LineWidth := LineWidth;
+    LineInfo.Length := LineLength;
+    MessageInfo.Add(LineInfo);
+  end;
+
+  Result := MessageInfo;
 end;
 
 { *  Ищет уже просчитанную информацию для сообщения в старом списке отрисовки.
@@ -294,7 +404,7 @@ end;
   *  размера найдена. Результат возвращается через ItemInfo
   * }
 function TMessageDraw.GetOldPositionInfo(Mess: TMessageItem; NewWidth: Integer;
-  var ItemInfo: PDrawItem): Boolean;
+  var ItemInfo: TMessageInfo): Boolean;
 var
   i: Integer;
 begin
@@ -323,7 +433,7 @@ var
   ActiveElementIndex: Integer;
   ActiveItem: TMessageItem;
   BottomPosition: Integer;
-  ItemInfo: PDrawItem;
+  MessageInfo: TMessageInfo;
   MaxWidth: Integer;
   ItemList: TDrawItemList;
   ItemListCount: Integer;
@@ -349,8 +459,8 @@ begin
     begin
       if EventGet(ActiveElementIndex, ActiveItem) then
       begin
-        if not GetOldPositionInfo(ActiveItem, MaxWidth, ItemInfo) then
-          ItemInfo := CalcBreakItem(ActiveItem, MaxWidth);
+        if not GetOldPositionInfo(ActiveItem, MaxWidth, MessageInfo) then
+          MessageInfo := CalcBreakItem(ActiveItem, MaxWidth);
 
         // Добавление элемента в массив отрисовки
         if Length(ItemList) <= ItemListCount then
@@ -358,11 +468,11 @@ begin
           SetLength(ItemList, Length(ItemList) + 20);
         end;
 
-        ItemInfo.BottomPosition := BottomPosition;
-        ItemList[ItemListCount] := ItemInfo;
+        MessageInfo.BottomPosition := BottomPosition;
+        ItemList[ItemListCount] := MessageInfo;
         Inc(ItemListCount);
 
-        BottomPosition := BottomPosition + ItemInfo.Height;
+        BottomPosition := BottomPosition + MessageInfo.MessageHeight + 15;
         ActiveElementIndex := ActiveElementIndex - 1;
       end
       else
@@ -380,19 +490,19 @@ begin
       EventGet(ActiveElementIndex, ActiveItem) do
     begin
       // Получение информации для нового элемента списка
-      if not GetOldPositionInfo(ActiveItem, MaxWidth, ItemInfo) then
-        ItemInfo := CalcBreakItem(ActiveItem, MaxWidth);
+      if not GetOldPositionInfo(ActiveItem, MaxWidth, MessageInfo) then
+        MessageInfo := CalcBreakItem(ActiveItem, MaxWidth);
 
       if Length(ItemList) <= ItemListCount then
       begin
         SetLength(ItemList, Length(ItemList) + 20);
       end;
 
-      ItemInfo.BottomPosition := BottomPosition;
-      ItemList[ItemListCount] := ItemInfo;
+      MessageInfo.BottomPosition := BottomPosition;
+      ItemList[ItemListCount] := MessageInfo;
       Inc(ItemListCount);
 
-      BottomPosition := BottomPosition - ItemInfo.Height;
+      BottomPosition := BottomPosition - MessageInfo.MessageHeight;
       ActiveElementIndex := ActiveElementIndex + 1;
     end;
 
@@ -433,7 +543,7 @@ begin
     end;
 
     if not ItemExist then
-      Dispose(ItemOld[i]);
+      ItemOld[i].Free;
   end;
 
   SetLength(ItemOld, 0);
@@ -468,8 +578,8 @@ begin
 
   Canvas.Font.Name := 'DejaVu Sans';
   Canvas.Font.Height := 13;
-  Canvas.Brush.Style := bsSolid;
   Canvas.Brush.Color := Color;
+  Canvas.Brush.Style := bsSolid;
 end;
 
 end.

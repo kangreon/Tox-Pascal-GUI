@@ -1,184 +1,208 @@
-﻿unit TextLineInfo;
+﻿//  TextLineInfo.pas
+//
+//  Описаны классы, хранящие информацию о словах и строках в сообщении.
+//
+//  The MIT License (MIT)
+//
+//  Copyright (c) 2013 Dmitry
+//
+unit TextLineInfo;
 
 interface
 
+uses
+  MessageList;
+
 type
-  // Определяет тип линии
-  // ltNone             - Обычная линия без выделения
-  // ltStartSelect      - Линия содержит начало выделения
-  // ltEndSelect        - Линия содержит конец выделения
-  // ltStartEndSelect   - Линия содержит начало и конец выделения
-  TSelectType = (ltStartSelect, ltEndSelect, ltStartEndSelect, ltNone);
-
-  PLineInfo = ^TLineInfo;
-  TLineInfo = record
-    SelectType: TSelectType;
-
-    // Первый символ линии
-    StartChar: Word;
-
-    // Определяет длину региона.
-    // ltNone             - Количество символов до конца линии
-    // ltStartSelect      - Количество символов до начала выделения
-    // ltEndSelect        - Количество выделенных символов до начала обычных
-    // ltStartEndSelect   - Количество символов до начала выделения
-    Length: Word;
-
-    // Первый символ второго региона
-    StartChar2: Word;
-
-    // Определяет длину второрго региона
-    // ltStartSelect      - Количество выделенных символов до конца строки
-    // ltEndSelect        - Количество обычных символов до конца строки
-    // ltStartEndSelect   - Количество выделенных символов до начала обычных символшов
-    Length2: Word;
-
-    // Первый символ третьего региона
-    StartChar3: Word;
-
-    // Определяет длину третьего региона
-    // ltStartEndSelect   - Количество обычных символов до конца строки
-    Length3: Word;
-
+  PWordInfoItem = ^TWordInfoItem;
+  TWordInfoItem = record
+    WordStart: Integer;
+    WordLength: Integer;
+    WordSizeWidth: Integer;
+    WordSizeHeight: Integer;
   end;
 
-  TTextLineInfo = class
+  TWordInfoItemArray = array of PWordInfoItem;
+
+  TWordsInfo = class
   private
-    FCount: Integer;
-    FItems: array of TLineInfo;
-    FSelected: PLineInfo;
-    function GetItem(Index: Integer): PLineInfo;
+    FWordCount: Integer;
+    FWordItems: TWordInfoItemArray;
+    function GetItem(Index: Integer): PWordInfoItem;
   public
     constructor Create;
     destructor Destroy; override;
 
-    procedure InsertLine(StartChar: Integer);
-    procedure StartSelect(StartChar: Integer);
-    procedure EndSelect(LastSelectChar: Integer);
-    procedure EndChar(LastChar: Integer);
+    procedure Insert(Start, Length, Width, Height: Integer);
+    procedure InsertNewLine;
+    procedure Get(Index: Integer; out IsNewLine: Boolean; out Start,
+      Length, Width, Height: Integer);
+    procedure Resize;
 
-    procedure Clear;
-
-    property Count: Integer read FCount;
-    property Item[Index: Integer]: PLineInfo read GetItem;
+    property Item[Index: Integer]: PWordInfoItem read GetItem;
+    property Count: Integer read FWordCount;
   end;
 
-  PWordInfo = ^TWordsInfo;
-  TWordsInfo = record
-    WordCount: Integer;
-    WordWidth: array of Integer;
+  PLineInfoEx = ^TLineInfoEx;
+  TLineInfoEx = record
+    StartPosition: Word;
+    Length: Word;
+
+    LineWidth: Integer;
+    LineHeight: Integer;
+  end;
+  TLineInfoArray = array of PLineInfoEx;
+
+  TMessageInfo = class
+  private
+    FLines: TLineInfoArray;
+    FLineCount: Integer;
+    FCalcWidth: Integer;
+    FMessageItem: TMessageItem;
+    FMessageHeight: Integer;
+    FBottomPosition: Integer;
+    function GetItem(Index: Integer): PLineInfoEx;
+  public
+    constructor Create(CalcWidth: Integer; MessageItem: TMessageItem);
+    destructor Destroy; override;
+
+    procedure Add(LineInfo: TLineInfoEx);
+
+    property BottomPosition: Integer read FBottomPosition write FBottomPosition;
+    property CalcWidth: Integer read FCalcWidth write FCalcWidth;
+    property Count: Integer read FLineCount;
+    property Item[Index: Integer]: PLineInfoEx read GetItem;
+    property MessageItem: TMessageItem read FMessageItem;
+    property MessageHeight: Integer read FMessageHeight;
   end;
 
 implementation
 
-{ TTextLineInfo }
+{ TWordsInfo }
 
-constructor TTextLineInfo.Create;
+procedure ReallocArrayInt(var a: TWordInfoItemArray; UsedSize: Integer);
 begin
-  SetLength(FItems, 200);
-  Clear;
+  if Length(a) <= UsedSize then
+    SetLength(a, Length(a) + 10);
 end;
 
-destructor TTextLineInfo.Destroy;
+constructor TWordsInfo.Create;
 begin
-  SetLength(FItems, 0);
+  SetLength(FWordItems, 10);
+  FWordCount := 0;
+end;
+
+destructor TWordsInfo.Destroy;
+var
+  i: Integer;
+begin
+  for i := Low(FWordItems) to High(FWordItems) do
+    FreeMem(FWordItems[i]);
+
+  SetLength(FWordItems, 0);
   inherited;
 end;
 
-procedure TTextLineInfo.Clear;
+procedure TWordsInfo.Get(Index: Integer; out IsNewLine: Boolean; out Start,
+  Length, Width, Height: Integer);
+var
+  Item: TWordInfoItem;
 begin
-  FCount := 0;
-  FSelected := nil;
-end;
-
-procedure TTextLineInfo.EndChar(LastChar: Integer);
-begin
-  if FCount > 0 then
+  if (Index >= 0) and (Index < FWordCount) then
   begin
-    case FSelected.SelectType of
-      ltStartSelect, ltEndSelect:
-        begin
-          FSelected.Length2 := FSelected.StartChar2 - LastChar;
-        end;
+    Item := FWordItems[Index]^;
 
-      ltStartEndSelect:
-        begin
-          FSelected.Length3 := FSelected.StartChar3 - LastChar;
-        end;
-
-      ltNone:
-        begin
-          FSelected.Length := FSelected.StartChar - LastChar;
-        end;
-    end;
+    Start := Item.WordStart;
+    Length := Item.WordLength;
+    Width := Item.WordSizeWidth;
+    Height := Item.WordSizeHeight;
+    IsNewLine := (Start <= -1) or (Length <= -1);
   end;
 end;
 
-procedure TTextLineInfo.EndSelect(LastSelectChar: Integer);
+function TWordsInfo.GetItem(Index: Integer): PWordInfoItem;
 begin
-  case FSelected.SelectType of
-    ltNone:
-      begin
-        FSelected.SelectType := ltEndSelect;
-        FSelected.StartChar2 := LastSelectChar + 1;
-        FSelected.Length := FSelected.StartChar2 - FSelected.StartChar;
-      end;
-
-    ltStartSelect:
-      begin
-        FSelected.SelectType := ltStartEndSelect;
-        FSelected.StartChar3 := LastSelectChar + 1;
-        FSelected.Length2 := FSelected.StartChar3 - FSelected.StartChar2;
-      end;
-  end;
+  if (Index >= 0) and (Index < FWordCount) then
+    Result := FWordItems[Index]
+  else
+    Result := nil;
 end;
 
-function TTextLineInfo.GetItem(Index: Integer): PLineInfo;
+procedure TWordsInfo.Insert(Start, Length, Width, Height: Integer);
+var
+  Size: Integer;
 begin
-  Result := @FItems[Index];
+  ReallocArrayInt(FWordItems, FWordCount);
+
+  Size := SizeOf(TWordInfoItem);
+  GetMem(FWordItems[FWordCount], Size);
+
+  FWordItems[FWordCount].WordStart := Start;
+  FWordItems[FWordCount].WordLength := Length;
+  FWordItems[FWordCount].WordSizeWidth := Width;
+  FWordItems[FWordCount].WordSizeHeight := Height;
+
+  Inc(FWordCount);
 end;
 
-procedure TTextLineInfo.StartSelect(StartChar: Integer);
+procedure TWordsInfo.InsertNewLine;
 begin
-  case FSelected.SelectType of
-    ltNone:
-      begin
-        FSelected.SelectType := ltStartSelect;
-        FSelected.StartChar2 := StartChar;
-        FSelected.Length := StartChar - FSelected.StartChar;
-      end;
-  end;
+  if (FWordCount <= 0) or (FWordItems[FWordCount - 1].WordStart <> -1) then
+    Insert(-1, -1, -1, -1);
 end;
 
-procedure TTextLineInfo.InsertLine(StartChar: Integer);
+procedure TWordsInfo.Resize;
 begin
-  FItems[FCount].SelectType := ltNone;
-  FItems[FCount].StartChar := StartChar;
-
-  if FCount > 0 then
-  begin
-    case FSelected.SelectType of
-      ltStartSelect, ltEndSelect:
-        begin
-          FSelected.Length2 := StartChar - FSelected.StartChar2;
-        end;
-
-      ltStartEndSelect:
-        begin
-          FSelected.Length3 := StartChar - FSelected.StartChar3;
-        end;
-
-      ltNone:
-        begin
-          FSelected.Length := StartChar - FSelected.StartChar;
-        end;
-    end;
-  end;
-
-  FSelected := @FItems[FCount];
-  FCount := FCount + 1;
+  SetLength(FWordItems, FWordCount);
 end;
 
-{ TWordInfo }
+{ TMessageInfo }
+
+procedure ReallocArrayLineInfoEx(var a: TLineInfoArray; UsedSize: Integer);
+begin
+  if Length(a) <= UsedSize then
+    SetLength(a, Length(a) + 10);
+end;
+
+procedure TMessageInfo.Add(LineInfo: TLineInfoEx);
+var
+  Size: Integer;
+begin
+  ReallocArrayLineInfoEx(FLines, FLineCount);
+  Size := SizeOf(TLineInfoEx);
+  GetMem(FLines[FLineCount], Size);
+  Move(Pointer(@LineInfo)^, FLines[FLineCount]^, Size);
+  Inc(FLineCount);
+
+  FMessageHeight := FMessageHeight + LineInfo.LineHeight;
+end;
+
+constructor TMessageInfo.Create(CalcWidth: Integer; MessageItem: TMessageItem);
+begin
+  FMessageItem := MessageItem;
+  FCalcWidth := CalcWidth;
+  SetLength(FLines, 10);
+  FLineCount := 0;
+  FMessageHeight := 0;
+end;
+
+destructor TMessageInfo.Destroy;
+var
+  i: Integer;
+begin
+  for i := Low(FLines) to High(FLines) do
+    FreeMem(FLines[i]);
+
+  SetLength(FLines, 0);
+  inherited;
+end;
+
+function TMessageInfo.GetItem(Index: Integer): PLineInfoEx;
+begin
+  if (Index >= 0) and (Index < FLineCount) then
+    Result := FLines[Index]
+  else
+    Result := nil;
+end;
 
 end.

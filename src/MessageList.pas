@@ -26,9 +26,11 @@ type
     FFriendId: AnsiString;
     FStatusSend: Boolean;
     FIndex: Integer;
+    FData: TObject;
     procedure SetText(const Value: DataString);
   public
     class function FromText(Text: DataString): TMessageItem;
+    property Data: TObject read FData write FData;
     property Index: Integer read FIndex write FIndex;
     // Время отправки сообщения
     property Time: TDateTime read FTime write FTime;

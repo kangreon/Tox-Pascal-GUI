@@ -62,13 +62,13 @@ end;
  *}
 procedure TFormUserAdd.btnAddFriendClick(Sender: TObject);
 var
-  Address: TClientAddress;
+  Address: TFriendAddress;
   Text: string;
   FriendNumber: Integer;
   ToxError: TToxFaerr;
 begin
   Text := '';
-  Address := TClientAddress.Create;
+  Address := TFriendAddress.Create;
   try
     Address.DataHex := edFrienAddress.Text;
     if Address.ValidAddress then

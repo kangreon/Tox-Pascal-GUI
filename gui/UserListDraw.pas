@@ -438,6 +438,8 @@ var
   Point: TPoint;
 begin
   inherited;
+  Point.y := 0;
+  Point.x := 0;
 
   if GetCursorPos(Point) then
   begin

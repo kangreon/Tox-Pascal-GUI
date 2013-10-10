@@ -105,6 +105,7 @@
       <Unit11>
         <Filename Value="src\ServerList.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="ServerList"/>
       </Unit11>
       <Unit12>
         <Filename Value="src\ClientAddress.pas"/>
@@ -135,6 +136,7 @@
       <Unit18>
         <Filename Value="gui\ActiveRegion.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="ActiveRegion"/>
       </Unit18>
       <Unit19>
         <Filename Value="gui\PaintSprite.pas"/>
@@ -160,11 +162,18 @@
     <Parsing>
       <SyntaxOptions>
         <SyntaxMode Value="Delphi"/>
+        <CStyleOperator Value="False"/>
         <AllowLabel Value="False"/>
       </SyntaxOptions>
     </Parsing>
+    <CodeGeneration>
+      <Optimizations>
+        <OptimizationLevel Value="3"/>
+      </Optimizations>
+    </CodeGeneration>
     <Linking>
       <Debugging>
+        <GenerateDebugInfo Value="False"/>
         <UseExternalDbgSyms Value="True"/>
       </Debugging>
       <Options>
@@ -174,7 +183,9 @@
       </Options>
     </Linking>
     <Other>
+      <WriteFPCLogo Value="False"/>
       <CompilerMessages>
+        <IgnoredMessages idx5023="True" idx5024="True"/>
         <MsgFileName Value=""/>
       </CompilerMessages>
       <CompilerPath Value="$(CompPath)"/>

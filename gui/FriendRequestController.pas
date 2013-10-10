@@ -19,12 +19,12 @@ uses
 type
   PRequestItem = ^TRequestItem;
   TRequestItem = record
-    Address: TClientAddress;
+    Address: TFriendAddress;
     HelloMessage: DataString;
   end;
   TRequestList = array of PRequestItem;
 
-  TProcAddFriend = procedure(Sender: TObject; ClientAddress: TClientAddress) of object;
+  TProcAddFriend = procedure(Sender: TObject; ClientAddress: TFriendAddress) of object;
   TFriendRequestController = class
   private
     FForm: TFormFriendRequest;
@@ -42,7 +42,7 @@ type
     constructor Create(AOwner: TComponent);
     destructor Destroy; override;
 
-    procedure InsertRequest(ClientAddress: TClientAddress;
+    procedure InsertRequest(ClientAddress: TFriendAddress;
       HelloMessage: DataString);
 
     property OnAddFriend: TProcAddFriend read FOnAddFriend write FOnAddFriend;
@@ -70,7 +70,7 @@ begin
   inherited;
 end;
 
-procedure TFriendRequestController.InsertRequest(ClientAddress: TClientAddress;
+procedure TFriendRequestController.InsertRequest(ClientAddress: TFriendAddress;
   HelloMessage: DataString);
 var
   item: Integer;

@@ -32,15 +32,15 @@ type
     procedure btnAddClick(Sender: TObject);
     procedure btnRejectClick(Sender: TObject);
   private
-    FAddress: TClientAddress;
+    FAddress: TFriendAddress;
     FReturnMessage: TReturnMessage;
   public
-    constructor Create(AOwner: TComponent; ClientAddress: TClientAddress;
+    constructor Create(AOwner: TComponent; ClientAddress: TFriendAddress;
       HelloMessage: DataString); reintroduce;
 
     procedure InsertCaptions;
 
-    property ClientAddress: TClientAddress read FAddress;
+    property ClientAddress: TFriendAddress read FAddress;
     property ReturnMessage: TReturnMessage read FReturnMessage;
   end;
 
@@ -67,7 +67,7 @@ begin
 end;
 
 constructor TFormFriendRequest.Create(AOwner: TComponent;
-  ClientAddress: TClientAddress; HelloMessage: DataString);
+  ClientAddress: TFriendAddress; HelloMessage: DataString);
 begin
   inherited Create(AOwner);
   FAddress := ClientAddress;

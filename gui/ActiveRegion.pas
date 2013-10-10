@@ -70,6 +70,9 @@ var
   Point: TPoint;
 begin
   inherited;
+  Point.x := 0;
+  Point.y := 0;
+
   if GetCursorPos(Point) then
   begin
     Point := ScreenToClient(Point);

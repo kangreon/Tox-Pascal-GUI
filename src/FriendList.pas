@@ -20,28 +20,30 @@ type
 
   TFriendItem = class
   private
-    FNumber: Integer;
     FUserName: DataString;
     FClientId: TClientId;
     FStatusMessage: DataString;
     FOnline: Boolean;
     FUserStatus: TToxUserStatus;
     FOnUpdate: TNotifyEvent;
-    FIndex: Integer;
+    FNumber: Integer;
     FData: Pointer;
+    FIsFriend: Boolean;
+    FLocaleName: DataString;
     procedure EventUpdate;
     procedure SetUserName(const Value: DataString);
     procedure SetStatusMessage(const Value: DataString);
     procedure SetOnline(const Value: Boolean);
     procedure SetUserStatus(const Value: TToxUserStatus);
   public
-    constructor Create(Number: Integer; ClientId: PByte);
+    constructor Create(IsFriend: Boolean; ClientId: TClientId; Number: Integer = -1);
     destructor Destroy; override;
 
     property ClientId: TClientId read FClientId;
     property Data: Pointer read FData write FData;
-    property Index: Integer read FIndex write FIndex;
-    property Number: Integer read FNumber;
+    property Number: Integer read FNumber write FNumber;
+    property IsFriend: Boolean read FIsFriend write FIsFriend;
+    property LocaleName: DataString read FLocaleName write FLocaleName;
     property Online: Boolean read FOnline write SetOnline;
     property StatusMessage: DataString read FStatusMessage write SetStatusMessage;
     property UserName: DataString read FUserName write SetUserName;
@@ -51,23 +53,31 @@ type
   end;
 
   TFriendList = class
+  private type
+    TFriendItemList = TList;
   private
-    FItems: array of TFriendItem;
+    FItems: TFriendItemList;
     FStopUpdate: Boolean;
     FOnUpdateItem: TProcUpdateItem;
     FOnNewItem: TNotifyEvent;
     function GetCount: Integer;
     function GetItem(Index: Integer): TFriendItem;
     procedure ItemOnUpdate(Sender: TObject);
+    procedure LoadFromDatabase;
+    function AddWithoutFriend(ClientId: TClientId; UserName,
+      LocaleName: DataString): TFriendItem;
+    function GetItemWithClientId(ClientId: TClientId): TFriendItem;
+    procedure UnfriendNumber(Number: Integer);
+    procedure UnfriendClients;
+    function GetItemWithNumber(Number: Integer): TFriendItem;
   public
     constructor Create;
     destructor Destroy; override;
 
-    function Add(Number: Integer; ClientId: PByte): TFriendItem;
+    function Add(ClientId: TClientId; Number: Integer): TFriendItem;
     procedure BeginUpdate;
-    procedure Clear;
+    procedure ClearFriend;
     procedure EndUpdate;
-    function Replcae(Number: Integer; ClientId: PByte): TFriendItem;
 
     property Count: Integer read GetCount;
     property Item[Index: Integer]: TFriendItem read GetItem;
@@ -80,10 +90,19 @@ implementation
 
 { TFriendList }
 
-constructor TFriendItem.Create(Number: Integer; ClientId: PByte);
+{ *  Создает новую запись для пользователя. Определяет тип создаваемой записи.
+  *
+  *  IsFriend - Принадлежит ли создаваемый пользователь к списку друзей
+  *  ClientId - Уникальный идентификатор пользователя
+  *  Number - Используется в случае принадлежности пользователя к списку
+  *           друзей для ассоциации с Core.
+  * }
+constructor TFriendItem.Create(IsFriend: Boolean; ClientId: TClientId;
+  Number: Integer);
 begin
+  FIsFriend := IsFriend;
+  FClientId := ClientId.Clone;
   FNumber := Number;
-  FClientId := TClientId.Create(ClientId);
   FUserStatus := usInvalid;
 end;
 
@@ -137,42 +156,22 @@ end;
 
 { TFiendList }
 
-function TFriendList.Add(Number: Integer; ClientId: PByte): TFriendItem;
-var
-  Item: TFriendItem;
-  c: Integer;
-begin
-  Item := TFriendItem.Create(Number, ClientId);
-  Item.OnUpdate := ItemOnUpdate;
-  Result := Item;
-
-  c := Length(FItems);
-  SetLength(FItems, c + 1);
-  Item.Index := c;
-  FItems[c] := Item;
-
-  if Assigned(FOnNewItem) then
-    FOnNewItem(Self);
-end;
-
-
-function TFriendList.Replcae(Number: Integer; ClientId: PByte): TFriendItem;
+function TFriendList.Add(ClientId: TClientId; Number: Integer): TFriendItem;
 var
   Item: TFriendItem;
 begin
-  if (Number >= 0) and (Number < Count) then
-  begin
-    Item := TFriendItem.Create(Number, ClientId);
-    Item.OnUpdate := ItemOnUpdate;
-    Result := Item;
+  UnfriendNumber(Number);
 
-    FItems[Number] := Item;
+  Item := GetItemWithClientId(ClientId);
+  try
+    Item.Number := Number;
+    Item.IsFriend := True;
 
     if Assigned(FOnNewItem) then
       FOnNewItem(Self);
-  end
-  else
-    Result := nil;
+  finally
+    Result := Item;
+  end;
 end;
 
 procedure TFriendList.BeginUpdate;
@@ -180,9 +179,9 @@ begin
   FStopUpdate := True;
 end;
 
-procedure TFriendList.Clear;
+procedure TFriendList.ClearFriend;
 begin
-  SetLength(FItems, 0);
+  UnfriendClients;
 
   if (not FStopUpdate) and Assigned(FOnNewItem) then
     FOnNewItem(Self);
@@ -190,13 +189,13 @@ end;
 
 constructor TFriendList.Create;
 begin
-  SetLength(FItems, 0);
+  FItems := TFriendItemList.Create;
   FStopUpdate := False;
 end;
 
 destructor TFriendList.Destroy;
 begin
-  SetLength(FItems, 0);
+  FItems.Free;
   inherited;
 end;
 
@@ -213,24 +212,144 @@ end;
 
 function TFriendList.GetCount: Integer;
 begin
-  Result := Length(FItems);
+  Result := FItems.Count;
 end;
 
 function TFriendList.GetItem(Index: Integer): TFriendItem;
 begin
-  if (Index >= 0) and (Index < Count) then
-    Result := FItems[Index]
-  else
-    Result := nil;
+  Result := GetItemWithNumber(Index);
 end;
 
 procedure TFriendList.ItemOnUpdate(Sender: TObject);
 begin
   if Assigned(Sender) and Assigned(FOnUpdateItem) then
   begin
-    FOnUpdateItem(Self, TFriendItem(Sender).Index);
+    if TFriendItem(Sender).IsFriend then
+    begin
+      FOnUpdateItem(Self, TFriendItem(Sender).Number);
+    end
+    else
+    begin
+      //TODO: Реализовать
+    end;
   end;
 end;
 
+{ *  Убирает всех пользователей из списка друзей
+  * }
+procedure TFriendList.UnfriendClients;
+var
+  PItem: Pointer;
+  Item: TFriendItem;
+begin
+  for PItem in FItems do
+  begin
+    Item := TFriendItem(PItem);
+
+    if (Item.IsFriend) then
+    begin
+      Item.IsFriend := False;
+      Item.Number := -1;
+    end;
+  end;
+end;
+
+function TFriendList.GetItemWithNumber(Number: Integer): TFriendItem;
+var
+  PItem: Pointer;
+  Item: TFriendItem;
+begin
+  Result := nil;
+
+  for PItem in FItems do
+  begin
+    Item := TFriendItem(PItem);
+
+    if (Item.Number = Number) then
+    begin
+      Result := Item;
+      Break;
+    end;
+  end;
+end;
+
+{ *  Убирает пользователя из списка друзей
+  * }
+procedure TFriendList.UnfriendNumber(Number: Integer);
+var
+  PItem: Pointer;
+  Item: TFriendItem;
+begin
+  for PItem in FItems do
+  begin
+    Item := TFriendItem(PItem);
+
+    if (Item.Number = Number) then
+    begin
+      Item.IsFriend := False;
+      Item.Number := -1;
+    end;
+  end;
+end;
+
+{ *  Находит в списке пользователя с идентификатором или создает его.
+  * }
+function TFriendList.GetItemWithClientId(ClientId: TClientId): TFriendItem;
+var
+  PItem: Pointer;
+  Item: TFriendItem;
+  IsExistFriend: Boolean;
+begin
+  IsExistFriend := False;
+  Item := nil;
+
+  for PItem in FItems do
+  begin
+    Item := TFriendItem(PItem);
+
+    if Assigned(Item) and (Item.ClientId.DataHex = ClientId.DataHex) then
+    begin
+      IsExistFriend := True;
+      Break;
+    end;
+  end;
+
+  if not IsExistFriend then
+  begin
+    Item := TFriendItem.Create(False, ClientId);
+    FItems.Add(Item);
+    Result := Item;
+  end
+  else
+    Result := Item;
+end;
+
+{ *  Добавляет пользователя в список без пометки активности. Эта пометка
+  *  дает понять, добавлен ли пользователь в список друзей.
+  *
+  *  ClientId - уникальный идентификатор пользователя
+  *  UserName - Имя добавляемого пользователя
+  *  LocaleName - Имя, которое устанавливается самостоятельно
+  * }
+function TFriendList.AddWithoutFriend(ClientId: TClientId;
+  UserName, LocaleName: DataString): TFriendItem;
+var
+  Item: TFriendItem;
+begin
+  Item := GetItemWithClientId(ClientId);
+  Item.UserName := UserName;
+  Item.LocaleName := LocaleName;
+  Item.OnUpdate := ItemOnUpdate;
+
+  Result := Item;
+end;
+
+{ *  Загружает список пользователей из базы данных
+  * }
+procedure TFriendList.LoadFromDatabase;
+begin
+  //TODO: Реализовать настоящую загрузку из базы
+
+end;
 
 end.

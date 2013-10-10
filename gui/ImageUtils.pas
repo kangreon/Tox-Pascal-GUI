@@ -35,10 +35,6 @@ procedure TextRectW(Canvas: TCanvas; var Rect: TRect; var Text: DataString;
 
 implementation
 
-type
-  TCanvasEx = class(TCanvas)
-  end;
-
 procedure TextRectW(Canvas: TCanvas; var Rect: TRect; var Text: DataString;
   TextFormat: TTextFormat = []);
   {$IFDEF FPC}

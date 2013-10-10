@@ -143,15 +143,6 @@ function tox_getclient_id(tox: TTox; friend_id: Integer; client_id: PByte): Inte
 //int tox_delfriend(Tox *tox, int friendnumber);
 function tox_delfriend(tox: TTox; friendnumber: Integer): Integer;
 
-///*  return TOX_FRIEND_ONLINE if friend is online.
-// *  return TOX_FRIEND_CONFIRMED if friend is confirmed.
-// *  return TOX_FRIEND_REQUESTED if the friend request was sent.
-// *  return TOX_FRIEND_ADDED if the friend was added.
-// *  return TOX_NOFRIEND if there is no friend with that number.
-// */
-//int tox_friendstatus(Tox *tox, int friendnumber);
-function tox_friendstatus(tox: TTox; friendnumber: Integer): Integer;
-
 ///* Send a text chat message to an online friend.
 // *
 // *  return the message id if packet was successfully put into the send queue.
@@ -408,7 +399,6 @@ var
 	tox_getfriend_id_: function(tox: TTox; client_id: PAnsiChar): Integer; cdecl;
 	tox_getclient_id_: function(tox: TTox; friend_id: Integer; client_id: PByte): Integer; cdecl;
 	tox_delfriend_: function(tox: TTox; friendnumber: Integer): Integer; cdecl;
-	tox_friendstatus_: function(tox: TTox; friendnumber: Integer): Integer; cdecl;
 	tox_sendmessage_: function(tox: TTox; friendnumber: Integer; message: PByte; length: Integer): Integer; cdecl;
 	tox_sendmessage_withid_: function(tox: TTox; friendnumber: Integer; theid: Integer; message: PAnsiChar; length: Integer): Integer; cdecl;
 	tox_sendaction_: function(tox: TTox; friendnumber: Integer; action: PAnsiChar; length: Integer): Integer; cdecl;
@@ -481,11 +471,6 @@ end;
 function tox_delfriend(tox: TTox; friendnumber: Integer): Integer;
 begin
 	Result := tox_delfriend_(tox, friendnumber);
-end;
-
-function tox_friendstatus(tox: TTox; friendnumber: Integer): Integer;
-begin
-	Result := tox_friendstatus_(tox, friendnumber);
 end;
 
 function tox_sendmessage(tox: TTox; friendnumber: Integer; message: PByte; length: Integer): Integer;
@@ -670,7 +655,6 @@ begin
 	tox_getfriend_id_ := GetProcAddress(hlib, 'tox_getfriend_id');
 	tox_getclient_id_ := GetProcAddress(hlib, 'tox_getclient_id');
 	tox_delfriend_ := GetProcAddress(hlib, 'tox_delfriend');
-	tox_friendstatus_ := GetProcAddress(hlib, 'tox_friendstatus');
 	tox_sendmessage_ := GetProcAddress(hlib, 'tox_sendmessage');
 	tox_sendmessage_withid_ := GetProcAddress(hlib, 'tox_sendmessage_withid');
   tox_sendaction_ := GetProcAddress(hlib, 'tox_sendaction');

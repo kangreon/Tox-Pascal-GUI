@@ -103,17 +103,20 @@ end;
 
 procedure TUserList.LoadAllUsers;
 var
-  i, c: Integer;
+  i: Integer;
+  Item: TFriendItem;
 begin
   FList.BeginUpdate;
   try
     FList.Clear;
 
-    c := FFriends.Count;
-    for i := 0 to c - 1 do
-    begin
-      FList.AddItem(FFriends.Item[i]);
-    end;
+    i := 0;
+    repeat
+      Item := FFriends.Item[i];
+      Inc(i);
+      if Assigned(Item) then
+        FList.AddItem(Item);
+    until not Assigned(Item);
 
   finally
     FList.EndUpdate;

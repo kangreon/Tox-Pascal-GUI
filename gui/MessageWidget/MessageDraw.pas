@@ -18,18 +18,6 @@ uses
   TextLineInfo, Math;
 
 type
-  TWordArray = array of Word;
-
-  PDrawItem = ^TDrawItem;
-  TDrawItem = record
-    BottomPosition: Integer;    // Положение элемента относительно нижнего края
-    Height: Integer;            // Высота, занимаемая этим сообщением
-    CalcWidth: Integer;         // Ширина, для которой актуальна информация
-    MessageItem: TMessageItem;  // Само выводимое сообщение
-    LineStart: TWordArray;      //
-    LineWidth: TWordArray;      // Ширина всех строк
-    LinesCount: Integer;        // Количество строк, занимаемое сообщением
-  end;
   TDrawItemList = array of TMessageInfo;
 
   TProcGet = procedure(Sender: TObject; const Index: Integer; out Exist: Boolean;
@@ -97,7 +85,7 @@ begin
 
     FSpaceWidth := Bitmap.Canvas.TextWidth(' ');
     FTextHeight := Bitmap.Canvas.TextHeight('Q');
-    FTextMarginLeft := 40;
+    FTextMarginLeft := 80;
     FTextMarginRight := Bitmap.Canvas.TextWidth(FormatDateTime('  dd/mm/yyyy  ', Now));
   finally
     Bitmap.Free;
@@ -182,12 +170,6 @@ begin
   Canvas.TextOut(0, 0, 'Message count: ' + IntToStr(Length(FDrawItems)));
   Canvas.TextOut(0, 13, 'Calc time: ' + FormatDateTime('ss.zzz', FCalcTime));
   Canvas.TextOut(0, 26, 'Paint time: ' + FormatDateTime('ss.zzz', PaintTime));
-end;
-
-procedure ReallocArray(var a: TWordArray; UsedSize: Integer);
-begin
-  if Length(a) <= UsedSize then
-    SetLength(a, Length(a) + 10);
 end;
 
 { *  Рассчитывает позиции и размеры всех слов в строке
@@ -459,6 +441,7 @@ begin
     begin
       if EventGet(ActiveElementIndex, ActiveItem) then
       begin
+        MessageInfo := nil;
         if not GetOldPositionInfo(ActiveItem, MaxWidth, MessageInfo) then
           MessageInfo := CalcBreakItem(ActiveItem, MaxWidth);
 

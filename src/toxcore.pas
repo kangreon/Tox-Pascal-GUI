@@ -20,7 +20,7 @@ type
   TConnectState = (csOnline, csConnecting, csOffline);
 
   TProcConnecting = procedure(Sender: TObject; Server: TServerItem) of object;
-  TProcFriendRequest = procedure(Sender: TObject; ClientAddress: TClientAddress;
+  TProcFriendRequest = procedure(Sender: TObject; ClientAddress: TFriendAddress;
     HelloMessage: DataString) of object;
   TProcFriendMessage = procedure(Sender: TObject; FriendNumber: Integer;
     MessageStr: DataString) of object;
@@ -47,10 +47,10 @@ type
     FOnDisconnect: TNotifyEvent;
     FSelectedServer: TServerItem;
     FOnConnecting: TProcConnecting;
-    FYourAddress: TClientAddress;
+    FYourAddress: TFriendAddress;
     FStartThread: Boolean;
     FStatusOnline: Boolean;
-    FTempAddress: TClientAddress;
+    FTempAddress: TFriendAddress;
     FTemtMessage: DataString;
     FTempFriendNumber: Integer;
     FTempUserStatus: TToxUserStatus;
@@ -74,7 +74,7 @@ type
     procedure EventConnectingSyn;
     procedure EventDisconnect;
     procedure EventDisconnectSyn;
-    procedure EventFriendRequest(ClientAddress: TClientAddress;
+    procedure EventFriendRequest(ClientAddress: TFriendAddress;
       HelloMessage: DataString);
     procedure EventFriendRequestSyn;
     procedure EventFriendMessage(FriendNumber: Integer; MessageStr: DataString);
@@ -95,7 +95,7 @@ type
     procedure InitConnection;
     procedure SaveData;
     procedure SetUserName(const Value: DataString);
-    procedure DoFriendRequest(ClientAddress: TClientAddress;
+    procedure DoFriendRequest(FriendAddress: TFriendAddress;
       HelloMessage: DataString);
     procedure DoFriendMessage(FriendNumber: Integer; MessageStr: DataString);
     procedure DoAction(FriendNumber: Integer; Action: DataString);
@@ -111,9 +111,9 @@ type
   public
     constructor Create(Settings: TSettings);
 
-    function AddFriend(Address: TClientAddress; HelloMessage: DataString;
+    function AddFriend(Address: TFriendAddress; HelloMessage: DataString;
       out FriendNumber: Integer): TToxFaerr;
-    function AddFriendNoRequest(Address: TClientAddress): Boolean;
+    function AddFriendNoRequest(Address: TFriendAddress): Boolean;
     procedure SendMessage(FriendNumber: Integer; Text: DataString);
     procedure SetUserStatus(Status: TToxUserStatus);
     procedure StartTox;
@@ -125,7 +125,7 @@ type
     property SelectedServer: TServerItem read FSelectedServer;
     property StatusMessage: DataString read FStatusMessage write SetStatusMessage;
     property UserName: DataString read FUserName write SetUserName;
-    property YourAddress: TClientAddress read FYourAddress;
+    property YourAddress: TFriendAddress read FYourAddress;
 
     property OnAction: TProcAction read FOnAction write FOnAction;
     property OnConnect: TNotifyEvent read FOnConnect write FOnConnect;
@@ -146,12 +146,12 @@ procedure OnFriendRequest_(public_key: PByte; data: PByte; length: Word;
   UserData: Pointer); cdecl;
 var
   ToxThread: TToxCore;
-  ClientAddress: TClientAddress;
+  ClientAddress: TFriendAddress;
   HelloMessage: DataString;
 begin
   ToxThread := TToxCore(UserData);
 
-  ClientAddress := TClientAddress.Create(public_key);
+  ClientAddress := TFriendAddress.Create(public_key);
   HelloMessage := GetTextFromUTF8Byte(data, length);
 
   ToxThread.DoFriendRequest(ClientAddress, HelloMessage);
@@ -239,13 +239,21 @@ end;
 { TToxCore }
 
 
-// Отправка запроса на дружбу с приветственным сообщением
-function TToxCore.AddFriend(Address: TClientAddress; HelloMessage: DataString;
+{ *  Отправка пользователю запроса на добавление в список друзей.
+  *
+  *  Address - Идентификатор пользователя, добавляемого в друзья
+  *  HelloMessage - Приветственное сообщение. Обязательно должно присутствовать.
+  *  out FriendNumber - Номер добавленного пользователя.
+  *
+  *  Возвращает результат добавления пользователя в друзья.
+  * }
+function TToxCore.AddFriend(Address: TFriendAddress; HelloMessage: DataString;
   out FriendNumber: Integer): TToxFaerr;
 var
   data_length: Integer;
   data: PByte;
   ret: Integer;
+  ClientId: TClientId;
 begin
   FriendNumber := -1;
   Result := tfUnknown;
@@ -262,7 +270,12 @@ begin
       Result := tfFriendNumber;
       FriendNumber := ret;
 
-      FFriendList.Add(FriendNumber, Address.DataBin);
+      ClientId := TClientId.Create(Address);
+      try
+        FFriendList.Add(ClientId, FriendNumber);
+      finally
+        ClientId.Free;
+      end;
     end;
 
   finally
@@ -272,7 +285,7 @@ begin
   SaveData;
 end;
 
-function TToxCore.AddFriendNoRequest(Address: TClientAddress): Boolean;
+function TToxCore.AddFriendNoRequest(Address: TFriendAddress): Boolean;
 begin
   Result := tox_addfriend_norequest(FTox, Address.DataBin) <> -1;
 end;
@@ -282,7 +295,7 @@ begin
   inherited Create(True);
 
   FSettings := Settings;
-  FYourAddress := TClientAddress.Create;
+  FYourAddress := TFriendAddress.Create;
   FFriendList := TFriendList.Create;
 
   FConnectState := csOffline;
@@ -300,8 +313,9 @@ begin
   EventAction(FriendNumber, Action);
 end;
 
-// Событие, возникаемое когда пользователь захродит в сеть или
-// выходит из нее
+{ *  Событие возникает при подключении или отключении пользователя
+  *  из списка.
+  * }
 procedure TToxCore.DoConnectionStatus(FriendNumber: Integer; Status: Byte);
 var
   Item: TFriendItem;
@@ -319,44 +333,51 @@ begin
   end;
 end;
 
+{ *  Событие возникает при получении сообщения от пользователя
+  * }
 procedure TToxCore.DoFriendMessage(FriendNumber: Integer;
   MessageStr: DataString);
 begin
   EventFriendMessage(FriendNumber, MessageStr);
 end;
 
-procedure TToxCore.DoFriendRequest(ClientAddress: TClientAddress;
+procedure TToxCore.DoFriendRequest(FriendAddress: TFriendAddress;
   HelloMessage: DataString);
 begin
-  if ClientAddress.ValidAddress then
+  if FriendAddress.ValidAddress then
   begin
-    EventFriendRequest(ClientAddress, HelloMessage);
+    EventFriendRequest(FriendAddress, HelloMessage);
     SaveData;
   end;
 end;
 
-// Событие, вызываемое при изменении имени пользоватея одного из
-// списка друзей.
+{ *  Событие возникает при изменении имени пользователя из списка друзей
+  * }
 procedure TToxCore.DoNameChange(FriendNumber: Integer; NewName: DataString);
 var
   Item: TFriendItem;
 begin
   EventNameChange(FriendNumber, NewName);
 
-  // Изменение имени пользователя в основном списке
   Item := FFriendList.Item[FriendNumber];
   if Assigned(Item) then
-    Item.UserName := NewName;
+    Item.UserName := NewName
+  else
+    UpdateFriends(False);
 
   SaveData;
 end;
 
+{ *  Событие возникает после доставки отправленного сообщения пользователю
+  * }
 procedure TToxCore.DoReadReceipt(FriendNumber, Receipt: Integer);
 begin
   EventReadReceipt(FriendNumber, Receipt);
 end;
 
-// Событие изменения пользователем статусного сообщения
+{ *  Событие возникает после изменения пользователем из списка сдрузей
+  *  своего статуса.
+  * }
 procedure TToxCore.DoStatusMessage(FriendNumber: Integer;
   NewStatus: DataString);
 var
@@ -366,7 +387,9 @@ begin
 
   Item := FFriendList.Item[FriendNumber];
   if Assigned(Item) then
-    Item.StatusMessage := NewStatus;
+    Item.StatusMessage := NewStatus
+  else
+    UpdateFriends(False);
 end;
 
 procedure TToxCore.DoUserStatus(FriendNumber: Integer; Kind: TToxUserStatus);
@@ -377,7 +400,9 @@ begin
 
   Item := FFriendList.Item[FriendNumber];
   if Assigned(Item) then
-    Item.UserStatus := Kind;
+    Item.UserStatus := Kind
+  else
+    UpdateFriends(False);
 end;
 
 procedure TToxCore.EventAction(FriendNumber: Integer; Action: DataString);
@@ -463,7 +488,7 @@ begin
     FOnFriendMessage(Self, FTempFriendNumber, FTemtMessage);
 end;
 
-procedure TToxCore.EventFriendRequest(ClientAddress: TClientAddress;
+procedure TToxCore.EventFriendRequest(ClientAddress: TFriendAddress;
   HelloMessage: DataString);
 begin
   FTempAddress := ClientAddress;
@@ -540,7 +565,7 @@ var
   dht_on, conn_err: Boolean;
   conn_try: Integer;
 begin
-  inherited;
+  {$IFNDEF FPC}inherited;{$ENDIF}
   FStartThread := True;
 
   dht_on := False;
@@ -593,7 +618,7 @@ begin
     end;
 
     tox_do(FTox);
-    Sleep(60);
+    Sleep(20);
   end;          
 end;
 
@@ -630,7 +655,6 @@ procedure TToxCore.InitTox;
 var
   data: PByte;
   size: Integer;
-  UserName: DataString;
 begin
   FConfigPath := FSettings.ConfigPath;
 
@@ -699,8 +723,6 @@ begin
   end;
 
   UpdateFriends(True);
-
-  UserName := FSettings.UserName;
 end;
 
 { *  Обновляет список друзей путем загрузки всего списка и сверкой с уже
@@ -720,53 +742,31 @@ begin
   FriendList.BeginUpdate;
   try
     if Clear then
-      FriendList.Clear;
+      FriendList.ClearFriend;
 
     i := 0;
     while tox_getclient_id(FTox, i, data) = 0 do
     begin
+      ClientId := TClientId.Create(Data);
       try
-        if i < FriendList.Count then
-        begin
-          ClientId := TClientId.Create(data);
-          try
-            // Заменяет в списке элемент, если он не правильный
-            if FriendList.Item[i].ClientId.DataHex <> ClientId.DataHex then
-              Item := FriendList.Replcae(i, data)
-            else
-              Item := FriendList.Item[i];
+        Item := FriendList.Add(ClientId, i);
 
-          finally
-            ClientId.Free;
-          end;
+        // Получение имени пользователя
+        size := tox_getname(FTox, i, name);
+        if size > 0 then
+          Item.UserName := GetTextFromUTF8Byte(name, size);
 
-        end
-        else
-        begin
-          Item := FriendList.Add(i, data);
-        end;
-
-        if Assigned(Item) then
-        begin
-          i := Item.Index;
-
-          // Получение имени пользователя
-          size := tox_getname(FTox, i, name);
-          if size > 0 then
-            Item.UserName := GetTextFromUTF8Byte(name, size);
-
-          // Копирование статуса
-          size := tox_get_statusmessage_size(FTox, i);
-          Status := GetMemory(size);
-          try
-            tox_copy_statusmessage(FTox, i, Status, size);
-            Item.StatusMessage := GetTextFromUTF8Byte(Status, size);
-          finally
-            FreeMemory(Status);
-          end;
-
+        // Копирование статуса
+        size := tox_get_statusmessage_size(FTox, i);
+        Status := GetMemory(size);
+        try
+          tox_copy_statusmessage(FTox, i, Status, size);
+          Item.StatusMessage := GetTextFromUTF8Byte(Status, size);
+        finally
+          FreeMemory(Status);
         end;
       finally
+        ClientId.Free;
         Inc(i);
       end;
     end;
@@ -852,11 +852,7 @@ begin
 
   if not FStartThread then
   begin
-    {$IFDEF NEW_DELPHI}
     Start;
-    {$ELSE}
-    Resume;
-    {$ENDIF}
   end;
 end;
 

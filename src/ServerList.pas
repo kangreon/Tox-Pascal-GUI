@@ -326,6 +326,7 @@ end;
 function TServerList.StreamLoadWord(out w: Word): Boolean;
 begin
   Result := False;
+  w := 0;
 
   if FStream.Position + SizeOf(w) > FStream.Size then
     Exit;

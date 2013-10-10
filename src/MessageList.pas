@@ -12,7 +12,7 @@ interface
   {$I tox.inc}
 
 uses
-  StringUtils, SysUtils;
+  StringUtils, SysUtils, ClientAddress;
 
 type
   TMessageStatus = (msSending, msSend, msError);
@@ -23,7 +23,7 @@ type
     FTime: TDateTime;
     FText: DataString;
     FUserMessage: Boolean;
-    FFriendId: AnsiString;
+    FFriendId: TClientId;
     FStatusSend: Boolean;
     FIndex: Integer;
     FData: TObject;
@@ -40,7 +40,7 @@ type
     property UserMessage: Boolean read FUserMessage write FUserMessage;
     // Публичный ключ пользователя
     // TODO: Заменить
-    property FriendId: AnsiString read FFriendId write FFriendId;
+    property FriendId: TClientId read FFriendId write FFriendId;
     // Состояние доставки сообщения пользователю
     property StatusSend: Boolean read FStatusSend write FStatusSend;
   end;
@@ -74,10 +74,8 @@ implementation
 { TMessageList }
 
 constructor TMessageList.Create;
-{$IFDEF fpc}
 var
   i: Integer;
-{$ENDIF}
 begin
   SetLength(FTemp, 20);
   FTemp[0] := TMessageItem.FromText('Лучше бы они переключили свое внимание на действительно вредные сайты, ограничивающие свободу в интернете :)');
@@ -101,12 +99,13 @@ begin
   FTemp[18] := TMessageItem.FromText('Да хрен с ним с Лизвебом, но эти же ДНС являются авторитативными для множества клиентских доменов, они так же могли перенаправить их куда угодно, в том числе, как написал CrazyAngel сделать фишинг и прочее ');
   FTemp[19] := TMessageItem.FromText('Вы уверене, что лизвеб дает мастер-ns клиентам? '#13#10#13#10'В какой услуге?');
 
-  {$IFDEF fpc}
   for i := Low(FTemp) to High(FTemp) do
   begin
+    {$IFDEF fpc}
     FTemp[i].Text := UTF8Encode(FTemp[i].Text);
+    {$ENDIF}
+    FTemp[i].FriendId := TClientId.Create('');
   end;
-  {$ENDIF}
 end;
 
 destructor TMessageList.Destroy;

@@ -19,30 +19,7 @@ uses
 type
   TAddressError = (aeClear, aeIncorrectSize);
 
-  TClientId = class
-  private
-    FDataBin: PByte;
-    FValidAddress: Boolean;
-    FError: TAddressError;
-    FDataHex: DataString;
-    procedure Initialize;
-    procedure SetDataBin(const Value: PByte);
-    procedure SetDataHex(const Value: DataString);
-  public
-    constructor Create; overload;
-    constructor Create(const Value: PByte); overload;
-    constructor Create(const Value: DataString); overload;
-    destructor Destroy; override;
-
-    procedure Clear;
-
-    property DataHex: DataString read FDataHex write SetDataHex;
-    property DataBin: PByte read FDataBin write SetDataBin;
-    property ValidAddress: Boolean read FValidAddress;
-    property Error: TAddressError read FError;
-  end;
-
-  TClientAddress = class
+  TFriendAddress = class
   private
     FDataHex: string;
     FDataBin: PByte;
@@ -60,6 +37,31 @@ type
     procedure Clear;
 
     property DataHex: string read FDataHex write SetDataHex;
+    property DataBin: PByte read FDataBin write SetDataBin;
+    property ValidAddress: Boolean read FValidAddress;
+    property Error: TAddressError read FError;
+  end;
+
+  TClientId = class
+  private
+    FDataBin: PByte;
+    FValidAddress: Boolean;
+    FError: TAddressError;
+    FDataHex: DataString;
+    procedure Initialize;
+    procedure SetDataBin(const Value: PByte);
+    procedure SetDataHex(const Value: DataString);
+  public
+    constructor Create; overload;
+    constructor Create(const Value: PByte); overload;
+    constructor Create(const Value: DataString); overload;
+    constructor Create(const Value: TFriendAddress); overload;
+    destructor Destroy; override;
+
+    procedure Clear;
+    function Clone: TClientId;
+
+    property DataHex: DataString read FDataHex write SetDataHex;
     property DataBin: PByte read FDataBin write SetDataBin;
     property ValidAddress: Boolean read FValidAddress;
     property Error: TAddressError read FError;
@@ -93,13 +95,13 @@ begin
   Result := string(sa);
 end;
 
-procedure TClientAddress.Clear;
+procedure TFriendAddress.Clear;
 begin
   FError := aeClear;
   FValidAddress := False;
 end;
 
-constructor TClientAddress.Create;
+constructor TFriendAddress.Create;
 begin
   FDataBin := GetMemory(FRIEND_ADDRESS_SIZE);
   SetLength(FDataHex, FRIEND_ADDRESS_SIZE * 2);
@@ -107,7 +109,7 @@ begin
   Clear;
 end;
 
-constructor TClientAddress.Create(data: PByte);
+constructor TFriendAddress.Create(data: PByte);
 begin
   FDataBin := GetMemory(FRIEND_ADDRESS_SIZE);
   SetLength(FDataHex, FRIEND_ADDRESS_SIZE * 2);
@@ -116,7 +118,7 @@ begin
   DataBin := data;
 end;
 
-destructor TClientAddress.Destroy;
+destructor TFriendAddress.Destroy;
 begin
   FreeMemory(FDataBin);
   inherited;
@@ -127,7 +129,7 @@ begin
   Move(Source^, Destination^, Length);
 end;
 
-procedure TClientAddress.SetDataBin(const Value: PByte);
+procedure TFriendAddress.SetDataBin(const Value: PByte);
 begin
   //Move(Value^, FDataBin^, FRIEND_ADDRESS_SIZE);
   CopyMemory(FDataBin, Value, FRIEND_ADDRESS_SIZE);
@@ -141,7 +143,7 @@ begin
   end;
 end;
 
-procedure TClientAddress.SetDataHex(const Value: string);
+procedure TFriendAddress.SetDataHex(const Value: string);
 var
   data: PByte;
 begin
@@ -178,22 +180,38 @@ begin
   DataBin := Value;
 end;
 
-procedure TClientId.Clear;
-begin
-  FValidAddress := False;
-  FError := aeClear;
-end;
-
 constructor TClientId.Create(const Value: DataString);
 begin
   Initialize;
   DataHex := Value;
 end;
 
+constructor TClientId.Create(const Value: TFriendAddress);
+begin
+  Initialize;
+  DataHex := Copy(Value.DataHex, 1, (TOX_CLIENT_ID_SIZE * 2) - 1);
+end;
+
 destructor TClientId.Destroy;
 begin
   FreeMem(FDataBin);
   inherited;
+end;
+
+procedure TClientId.Clear;
+begin
+  FValidAddress := False;
+  FError := aeClear;
+end;
+
+function TClientId.Clone: TClientId;
+var
+  Client: TClientId;
+begin
+  Client := TClientId.Create;
+  Client.SetDataHex(FDataHex);
+
+  Result := Client;
 end;
 
 procedure TClientId.Initialize;

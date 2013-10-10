@@ -23,14 +23,8 @@ type
   { TForm1 }
   TForm1 = class(TForm)
     ActivityList: TMemo;
-    Panel1: TPanel;
-    Edit3: TEdit;
-    Button2: TButton;
-    ListBox1: TListBox;
-    Edit4: TEdit;
     Splitter1: TSplitter;
     procedure FormCreate(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
   private
     FRequestConrtoller: TFriendRequestController;
     FSettings: TSettings;
@@ -38,7 +32,7 @@ type
     procedure ToxOnConnect(Sender: TObject);
     procedure ToxOnDisconnect(Sender: TObject);
     procedure ToxOnConnecting(Sender: TObject; Server: TServerItem);
-    procedure ToxFriendRequest(Sender: TObject; ClientAddress: TClientAddress;
+    procedure ToxFriendRequest(Sender: TObject; ClientAddress: TFriendAddress;
       HelloMessage: DataString);
     procedure ToxFriendMessage(Sender: TObject; FriendNumber: Integer;
       MessageStr: DataString);
@@ -65,7 +59,7 @@ type
     procedure InitGui;
     procedure ControlPanelClick(Sender: TObject; Button: TControlButton);
     procedure RequestOnAddFriend(Sender: TObject;
-      ClientAddress: TClientAddress);
+      ClientAddress: TFriendAddress);
     procedure UserStatusChangeStatus(Sender: TObject);
   public
     property ToxLoadError: Boolean read FToxLoadError;
@@ -78,21 +72,7 @@ implementation
 
 {$R *.dfm}
 
-procedure TForm1.Button2Click(Sender: TObject);
-var
-  i: Integer;
-begin
-  if TryStrToInt(Edit4.Text, i) then
-  begin
-    FToxCore.SendMessage(i, Edit3.Text);
-    Edit3.Clear;
-  end;
-end;
-
 procedure TForm1.FormCreate(Sender: TObject);
-var
-  FriendList: TFriendList;
-  c, i: Integer;
 begin
   ClientHeight := 500;
   ClientWidth := 750;
@@ -131,14 +111,6 @@ begin
   FRequestConrtoller.OnAddFriend := RequestOnAddFriend;
 
   ActivityList.Lines.Add(FToxCore.YourAddress.DataHex);
-
-  FriendList := FToxCore.FriendList;
-  c := FriendList.Count;
-  for i := 0 to c - 1 do
-  begin
-    ListBox1.Items.Add(FriendList.Item[i].UserName);
-  end;
-
   FToxCore.StartTox;
 
   InitGui;
@@ -201,24 +173,14 @@ begin
   FUserList.Parent := LeftPanel;
 
   //TODO: Временно. Пока не будет заменено настоящими компонентами
-  Panel1.Parent := nil;
-//  {$IFNDEF FPC}
-//  Panel1.ParentBackground := False;
-//  {$ENDIF}
-  Panel1.Visible := False;
-  ListBox1.Parent := nil;
-  ListBox1.Align := alClient;
-  ListBox1.Visible := False;
-  //ActivityList.Parent := RightPanel;
   ActivityList.Align := alClient;
   ActivityList.DoubleBuffered := True;
   ActivityList.Color := $F2F2F1;
   ActivityList.Visible := False;
 end;
 
-{
-  Событие на нажатия на одну из кнопок панели управления
-                                                                          }
+{ *  Событие возникает при нажатия на одну из кнопок панели управления.
+  * }
 procedure TForm1.ControlPanelClick(Sender: TObject; Button: TControlButton);
 var
   Form: TForm;
@@ -276,7 +238,7 @@ begin
     ' with text: ' + MessageStr);
 end;
 
-procedure TForm1.ToxFriendRequest(Sender: TObject; ClientAddress: TClientAddress;
+procedure TForm1.ToxFriendRequest(Sender: TObject; ClientAddress: TFriendAddress;
   HelloMessage: DataString);
 begin
   ActivityList.Lines.Add('User ' + ClientAddress.DataHex + ' send request with text: ' + HelloMessage);
@@ -438,7 +400,7 @@ end;
   *
   * }
 procedure TForm1.RequestOnAddFriend(Sender: TObject;
-  ClientAddress: TClientAddress);
+  ClientAddress: TFriendAddress);
 begin
   FToxCore.AddFriendNoRequest(ClientAddress);
 end;

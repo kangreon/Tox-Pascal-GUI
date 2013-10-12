@@ -63,6 +63,7 @@ type
     FBottomPosition: Integer;
     FIsMessageHeader: Boolean;
     FHeaderHeight: Integer;
+    FBottomMargin: Integer;
     function GetItem(Index: Integer): PLineInfoEx;
     function GetMessageHeight: Integer;
   public
@@ -72,6 +73,7 @@ type
     procedure Add(LineInfo: TLineInfoEx);
 
     property BottomPosition: Integer read FBottomPosition write FBottomPosition;
+    property BottomMargin: Integer read FBottomMargin write FBottomMargin;
     property CalcWidth: Integer read FCalcWidth write FCalcWidth;
     property Count: Integer read FLineCount;
     property HeaderHeight: Integer read FHeaderHeight write FHeaderHeight;
@@ -190,6 +192,7 @@ begin
   SetLength(FLines, 10);
   FLineCount := 0;
   FMessageHeight := 0;
+  FBottomMargin := 15;
 end;
 
 destructor TMessageInfo.Destroy;
@@ -214,6 +217,8 @@ end;
 function TMessageInfo.GetMessageHeight: Integer;
 begin
   Result := FMessageHeight;
+
+  Result := Result + FBottomMargin;
 
   if FIsMessageHeader then
     Result := Result + FHeaderHeight;

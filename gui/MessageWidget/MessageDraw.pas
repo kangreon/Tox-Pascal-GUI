@@ -33,6 +33,7 @@ type
     FDrawItems: TDrawItemList;
     FCalcTime: TDateTime;
     FIsCreateList: Boolean;
+    FIsCalcPositionForLastMessage: Boolean;
 
     FSpaceWidth: Integer;
     FTextHeight: Integer;
@@ -55,6 +56,7 @@ type
     procedure CombineDrawInfoArrays(var ItemOld, ItemNew: TDrawItemList);
     function CalcWordPosition(MessageItem: TMessageItem): TWordsInfo;
     procedure DrawDividingLine(Mess: TMessageInfo);
+    procedure ScrollPage(Value: Integer);
   protected
     procedure Paint; override;
     procedure Resize; override;
@@ -63,6 +65,8 @@ type
     destructor Destroy; override;
 
     procedure Redraw(BottomMessageIndex: Integer);
+    procedure ScrollDown(Value: Integer);
+    procedure ScrollUp(Value: Integer);
 
     property BottomMessageIndex: Integer read FBottomMessageIndex;
     property BottomMessagePosition: Integer read FBottomMessagePosition;
@@ -85,6 +89,7 @@ begin
   Cursor := crIBeam;
   FBottomMessageIndex := -1;
   FIsCreateList := False;
+  FIsCalcPositionForLastMessage := False;
 
   // Форматы вывода даты и времени
   FFormatPaintDate := '  dd/mm/yyyy  ';
@@ -129,7 +134,7 @@ begin
   LeftDraw := FTextMarginLeft;
   Text := Item.MessageItem.Text;
 
-  TopDraw := ClientHeight - Item.BottomPosition;
+  TopDraw := ClientHeight - Item.BottomPosition - Item.BottomMargin;
   for i := c - 1 downto 0 do
   begin
     LineInfo := Item.Item[i]^;
@@ -504,11 +509,18 @@ begin
           (PrevItem.Friend <> ActiveItem.Friend);
         MessageInfo.HeaderHeight := 20;
 
+        if FIsCalcPositionForLastMessage then
+        begin
+          BottomPosition := BottomPosition - MessageInfo.MessageHeight;
+          FIsCalcPositionForLastMessage := False;
+          FBottomMessagePosition := BottomPosition;
+        end;
+
         MessageInfo.BottomPosition := BottomPosition;
         ItemList[ItemListCount] := MessageInfo;
         Inc(ItemListCount);
 
-        BottomPosition := BottomPosition + MessageInfo.MessageHeight + 15;
+        BottomPosition := BottomPosition + MessageInfo.MessageHeight;
         ActiveElementIndex := ActiveElementIndex - 1;
       end
       else
@@ -604,6 +616,69 @@ begin
   FCalcTime := Now;
   RecreateItems;
   FCalcTime := Now - FCalcTime;
+end;
+
+procedure TMessageDraw.ScrollDown(Value: Integer);
+begin
+  ScrollPage(Value);
+end;
+
+procedure TMessageDraw.ScrollUp(Value: Integer);
+begin
+  ScrollPage(-Value);
+end;
+
+procedure TMessageDraw.ScrollPage(Value: Integer);
+var
+  Item: TMessageInfo;
+  MessItem: TMessageItem;
+  IsScroll: Boolean;
+  OldPosition: Integer;
+begin
+  OldPosition := FBottomMessagePosition;
+  FBottomMessagePosition := FBottomMessagePosition + Value;
+  IsScroll := False;
+
+  if Length(FDrawItems) > 0 then
+  begin
+    Item := FDrawItems[0];
+
+    if (FBottomMessagePosition < 0) and (Abs(FBottomMessagePosition) > Item.MessageHeight) then
+    begin
+      FBottomMessageIndex := FBottomMessageIndex - 1;
+      FBottomMessagePosition := FBottomMessagePosition + Item.MessageHeight;
+      IsScroll := True;
+    end
+    else if FBottomMessagePosition > 0 then
+    begin
+      if EventGet(FBottomMessageIndex + 1, MessItem) then
+      begin
+        IsScroll := True;
+        FIsCalcPositionForLastMessage := True;
+        FBottomMessageIndex := FBottomMessageIndex + 1;
+        {
+          Переключение активного сообщения. Выбирается следующее сообщение из
+          списка. т.к. для него не известна высота отрисовки, устанавливается
+          флаг FIsCalcPositionForLastMessage, которы рассчитает высоту нового
+          активного текста и установит его позицию при первом ресайзе элементов.
+        }
+      end
+      else
+      begin
+        // Это самое последнее сообщение
+        FBottomMessagePosition := 0;
+        IsScroll := True;
+      end;
+    end
+    else
+      IsScroll := True
+  end;
+
+  if (OldPosition <> FBottomMessagePosition) and (IsScroll) then
+  begin
+    Resize;
+    Invalidate;
+  end;
 end;
 
 procedure TMessageDraw.SetDrawFont;

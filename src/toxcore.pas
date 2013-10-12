@@ -14,7 +14,7 @@ interface
 uses
   {$I tox-uses.inc}
   Classes, Settings, ServerList, SysUtils, libtox, ClientAddress, StringUtils,
-  FriendList;
+  FriendList, MessageList;
 
 type
   TConnectState = (csOnline, csConnecting, csOffline);
@@ -43,6 +43,7 @@ type
     FConfigPath: string;
     FConnectState: TConnectState;
     FSettings: TSettings;
+    FMessageList: TMessageList;
     FOnConnect: TNotifyEvent;
     FOnDisconnect: TNotifyEvent;
     FSelectedServer: TServerItem;
@@ -122,6 +123,7 @@ type
     property ConnectState: TConnectState read FConnectState;
     property FriendList: TFriendList read FFriendList;
     property IsLoadLibrary: Boolean read FIsLoadLibrary;
+    property MessageList: TMessageList read FMessageList;
     property SelectedServer: TServerItem read FSelectedServer;
     property StatusMessage: DataString read FStatusMessage write SetStatusMessage;
     property UserName: DataString read FUserName write SetUserName;
@@ -270,12 +272,7 @@ begin
       Result := tfFriendNumber;
       FriendNumber := ret;
 
-      ClientId := TClientId.Create(Address);
-      try
-        FFriendList.Add(ClientId, FriendNumber);
-      finally
-        ClientId.Free;
-      end;
+      FFriendList.Add(Address, FriendNumber);
     end;
 
   finally
@@ -296,7 +293,6 @@ begin
 
   FSettings := Settings;
   FYourAddress := TFriendAddress.Create;
-  FFriendList := TFriendList.Create;
 
   FConnectState := csOffline;
   FStatusOnline := False;
@@ -305,7 +301,14 @@ begin
   // Загрузить Tox только в случае успешной загрузки библиотеки Tox
   FIsLoadLibrary := ToxLoaded;
   if IsLoadLibrary then
+  begin
     InitTox;
+
+    FFriendList := TFriendList.Create(FYourAddress, FUserName, FStatusMessage);
+    FMessageList := TMessageList.Create(FFriendList);
+
+    UpdateFriends(True);
+  end;
 end;
 
 procedure TToxCore.DoAction(FriendNumber: Integer; Action: DataString);
@@ -322,7 +325,7 @@ var
 begin
   EventConnectioStatus(FriendNumber, Status);
 
-  Item := FFriendList.Item[FriendNumber];
+  Item := FFriendList.ItemFriend[FriendNumber];
   if Assigned(Item) then
   begin
     Item.Online := Status = 1
@@ -359,7 +362,7 @@ var
 begin
   EventNameChange(FriendNumber, NewName);
 
-  Item := FFriendList.Item[FriendNumber];
+  Item := FFriendList.ItemFriend[FriendNumber];
   if Assigned(Item) then
     Item.UserName := NewName
   else
@@ -385,7 +388,7 @@ var
 begin
   EventStatusMessage(FriendNumber, NewStatus);
 
-  Item := FFriendList.Item[FriendNumber];
+  Item := FFriendList.ItemFriend[FriendNumber];
   if Assigned(Item) then
     Item.StatusMessage := NewStatus
   else
@@ -398,7 +401,7 @@ var
 begin
   EventUserStatus(FriendNumber, Kind);
 
-  Item := FFriendList.Item[FriendNumber];
+  Item := FFriendList.ItemFriend[FriendNumber];
   if Assigned(Item) then
     Item.UserStatus := Kind
   else
@@ -444,7 +447,7 @@ begin
   FTempFriendNumber := FriendNumber;
   FTempStatus := Status;
 
-  Item := FFriendList.Item[FriendNumber];
+  Item := FFriendList.ItemFriend[FriendNumber];
   if Assigned(Item) and (Status = 0) then
     Item.UserStatus := usInvalid;
 
@@ -721,8 +724,6 @@ begin
   finally
     FreeMemory(data);
   end;
-
-  UpdateFriends(True);
 end;
 
 { *  Обновляет список друзей путем загрузки всего списка и сверкой с уже

@@ -12,7 +12,7 @@ interface
   {$I tox.inc}
 
 uses
-  StringUtils, SysUtils, ClientAddress;
+  StringUtils, SysUtils, ClientAddress, FriendList;
 
 type
   TMessageStatus = (msSending, msSend, msError);
@@ -23,14 +23,15 @@ type
     FTime: TDateTime;
     FText: DataString;
     FUserMessage: Boolean;
-    FFriendId: TClientId;
     FStatusSend: Boolean;
     FIndex: Integer;
     FData: TObject;
+    FFriend: TFriendItem;
     procedure SetText(const Value: DataString);
   public
     class function FromText(Text: DataString): TMessageItem;
     property Data: TObject read FData write FData;
+    property Friend: TFriendItem read FFriend write FFriend;
     property Index: Integer read FIndex write FIndex;
     // Время отправки сообщения
     property Time: TDateTime read FTime write FTime;
@@ -38,9 +39,6 @@ type
     property Text: DataString read FText write SetText;
     // Отправлено ли это сообщение пользователем для Вас
     property UserMessage: Boolean read FUserMessage write FUserMessage;
-    // Публичный ключ пользователя
-    // TODO: Заменить
-    property FriendId: TClientId read FFriendId write FFriendId;
     // Состояние доставки сообщения пользователю
     property StatusSend: Boolean read FStatusSend write FStatusSend;
   end;
@@ -51,13 +49,14 @@ type
   //TODO: FriendId хранится в отдельной таблице и соответствует ему уникальный номер
   TMessageList = class
   private
+    FFriends: TFriendList;
     FLastFriend: AnsiString;
     FLastRangeStart: Integer;
     FLastRangeEnd: Integer;
     FLastMessageList: TMessageArray;
     FTemp: TMessageArray;
   public
-    constructor Create;
+    constructor Create(Friends: TFriendList);
     destructor Destroy; override;
 
     function GetMessage(FriendId: AnsiString; Index: Integer;
@@ -73,10 +72,15 @@ implementation
 
 { TMessageList }
 
-constructor TMessageList.Create;
+//TODO: Исправить
+constructor TMessageList.Create(Friends: TFriendList);
 var
   i: Integer;
+  Friend1: TFriendItem;
+  Friend2: TFriendItem;
 begin
+  FFriends := Friends;
+
   SetLength(FTemp, 20);
   FTemp[0] := TMessageItem.FromText('Лучше бы они переключили свое внимание на действительно вредные сайты, ограничивающие свободу в интернете :)');
   FTemp[1] := TMessageItem.FromText('Это не сайты вредные, а люди. ');
@@ -99,12 +103,18 @@ begin
   FTemp[18] := TMessageItem.FromText('Да хрен с ним с Лизвебом, но эти же ДНС являются авторитативными для множества клиентских доменов, они так же могли перенаправить их куда угодно, в том числе, как написал CrazyAngel сделать фишинг и прочее ');
   FTemp[19] := TMessageItem.FromText('Вы уверене, что лизвеб дает мастер-ns клиентам? '#13#10#13#10'В какой услуге?');
 
+  Friend1 := FFriends.FindByAddress('1111111111111111111111111111111111111111111111111111111111111111111111111111');
+  Friend2 := FFriends.FindByClient('2222222222222222222222222222222222222222222222222222222222222222');
+
   for i := Low(FTemp) to High(FTemp) do
   begin
     {$IFDEF fpc}
     FTemp[i].Text := UTF8Encode(FTemp[i].Text);
     {$ENDIF}
-    FTemp[i].FriendId := TClientId.Create('');
+    if Random(2) mod 2 = 0 then
+      FTemp[i].Friend := Friend1
+    else
+      FTemp[i].Friend := Friend2;
   end;
 end;
 

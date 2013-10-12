@@ -17,7 +17,7 @@ uses
   SysUtils, Controls, Forms, Classes, Dialogs, StdCtrls, toxcore, Settings,
   ServerList, ClientAddress, libtox, StringUtils, ExtCtrls, UserStatus,
   FriendList, ControlPanel, fmUserAdd, fmNewName, UserList,
-  FriendRequestController, MessageControl, MessageList;
+  FriendRequestController, MessageControl, MessageList, Clipbrd;
 
 type
   { TForm1 }
@@ -55,7 +55,6 @@ type
     FControlPanel: TControlPanel;
     FToxLoadError: Boolean;
     FMessageControl: TMessageControl;
-    FMessageList: TMessageList;
     procedure InitGui;
     procedure ControlPanelClick(Sender: TObject; Button: TControlButton);
     procedure RequestOnAddFriend(Sender: TObject;
@@ -93,7 +92,7 @@ begin
     Exit;
   end;
 
-  FMessageList := TMessageList.Create;
+
 
   FToxCore.OnConnect := ToxOnConnect;
   FToxCore.OnConnecting := ToxOnConnecting;
@@ -106,6 +105,8 @@ begin
   FToxCore.OnUserStatus := ToxUserStatus;
   FToxCore.OnReadReceipt := ToxReadReceipt;
   FToxCore.OnConnectioStatus := ToxConnectionStatus;
+
+  Clipboard.SetTextBuf(PChar(FToxCore.YourAddress.DataHex));
 
   FRequestConrtoller := TFriendRequestController.Create(Self);
   FRequestConrtoller.OnAddFriend := RequestOnAddFriend;
@@ -150,7 +151,7 @@ begin
   RightPanel.ParentBackground := False;
   {$ENDIF}
 
-  FMessageControl := TMessageControl.Create(RightPanel, FMessageList);
+  FMessageControl := TMessageControl.Create(RightPanel, FToxCore.MessageList);
   FMessageControl.Align := alClient;
   FMessageControl.Parent := RightPanel;
 

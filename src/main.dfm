@@ -23,8 +23,8 @@ object Form1: TForm1
     ExplicitHeight = 100
   end
   object ActivityList: TMemo
-    Left = 85
-    Top = 8
+    Left = 149
+    Top = 24
     Width = 71
     Height = 81
     TabStop = False

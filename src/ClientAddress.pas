@@ -30,11 +30,15 @@ type
 
   public
     constructor Create; overload;
-    constructor Create(data: PByte); overload;
+    constructor Create(Value: PByte); overload;
+    constructor Create(Value: DataString); overload;
 
     destructor Destroy; override;
 
     procedure Clear;
+    function Clone: TFriendAddress;
+    function IsCompare(const Value: TFriendAddress): Boolean; overload;
+    function IsCompare(const Value: DataString): Boolean; overload;
 
     property DataHex: string read FDataHex write SetDataHex;
     property DataBin: PByte read FDataBin write SetDataBin;
@@ -60,6 +64,8 @@ type
 
     procedure Clear;
     function Clone: TClientId;
+    function IsCompare(const Value: DataString): Boolean; overload;
+    function IsCompare(const Value: TClientId): Boolean; overload;
 
     property DataHex: DataString read FDataHex write SetDataHex;
     property DataBin: PByte read FDataBin write SetDataBin;
@@ -95,12 +101,6 @@ begin
   Result := string(sa);
 end;
 
-procedure TFriendAddress.Clear;
-begin
-  FError := aeClear;
-  FValidAddress := False;
-end;
-
 constructor TFriendAddress.Create;
 begin
   FDataBin := GetMemory(FRIEND_ADDRESS_SIZE);
@@ -109,19 +109,54 @@ begin
   Clear;
 end;
 
-constructor TFriendAddress.Create(data: PByte);
+constructor TFriendAddress.Create(Value: PByte);
 begin
   FDataBin := GetMemory(FRIEND_ADDRESS_SIZE);
   SetLength(FDataHex, FRIEND_ADDRESS_SIZE * 2);
 
   Clear;
-  DataBin := data;
+  DataBin := Value;
+end;
+
+function TFriendAddress.Clone: TFriendAddress;
+var
+  Item: TFriendAddress;
+begin
+  Item := TFriendAddress.Create;
+  Item.DataHex := DataHex;
+
+  Result := Item;
+end;
+
+constructor TFriendAddress.Create(Value: DataString);
+begin
+  FDataBin := GetMemory(FRIEND_ADDRESS_SIZE);
+  SetLength(FDataHex, FRIEND_ADDRESS_SIZE * 2);
+
+  Clear;
+  DataHex := Value;
 end;
 
 destructor TFriendAddress.Destroy;
 begin
   FreeMemory(FDataBin);
   inherited;
+end;
+
+function TFriendAddress.IsCompare(const Value: TFriendAddress): Boolean;
+begin
+  Result := IsCompare(Value.DataHex);
+end;
+
+function TFriendAddress.IsCompare(const Value: DataString): Boolean;
+begin
+  Result := (CompareStr(UpperCase(Value), FDataHex) = 0) and FValidAddress;
+end;
+
+procedure TFriendAddress.Clear;
+begin
+  FError := aeClear;
+  FValidAddress := False;
 end;
 
 procedure CopyMemory(Destination: Pointer; Source: Pointer; Length: NativeUInt);
@@ -131,7 +166,6 @@ end;
 
 procedure TFriendAddress.SetDataBin(const Value: PByte);
 begin
-  //Move(Value^, FDataBin^, FRIEND_ADDRESS_SIZE);
   CopyMemory(FDataBin, Value, FRIEND_ADDRESS_SIZE);
   DataHex := bin_to_hex_string(Value, FRIEND_ADDRESS_SIZE);
   if Length(DataHex) = FRIEND_ADDRESS_SIZE * 2 then
@@ -147,13 +181,14 @@ procedure TFriendAddress.SetDataHex(const Value: string);
 var
   data: PByte;
 begin
+  FValidAddress := False;
+
   if Length(Value) = FRIEND_ADDRESS_SIZE * 2 then
   begin
     FDataHex := Value;
 
     data := hex_string_to_bin(Value);
     try
-      //Move(FDataBin^, data^, FRIEND_ADDRESS_SIZE);
       CopyMemory(FDataBin, data, FRIEND_ADDRESS_SIZE);
     finally
       FValidAddress := True;
@@ -189,7 +224,7 @@ end;
 constructor TClientId.Create(const Value: TFriendAddress);
 begin
   Initialize;
-  DataHex := Copy(Value.DataHex, 1, (TOX_CLIENT_ID_SIZE * 2) - 1);
+  DataHex := Copy(Value.DataHex, 1, (TOX_CLIENT_ID_SIZE * 2));
 end;
 
 destructor TClientId.Destroy;
@@ -220,6 +255,16 @@ begin
   Clear;
 end;
 
+function TClientId.IsCompare(const Value: TClientId): Boolean;
+begin
+  Result := IsCompare(Value.DataHex);
+end;
+
+function TClientId.IsCompare(const Value: DataString): Boolean;
+begin
+  Result := (CompareStr(UpperCase(Value), FDataHex) = 0) and FValidAddress;
+end;
+
 procedure TClientId.SetDataBin(const Value: PByte);
 begin
   FDataHex := bin_to_hex_string(Value, TOX_CLIENT_ID_SIZE);
@@ -231,13 +276,16 @@ procedure TClientId.SetDataHex(const Value: DataString);
 var
   data: PByte;
 begin
+  FValidAddress := False;
+
   if Length(Value) = TOX_CLIENT_ID_SIZE * 2 then
   begin
-    FDataHex := Value;
+    FDataHex := UpperCase(Value);
 
-    data := hex_string_to_bin(Value);
+    data := hex_string_to_bin(FDataHex);
     try
       Move(data^, FDataBin^, TOX_CLIENT_ID_SIZE);
+      FValidAddress := True;
     finally
       FreeMem(data);
     end;

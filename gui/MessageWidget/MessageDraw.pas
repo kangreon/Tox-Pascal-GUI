@@ -14,8 +14,13 @@ interface
 
 uses
   {$I tox-uses.inc}
-  {$IFDEF FPC}LazUTF8,{$ENDIF} Classes, {$IFNDEF FPC}Types, {$ENDIF}SysUtils, Controls, Graphics, StringUtils, MessageList,
-  TextLineInfo, Math;
+  {$IFDEF FPC}
+  LazUTF8,
+  {$ELSE}
+  Types,
+  {$ENDIF}
+  Classes, SysUtils,
+  Controls, Graphics, StringUtils, MessageList, TextLineInfo, Math;
 
 type
   TDrawItemList = array of TMessageInfo;
@@ -39,7 +44,7 @@ type
     FBottomMessagePosition: Integer;
     procedure SetDrawFont;
     function EventGet(Index: Integer; out Mess: TMessageItem): Boolean;
-    procedure DrawItem(Item: TMessageInfo);
+    procedure DrawItem(Item: TMessageInfo; IsDrawName: Boolean);
     procedure RecreateItems;
     function CalcBreakItem(MessageItem: TMessageItem;
       MaxWidth: Integer): TMessageInfo;
@@ -99,7 +104,7 @@ end;
 
 { *  Выводит заранее подготовленное сообщение на экран
   * }
-procedure TMessageDraw.DrawItem(Item: TMessageInfo);
+procedure TMessageDraw.DrawItem(Item: TMessageInfo; IsDrawName: Boolean);
 var
   i, c: Integer;
   LeftDraw, TopDraw: Integer;
@@ -117,14 +122,19 @@ begin
     LineInfo := Item.Item[i]^;
 
     TopDraw := TopDraw - LineInfo.LineHeight;
-//    TopDraw := ClientHeight - Item.BottomPosition - ((c - i) * FTextHeight) ;
 
-    // Вывод времени
     if i = 0 then
     begin
+      // Первая строчка сообщения
+
       Canvas.Font.Style := [fsBold];
+
       Canvas.TextOut(ClientWidth - FTextMarginRight, TopDraw,
         FormatDateTime(' hh:nn:ss ', Item.MessageItem.Time));
+
+      if IsDrawName then
+        Canvas.TextOut(2, TopDraw, Item.MessageItem.Friend.UserName);
+
       Canvas.Font.Style := [];
     end;
 
@@ -134,7 +144,6 @@ begin
       CountCopy := LineInfo.Length;
 
       TextOut := {$IFDEF FPC}UTF8Copy{$ELSE}Copy{$ENDIF}(Text, StartCopy, CountCopy);
-      //StartCopy := StartCopy + CountCopy;
     end
     else
       TextOut := Text;
@@ -155,6 +164,7 @@ procedure TMessageDraw.Paint;
 var
   i: Integer;
   PaintTime: TDateTime;
+  IsDrawName: Boolean;
 begin
   inherited;
   SetDrawFont;
@@ -163,7 +173,12 @@ begin
   if FIsCreateList then
   begin
     for i := Low(FDrawItems) to High(FDrawItems) do
-      DrawItem(FDrawItems[i]);
+    begin
+      if i < High(FDrawItems) then
+        IsDrawName := FDrawItems[i].MessageItem.Friend <> FDrawItems[i + 1].MessageItem.Friend;
+
+      DrawItem(FDrawItems[i], IsDrawName);
+    end;
   end;
   PaintTime := Now - PaintTime;
 
@@ -217,9 +232,13 @@ begin
     Inc(i);
 
     SelectChar := Text[i];
+    {$IFDEF NEW_DELPHI}
+    IsNextLine := CharInSet(SelectChar, [#$000A, #$000D]);
+    IsSpace := CharInSet(SelectChar, [#$0009, #$0020]);
+    {$ELSE}
     IsNextLine := SelectChar in [#$000A, #$000D];
     IsSpace := SelectChar in [#$0009, #$0020];
-
+    {$ENDIF}
     if (IsNextLine and IsOldNextLine) or (IsSpace and IsOldSpace) then
     begin
       IsOldNextLine := IsNextLine;

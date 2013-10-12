@@ -112,7 +112,7 @@ begin
 
     i := 0;
     repeat
-      Item := FFriends.Item[i];
+      Item := FFriends.ItemFriend[i];
       Inc(i);
       if Assigned(Item) then
         FList.AddItem(Item);

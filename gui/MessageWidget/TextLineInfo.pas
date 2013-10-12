@@ -61,7 +61,10 @@ type
     FMessageItem: TMessageItem;
     FMessageHeight: Integer;
     FBottomPosition: Integer;
+    FIsMessageHeader: Boolean;
+    FHeaderHeight: Integer;
     function GetItem(Index: Integer): PLineInfoEx;
+    function GetMessageHeight: Integer;
   public
     constructor Create(CalcWidth: Integer; MessageItem: TMessageItem);
     destructor Destroy; override;
@@ -71,9 +74,11 @@ type
     property BottomPosition: Integer read FBottomPosition write FBottomPosition;
     property CalcWidth: Integer read FCalcWidth write FCalcWidth;
     property Count: Integer read FLineCount;
+    property HeaderHeight: Integer read FHeaderHeight write FHeaderHeight;
     property Item[Index: Integer]: PLineInfoEx read GetItem;
+    property IsMessageHeader: Boolean read FIsMessageHeader write FIsMessageHeader;
     property MessageItem: TMessageItem read FMessageItem;
-    property MessageHeight: Integer read FMessageHeight;
+    property MessageHeight: Integer read GetMessageHeight;
   end;
 
 implementation
@@ -179,6 +184,7 @@ end;
 
 constructor TMessageInfo.Create(CalcWidth: Integer; MessageItem: TMessageItem);
 begin
+  FIsMessageHeader := False;
   FMessageItem := MessageItem;
   FCalcWidth := CalcWidth;
   SetLength(FLines, 10);
@@ -203,6 +209,14 @@ begin
     Result := FLines[Index]
   else
     Result := nil;
+end;
+
+function TMessageInfo.GetMessageHeight: Integer;
+begin
+  Result := FMessageHeight;
+
+  if FIsMessageHeader then
+    Result := Result + FHeaderHeight;
 end;
 
 end.

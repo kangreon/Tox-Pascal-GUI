@@ -81,6 +81,7 @@ var
 begin
   FFriends := Friends;
 
+  //TODO: Сообщения были взяты случайным образом из открытого источника habr.ru
   SetLength(FTemp, 20);
   FTemp[0] := TMessageItem.FromText('Лучше бы они переключили свое внимание на действительно вредные сайты, ограничивающие свободу в интернете :)');
   FTemp[1] := TMessageItem.FromText('Это не сайты вредные, а люди. ');
@@ -116,6 +117,11 @@ begin
     else
       FTemp[i].Friend := Friend2;
   end;
+
+  FTemp[19].Friend := Friend2;
+  FTemp[18].Friend := Friend2;
+  FTemp[17].Friend := Friend2;
+  FTemp[16].Friend := Friend1;
 end;
 
 destructor TMessageList.Destroy;

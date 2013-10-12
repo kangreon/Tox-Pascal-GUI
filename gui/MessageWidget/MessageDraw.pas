@@ -42,6 +42,8 @@ type
     FBottomMessageIndex: Integer;
     FOnGet: TProcGet;
     FBottomMessagePosition: Integer;
+    FFormatPaintDate: DataString;
+    FFormatPaintTime: DataString;
     procedure SetDrawFont;
     function EventGet(Index: Integer; out Mess: TMessageItem): Boolean;
     procedure DrawItem(Item: TMessageInfo; IsDrawName: Boolean);
@@ -52,6 +54,7 @@ type
       var ItemInfo: TMessageInfo): Boolean;
     procedure CombineDrawInfoArrays(var ItemOld, ItemNew: TDrawItemList);
     function CalcWordPosition(MessageItem: TMessageItem): TWordsInfo;
+    procedure DrawDividingLine(Mess: TMessageInfo);
   protected
     procedure Paint; override;
     procedure Resize; override;
@@ -63,6 +66,8 @@ type
 
     property BottomMessageIndex: Integer read FBottomMessageIndex;
     property BottomMessagePosition: Integer read FBottomMessagePosition;
+    property FormatPaintDate: DataString read FFormatPaintDate write FFormatPaintDate;
+    property FormatPaintTime: DataString read FFormatPaintTime write FFormatPaintTime;
 
     property OnGet: TProcGet read FOnGet write FOnGet;
   end;
@@ -81,6 +86,10 @@ begin
   FBottomMessageIndex := -1;
   FIsCreateList := False;
 
+  // Форматы вывода даты и времени
+  FFormatPaintDate := '  dd/mm/yyyy  ';
+  FFormatPaintTime := '  hh:nn:ss  ';
+
   Bitmap := TBitmap.Create;
   try
     Bitmap.Canvas.Font.Name := 'DejaVu Sans';
@@ -91,7 +100,11 @@ begin
     FSpaceWidth := Bitmap.Canvas.TextWidth(' ');
     FTextHeight := Bitmap.Canvas.TextHeight('Q');
     FTextMarginLeft := 80;
-    FTextMarginRight := Bitmap.Canvas.TextWidth(FormatDateTime('  dd/mm/yyyy  ', Now));
+
+    FTextMarginRight := Max(
+      Bitmap.Canvas.TextWidth(FormatDateTime(FormatPaintDate, Now)),
+      Bitmap.Canvas.TextWidth(FormatDateTime(FormatPaintTime, Now))
+    );
   finally
     Bitmap.Free;
   end;
@@ -108,7 +121,7 @@ procedure TMessageDraw.DrawItem(Item: TMessageInfo; IsDrawName: Boolean);
 var
   i, c: Integer;
   LeftDraw, TopDraw: Integer;
-  Text, TextOut: DataString;
+  Text, TextOut, DateTimeOut: DataString;
   StartCopy, CountCopy: Integer;
   LineInfo: TLineInfoEx;
 begin
@@ -126,11 +139,12 @@ begin
     if i = 0 then
     begin
       // Первая строчка сообщения
-
       Canvas.Font.Style := [fsBold];
 
-      Canvas.TextOut(ClientWidth - FTextMarginRight, TopDraw,
-        FormatDateTime(' hh:nn:ss ', Item.MessageItem.Time));
+      DateTimeOut := FormatDateTime(FormatPaintTime, Item.MessageItem.Time);
+
+      Canvas.TextOut(ClientWidth - Canvas.TextWidth(DateTimeOut), TopDraw,
+        DateTimeOut);
 
       if IsDrawName then
         Canvas.TextOut(2, TopDraw, Item.MessageItem.Friend.UserName);
@@ -152,6 +166,20 @@ begin
   end;
 end;
 
+{ *  Рисует линию, разделяющую сообщения разных пользователей
+  * }
+procedure TMessageDraw.DrawDividingLine(Mess: TMessageInfo);
+var
+  DrawTop: Integer;
+begin
+  DrawTop := ClientHeight - Mess.BottomPosition - Mess.MessageHeight;
+
+  Canvas.Pen.Color := $d2d2d2;
+  Canvas.Pen.Style := psDot;
+  Canvas.MoveTo(0, DrawTop);
+  Canvas.LineTo(ClientWidth, DrawTop);
+end;
+
 function TMessageDraw.EventGet(Index: Integer; out Mess: TMessageItem): Boolean;
 begin
   Result := False;
@@ -164,7 +192,6 @@ procedure TMessageDraw.Paint;
 var
   i: Integer;
   PaintTime: TDateTime;
-  IsDrawName: Boolean;
 begin
   inherited;
   SetDrawFont;
@@ -174,10 +201,10 @@ begin
   begin
     for i := Low(FDrawItems) to High(FDrawItems) do
     begin
-      if i < High(FDrawItems) then
-        IsDrawName := FDrawItems[i].MessageItem.Friend <> FDrawItems[i + 1].MessageItem.Friend;
+      if FDrawItems[i].IsMessageHeader then
+        DrawDividingLine(FDrawItems[i]);
 
-      DrawItem(FDrawItems[i], IsDrawName);
+      DrawItem(FDrawItems[i], FDrawItems[i].IsMessageHeader);
     end;
   end;
   PaintTime := Now - PaintTime;
@@ -432,7 +459,7 @@ end;
 procedure TMessageDraw.RecreateItems;
 var
   ActiveElementIndex: Integer;
-  ActiveItem: TMessageItem;
+  ActiveItem, PrevItem: TMessageItem;
   BottomPosition: Integer;
   MessageInfo: TMessageInfo;
   MaxWidth: Integer;
@@ -460,6 +487,9 @@ begin
     begin
       if EventGet(ActiveElementIndex, ActiveItem) then
       begin
+        if not EventGet(ActiveElementIndex - 1, PrevItem) then
+          PrevItem := nil;
+
         MessageInfo := nil;
         if not GetOldPositionInfo(ActiveItem, MaxWidth, MessageInfo) then
           MessageInfo := CalcBreakItem(ActiveItem, MaxWidth);
@@ -469,6 +499,10 @@ begin
         begin
           SetLength(ItemList, Length(ItemList) + 20);
         end;
+
+        MessageInfo.IsMessageHeader := (not Assigned(PrevItem)) or
+          (PrevItem.Friend <> ActiveItem.Friend);
+        MessageInfo.HeaderHeight := 20;
 
         MessageInfo.BottomPosition := BottomPosition;
         ItemList[ItemListCount] := MessageInfo;
@@ -514,8 +548,6 @@ begin
 
     //TODO: Вроде, утечки памяти нету?
     CombineDrawInfoArrays(FDrawItems, ItemList);
-//    FDrawItems := ItemList;
-
     FIsCreateList := True;
   end
   else
@@ -559,6 +591,7 @@ procedure TMessageDraw.Redraw(BottomMessageIndex: Integer);
 begin
   FIsCreateList := False;
   FBottomMessageIndex := BottomMessageIndex;
+  FBottomMessagePosition := -20;
   //RecreateItems;
   Resize;
 end;

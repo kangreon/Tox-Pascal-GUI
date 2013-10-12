@@ -32,6 +32,7 @@ type
     FLocaleName: DataString;
     FAddress: TFriendAddress;
     FIsAddressExist: Boolean;
+    FBaseId: Integer;
     procedure EventUpdate;
     procedure SetUserName(const Value: DataString);
     procedure SetStatusMessage(const Value: DataString);
@@ -45,6 +46,7 @@ type
     destructor Destroy; override;
 
     property Addressg: TFriendAddress read FAddress;
+    property BaseId: Integer read FBaseId write FBaseId;
     property ClientId: TClientId read FClientId;
     property Data: Pointer read FData write FData;
     property IsAddressExist: Boolean read FIsAddressExist;

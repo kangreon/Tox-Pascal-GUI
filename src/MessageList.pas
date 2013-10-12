@@ -12,38 +12,12 @@ interface
   {$I tox.inc}
 
 uses
-  StringUtils, SysUtils, ClientAddress, FriendList;
+  StringUtils, SysUtils, ClientAddress, FriendList, MessageItem;
 
 type
   TMessageStatus = (msSending, msSend, msError);
 
-  // Класс, описывающий одно сообщение
-  TMessageItem = class
-  private
-    FTime: TDateTime;
-    FText: DataString;
-    FUserMessage: Boolean;
-    FStatusSend: Boolean;
-    FIndex: Integer;
-    FData: TObject;
-    FFriend: TFriendItem;
-    procedure SetText(const Value: DataString);
-  public
-    class function FromText(Text: DataString): TMessageItem;
-    property Data: TObject read FData write FData;
-    property Friend: TFriendItem read FFriend write FFriend;
-    property Index: Integer read FIndex write FIndex;
-    // Время отправки сообщения
-    property Time: TDateTime read FTime write FTime;
-    // Текст сообщения
-    property Text: DataString read FText write SetText;
-    // Отправлено ли это сообщение пользователем для Вас
-    property UserMessage: Boolean read FUserMessage write FUserMessage;
-    // Состояние доставки сообщения пользователю
-    property StatusSend: Boolean read FStatusSend write FStatusSend;
-  end;
 
-  TMessageArray = array of TMessageItem;
 
   //TODO: Для хранения базы данных использовать SQLite
   //TODO: FriendId хранится в отдельной таблице и соответствует ему уникальный номер
@@ -62,7 +36,7 @@ type
     function GetMessage(FriendId: AnsiString; Index: Integer;
       out Mess: TMessageItem): Boolean;
     function GetMessageCount(FriendId: AnsiString): Integer;
-    function GetMessageRange(FriendId: AnsiString; StartRange,
+    function GetMessageRange(Friend: AnsiString; StartRange,
       EndRange: Integer): Boolean;
     procedure SetMessage(FriendId: AnsiString; Text: DataString;
       UserMessage: Boolean);
@@ -202,14 +176,14 @@ end;
   *  Возвращает True в случае успешного выполнения выборки
   *  Все данные выборки сохраняются в FLastMessageList
   * }
-function TMessageList.GetMessageRange(FriendId: AnsiString; StartRange,
+function TMessageList.GetMessageRange(Friend: AnsiString; StartRange,
   EndRange: Integer): Boolean;
 var
   i: Integer;
 begin
   FLastRangeStart := StartRange;
   FLastRangeEnd := EndRange;
-  FLastFriend := FriendId;
+  FLastFriend := Friend;
 
   SetLength(FLastMessageList, EndRange - StartRange + 1);
   for i := Low(FLastMessageList) to High(FLastMessageList) do
@@ -225,23 +199,6 @@ procedure TMessageList.SetMessage(FriendId: AnsiString; Text: DataString;
   UserMessage: Boolean);
 begin
 // TODO: Реализовать
-end;
-
-{ TMessageItem }
-
-class function TMessageItem.FromText(Text: DataString): TMessageItem;
-var
-  Item: TMessageItem;
-begin
-  Item := TMessageItem.Create;
-  Item.Text := Text;
-  Item.Time := Now;
-  Result := Item;
-end;
-
-procedure TMessageItem.SetText(const Value: DataString);
-begin
-  FText := Value;
 end;
 
 end.

@@ -16,7 +16,7 @@ interface
 uses
   {$I tox-uses.inc}
   Classes, SysUtils, Controls, Graphics, StringUtils, MessageList,
-  MessageDraw, Messages, ActiveRegion;
+  MessageDraw, Messages, ActiveRegion, MessageItem;
 
 type
   TMessagePosition = (mpBefore, mpAfter);

@@ -11,7 +11,7 @@ unit TextLineInfo;
 interface
 
 uses
-  MessageList;
+  MessageList, MessageItem;
 
 type
   PWordInfoItem = ^TWordInfoItem;

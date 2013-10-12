@@ -19,8 +19,8 @@ uses
   {$ELSE}
   Types,
   {$ENDIF}
-  Classes, SysUtils,
-  Controls, Graphics, StringUtils, MessageList, TextLineInfo, Math;
+  Classes, SysUtils, Controls, Graphics, StringUtils, MessageList, MessageItem,
+  TextLineInfo, Math;
 
 type
   TDrawItemList = array of TMessageInfo;

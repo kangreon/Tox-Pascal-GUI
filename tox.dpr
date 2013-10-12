@@ -54,7 +54,11 @@ uses
   FriendRequestController in 'gui\FriendRequestController.pas',
   MessageControl in 'gui\MessageWidget\MessageControl.pas',
   MessageDraw in 'gui\MessageWidget\MessageDraw.pas',
-  TextLineInfo in 'gui\MessageWidget\TextLineInfo.pas';
+  TextLineInfo in 'gui\MessageWidget\TextLineInfo.pas',
+  MessageBase in 'src\MessageBase.pas',
+  SQLiteTable3 in 'sqlite\SQLiteTable3.pas',
+  SQLite3 in 'sqlite\SQLite3.pas',
+  MessageItem in 'src\MessageItem.pas';
 
 { *  Вывод сообщения об ошибке загрузки библиотеки libtoxcore
   * }

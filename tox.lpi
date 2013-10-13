@@ -40,7 +40,7 @@
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="22">
+    <Units Count="23">
       <Unit0>
         <Filename Value="tox.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -150,6 +150,11 @@
         <Filename Value="gui\ButtonActive.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit21>
+      <Unit22>
+        <Filename Value="sqlite\SQLiteTable3.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="SQLiteTable3"/>
+      </Unit22>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -157,7 +162,7 @@
     <PathDelim Value="\"/>
     <SearchPaths>
       <IncludeFiles Value="src;gui;gui\Forms;$(ProjOutDir)"/>
-      <OtherUnitFiles Value="gui;src;gui\Forms"/>
+      <OtherUnitFiles Value="gui;src;gui\Forms;sqlite"/>
     </SearchPaths>
     <Parsing>
       <SyntaxOptions>
@@ -166,14 +171,8 @@
         <AllowLabel Value="False"/>
       </SyntaxOptions>
     </Parsing>
-    <CodeGeneration>
-      <Optimizations>
-        <OptimizationLevel Value="3"/>
-      </Optimizations>
-    </CodeGeneration>
     <Linking>
       <Debugging>
-        <GenerateDebugInfo Value="False"/>
         <UseExternalDbgSyms Value="True"/>
       </Debugging>
       <Options>

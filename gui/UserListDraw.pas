@@ -15,7 +15,8 @@ interface
 uses
 {$I tox-uses.inc}
   Graphics, Classes, Controls, libtox, UserIcon, ActiveRegion, FriendList,
-  UserListDrawStyle, ResourceImage, ImageUtils, SysUtils, StringUtils;
+  UserListDrawStyle, ResourceImage, ImageUtils, SysUtils, StringUtils,
+  FriendItem;
 
 type
   { *  Структура, содержащая необходимую информацию для рисования элементов

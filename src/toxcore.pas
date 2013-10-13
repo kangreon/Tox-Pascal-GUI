@@ -14,7 +14,7 @@ interface
 uses
   {$I tox-uses.inc}
   Classes, Settings, ServerList, SysUtils, libtox, ClientAddress, StringUtils,
-  FriendList, MessageList;
+  FriendList, MessageList, FriendItem, DataBase;
 
 type
   TConnectState = (csOnline, csConnecting, csOffline);
@@ -39,6 +39,7 @@ type
 
   TToxCore = class(TThread)
   private
+    FDataBase: TDataBase;
     FTox: TTox;
     FConfigPath: string;
     FConnectState: TConnectState;
@@ -255,7 +256,6 @@ var
   data_length: Integer;
   data: PByte;
   ret: Integer;
-  ClientId: TClientId;
 begin
   FriendNumber := -1;
   Result := tfUnknown;
@@ -287,6 +287,9 @@ begin
   Result := tox_addfriend_norequest(FTox, Address.DataBin) <> -1;
 end;
 
+{ *  Инициализация библиотеки Tox, загрузка начальных данных, соединение
+  *  с базой данных, загрузка пользователей.
+  * }
 constructor TToxCore.Create(Settings: TSettings);
 begin
   inherited Create(True);
@@ -304,8 +307,11 @@ begin
   begin
     InitTox;
 
-    FFriendList := TFriendList.Create(FYourAddress, FUserName, FStatusMessage);
-    FMessageList := TMessageList.Create(FFriendList);
+    FDataBase := TDataBase.Create(FSettings);
+    FDataBase.LoadBase;
+
+    FFriendList := TFriendList.Create(FDataBase.FriendBase, FYourAddress, FUserName, FStatusMessage);
+    FMessageList := TMessageList.Create(FDataBase, FFriendList);
 
     UpdateFriends(True);
   end;
@@ -815,6 +821,7 @@ var
   DataLength: Integer;
 begin
   FStatusMessage := Value;
+  FFriendList.MyItem.StatusMessage := Value;
   Data := GetUtf8Text(Value, DataLength);
   try
     tox_set_statusmessage(FTox, Data, DataLength)
@@ -831,6 +838,7 @@ var
   DataLength: Integer;
 begin
   FUserName := Value;
+  FFriendList.MyItem.UserName := Value;
   Data := GetUtf8Text(Value, DataLength);
   try
     tox_setname(FTox, Data, DataLength);

@@ -119,7 +119,7 @@ begin
   FDraw.Align := alClient;
   FDraw.Parent := Self;
   FDraw.OnGet := MessageGet;
-  FDraw.Redraw(FMessageList.GetMessageCount('') - 1);
+  FDraw.Redraw(FMessageList.GetMessageCount(nil) - 1);
   FActive.Parent := Self;
 end;
 
@@ -128,7 +128,7 @@ end;
 procedure TMessageControl.MessageGet(Sender: TObject; const Index: Integer;
   out Exist: Boolean; out Mess: TMessageItem);
 begin
-  Exist := FMessageList.GetMessage(FFrienSelect, Index, Mess);
+//  Exist := FMessageList.GetMessage(FFrienSelect, Index, Mess);
 end;
 
 { *  Открытие диалога с новым пользователем

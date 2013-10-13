@@ -90,13 +90,16 @@ const
   TOX_CLIENT_ID_SIZE = 32;
   FRIEND_ADDRESS_SIZE = (TOX_CLIENT_ID_SIZE + sizeof(Integer) + sizeof(Word));
 
+  TOX_LIBRARY = {$IFDEF Win32}'libtoxcore-0.dll'{$ENDIF}
+                {$IFDEF Unix}'libtoxcore-0.so'{$ENDIF};
+
 ///* Run this at startup.
 // *
 // *  return allocated instance of tox on success.
 // *  return 0 if there are problems.
 // */
 //void *tox_new(uint8_t ipv6enabled)
-function tox_new(ipv6enabled: Byte): TTox;
+function tox_new(ipv6enabled: Byte): TTox; cdecl; external TOX_LIBRARY;
 
 ///*  return FRIEND_ADDRESS_SIZE byte address to give to others.
 // * format: [client_id (32 bytes)][nospam number (4 bytes)][checksum (2 bytes)]
@@ -391,8 +394,6 @@ implementation
 
 
 var
-  //IsToxLoaded: Boolean;
-	tox_new_: function(ipv6enabled: Byte): TTox; cdecl;
 	tox_getaddress_: procedure(tox: TTox; address: PByte); cdecl;
 	tox_addfriend_: function(tox: TTox; address: PByte; data: PByte; length: Word): Integer; cdecl;
 	tox_addfriend_norequest_: function(tox: TTox; client_id: PByte): Integer; cdecl;
@@ -436,11 +437,6 @@ var
 function ToxLoaded: Boolean;
 begin
   Result := IsToxLoaded;
-end;
-
-function tox_new(ipv6enabled: Byte): TTox;
-begin
-	Result := tox_new_(ipv6enabled);
 end;
 
 procedure tox_getaddress(tox: TTox; address: PByte);
@@ -645,9 +641,6 @@ begin
 
 	if not IsToxLoaded then
 		Exit;
-
-  tox_new_ := GetProcAddress(hlib, 'tox_new');
-  IsToxLoaded := IsToxLoaded and Assigned(tox_new_);
 
   tox_getaddress_ := GetProcAddress(hlib, 'tox_getaddress');
 	tox_addfriend_ := GetProcAddress(hlib, 'tox_addfriend');

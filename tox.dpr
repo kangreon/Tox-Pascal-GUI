@@ -58,7 +58,10 @@ uses
   MessageBase in 'src\MessageBase.pas',
   SQLiteTable3 in 'sqlite\SQLiteTable3.pas',
   SQLite3 in 'sqlite\SQLite3.pas',
-  MessageItem in 'src\MessageItem.pas';
+  MessageItem in 'src\MessageItem.pas',
+  FriendItem in 'src\FriendItem.pas',
+  FriendBase in 'src\FriendBase.pas',
+  DataBase in 'src\DataBase.pas';
 
 { *  Вывод сообщения об ошибке загрузки библиотеки libtoxcore
   * }

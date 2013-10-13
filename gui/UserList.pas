@@ -17,7 +17,7 @@ interface
 uses
 {$I tox-uses.inc}
   Controls, Classes, SysUtils, UserListStyle, ScrollBarNormal, Messages,
-  ActiveRegion, UserListDraw, FriendList;
+  ActiveRegion, UserListDraw, FriendList, FriendItem;
 
 type
   { TUserList }

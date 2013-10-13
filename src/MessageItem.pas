@@ -3,7 +3,7 @@ unit MessageItem;
 interface
 
 uses
-  StringUtils, SysUtils, FriendList;
+  StringUtils, SysUtils, FriendList, FriendItem;
 
 type
   // Класс, описывающий одно сообщение
@@ -18,6 +18,7 @@ type
     FFriend: TFriendItem;
     FIsRead: Boolean;
     FBaseId: Int64;
+    FNumber: Integer;
     procedure SetText(const Value: DataString);
   public
     class function FromText(Text: DataString): TMessageItem;
@@ -34,6 +35,8 @@ type
     // Состояние доставки сообщения пользователю
     property IsSend: Boolean read FStatusSend write FStatusSend;
     property IsRead: Boolean read FIsRead write FIsRead;
+    // Номер сообщения в базе данных
+    property Number: Integer read FNumber write FNumber;
   end;
 
   TMessageArray = array of TMessageItem;

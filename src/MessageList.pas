@@ -12,32 +12,25 @@ interface
   {$I tox.inc}
 
 uses
-  StringUtils, SysUtils, ClientAddress, FriendList, MessageItem;
+  StringUtils, SysUtils, ClientAddress, FriendList, MessageItem, FriendItem,
+  MessageBase, DataBase, Classes;
 
 type
   TMessageStatus = (msSending, msSend, msError);
 
-
-
-  //TODO: Для хранения базы данных использовать SQLite
-  //TODO: FriendId хранится в отдельной таблице и соответствует ему уникальный номер
   TMessageList = class
   private
+    FDataBase: TDataBase;
     FFriends: TFriendList;
-    FLastFriend: AnsiString;
-    FLastRangeStart: Integer;
-    FLastRangeEnd: Integer;
-    FLastMessageList: TMessageArray;
-    FTemp: TMessageArray;
+    FMessages: TMessageBaseList;
+    function GetMessageBase(Client: TClientId): TMessageBase;
   public
-    constructor Create(Friends: TFriendList);
+    constructor Create(DataBase: TDataBase; Friends: TFriendList);
     destructor Destroy; override;
 
-    function GetMessage(FriendId: AnsiString; Index: Integer;
+    function GetMessage(Client: TClientId; Index: Integer;
       out Mess: TMessageItem): Boolean;
-    function GetMessageCount(FriendId: AnsiString): Integer;
-    function GetMessageRange(Friend: AnsiString; StartRange,
-      EndRange: Integer): Boolean;
+    function GetMessageCount(Client: TClientId): Integer;
     procedure SetMessage(FriendId: AnsiString; Text: DataString;
       UserMessage: Boolean);
   end;
@@ -46,56 +39,24 @@ implementation
 
 { TMessageList }
 
-//TODO: Исправить
-constructor TMessageList.Create(Friends: TFriendList);
+constructor TMessageList.Create(DataBase: TDataBase; Friends: TFriendList);
 var
-  i: Integer;
-  Friend1: TFriendItem;
-  Friend2: TFriendItem;
+  PItem: Pointer;
+  Item: TFriendItem;
+  BaseItem: TMessageBase;
 begin
   FFriends := Friends;
+  FDataBase := DataBase;
+  FMessages := TMessageBaseList.Create;
 
-  //TODO: Сообщения были взяты случайным образом из открытого источника habr.ru
-  SetLength(FTemp, 20);
-  FTemp[0] := TMessageItem.FromText('Лучше бы они переключили свое внимание на действительно вредные сайты, ограничивающие свободу в интернете :)');
-  FTemp[1] := TMessageItem.FromText('Это не сайты вредные, а люди. ');
-  FTemp[2] := TMessageItem.FromText('У leaseweb столько вредных и развратных сайтов хостится… ');
-  FTemp[3] := TMessageItem.FromText('А как именно они уже рассказали? ');
-  FTemp[4] := TMessageItem.FromText('Я что-то не понял сообщения, которое оставили хакеры. Это что, какое-то кодирование? Или они просто настолько безграмотные? ');
-  FTemp[5] := TMessageItem.FromText('Там сверху написано Anonymous Palestine. Может дело в этом? ');
-  FTemp[6] := TMessageItem.FromText('Палестинский диалект олбанского английского :D ');
-  FTemp[7] := TMessageItem.FromText('Google Translate :) ');
-  FTemp[8] := TMessageItem.FromText('Насколько я понимаю, это измененная цитата из V for Vendetta.');
-  FTemp[9] := TMessageItem.FromText('Мне одному режет глаз сочетание слов «Anonymous» и «Palestine»? ');
-  FTemp[10] := TMessageItem.FromText('Если это ложный след, вообще великолепно. ');
-  FTemp[11] := TMessageItem.FromText('ну и стоит, видимо, добавить, что dns серверы типа '+'bind всегда были самыми дырявыми сервисами, почти всегда они в chroot`е или вообще в тюрьме и что смена записи dns пусть и приводит к дефейсу и недоступности ' + 'мастер-сервиса какое-то время, не несёт в себе никаких серьезных последствий. Исходники на месте, база не тронута. Школьники получили 5 ми');
-  FTemp[12] := TMessageItem.FromText('На самом деле я считаю это серьезная атака. Например она позволяет сделать фишинг сайта для сбора паролей логинов, номеров кредиток и т.п… ');
-  FTemp[13] := TMessageItem.FromText('А как же HTTPS? ');
-  FTemp[14] := TMessageItem.FromText('так нет нужды полностью все эмулировать. можно просто логины пароли забрать например, а к сожалению не все обращают внимания на сертификаты и https ');
-  FTemp[15] := TMessageItem.FromText('Ага, проблема есть и серьёзная, т.к. не всем обращают внимание на HTTPS, однако из-за того самого HTTPS это с трудом можно называть взломом. ');
-  FTemp[16] := TMessageItem.FromText('https никто не отменял ');
-  FTemp[17] := TMessageItem.FromText('Бывали же случаи кражи ключей из центра сертификации. Кто знает, возможно какие-то ещё центры обокрали, но пропажу пока не обнаружили. ');
-  FTemp[18] := TMessageItem.FromText('Да хрен с ним с Лизвебом, но эти же ДНС являются авторитативными для множества клиентских доменов, они так же могли перенаправить их куда угодно, в том числе, как написал CrazyAngel сделать фишинг и прочее ');
-  FTemp[19] := TMessageItem.FromText('Вы уверене, что лизвеб дает мастер-ns клиентам? '#13#10#13#10'В какой услуге?');
-
-  Friend1 := FFriends.FindByAddress('1111111111111111111111111111111111111111111111111111111111111111111111111111');
-  Friend2 := FFriends.FindByClient('2222222222222222222222222222222222222222222222222222222222222222');
-
-  for i := Low(FTemp) to High(FTemp) do
+  // Создание хранилища сообщений для каждого пользователя
+  for PItem in FFriends.Item do
   begin
-    {$IFDEF fpc}
-    FTemp[i].Text := UTF8Encode(FTemp[i].Text);
-    {$ENDIF}
-    if Random(2) mod 2 = 0 then
-      FTemp[i].Friend := Friend1
-    else
-      FTemp[i].Friend := Friend2;
-  end;
+    Item := TFriendItem(PItem);
 
-  FTemp[19].Friend := Friend2;
-  FTemp[18].Friend := Friend2;
-  FTemp[17].Friend := Friend2;
-  FTemp[16].Friend := Friend1;
+    BaseItem := TMessageBase.Create(FFriends.MyItem, Item, FDataBase);
+    FMessages.Add(BaseItem);
+  end;
 end;
 
 destructor TMessageList.Destroy;
@@ -113,44 +74,16 @@ end;
   *
   *  В случае успешного получения сообщения, функция вернет True.
   * }
-function TMessageList.GetMessage(FriendId: AnsiString; Index: Integer;
+function TMessageList.GetMessage(Client: TClientId; Index: Integer;
   out Mess: TMessageItem): Boolean;
 var
-  Count: Integer;
-  StartLoad, EndLoad: Integer;
+  Item: TMessageBase;
 begin
-  Count := GetMessageCount(FriendId);
-  if (Index >= 0) and (Index < Count) then
+  Item := GetMessageBase(Client);
+  if Assigned(Item) then
   begin
-
-    //TODO: Добавить проверку на тот случай, когда предзагрузка находится в самом
-    // конце списка, а в базе появилось одно или несколько новых сообщений
-    // Придумать, как это лучше реализовать
-
-    // Проверяется существования уже предзагруженных сообщений из базы
-    if (FLastFriend = FriendId) and (Index >= FLastRangeStart) and
-      (Index <= FLastRangeEnd) then
-    begin
-      Mess := FLastMessageList[Index - FLastRangeStart];
-      Result := True;
-    end
-    else
-    begin
-      // Загрузка новой порции сообщений
-      StartLoad := Index - 20;
-      EndLoad := Index + 20;
-
-      if StartLoad < 0 then
-        StartLoad := 0;
-
-      if EndLoad >= Count then
-        EndLoad := Count - 1;
-
-      Result := GetMessageRange(FriendId, StartLoad, EndLoad);
-
-      if Result then
-        Mess := FLastMessageList[Index - FLastRangeStart];
-    end;
+    Mess := Item.Select(Index);
+    Result := Assigned(Mess);
   end
   else
   begin
@@ -158,40 +91,40 @@ begin
   end;
 end;
 
+function TMessageList.GetMessageBase(Client: TClientId): TMessageBase;
+var
+  PItem: Pointer;
+  Item: TMessageBase;
+begin
+  Result := nil;
+  for PItem in FMessages do
+  begin
+    Item := TMessageBase(PItem);
+    if Item.Friend.ClientId.IsCompare(Client) then
+    begin
+      Result := Item;
+      Exit;
+    end;
+  end;
+end;
+
 { *  Возвращает количество сообщений для выбранного пользователя, хранящихся
   *  в базе данных
   * }
-function TMessageList.GetMessageCount(FriendId: AnsiString): Integer;
-begin
-  Result := Length(FTemp); // TODO: Реализовать
-end;
-
-{ *  Загружает из базы данных сообщения, которые относятся к выбранному
-  *  пользователю из заданного диапазона.
-  *
-  *  FriendId - Идентификатор пользователя
-  *  StartRange - начало диапазона выборки
-  *  EndRange - конец диапазона выборки
-  *
-  *  Возвращает True в случае успешного выполнения выборки
-  *  Все данные выборки сохраняются в FLastMessageList
-  * }
-function TMessageList.GetMessageRange(Friend: AnsiString; StartRange,
-  EndRange: Integer): Boolean;
+function TMessageList.GetMessageCount(Client: TClientId): Integer;
 var
-  i: Integer;
+  Item: TMessageBase;
 begin
-  FLastRangeStart := StartRange;
-  FLastRangeEnd := EndRange;
-  FLastFriend := Friend;
-
-  SetLength(FLastMessageList, EndRange - StartRange + 1);
-  for i := Low(FLastMessageList) to High(FLastMessageList) do
+  if Assigned(Client) then
   begin
-    FLastMessageList[i] := FTemp[i + FLastRangeStart];
-  end;
-
-  Result := True; // TODO: Реализовать
+    Item := GetMessageBase(Client);
+    if Assigned(Item) then
+      Result := Item.Count
+    else
+      Result := 0;
+  end
+  else
+    Result := 0;
 end;
 
 // Добавляет новое сообщение в базу данных

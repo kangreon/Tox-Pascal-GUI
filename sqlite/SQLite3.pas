@@ -1,4 +1,4 @@
-unit SQLite3;
+﻿unit SQLite3;
 
 {
   Simplified interface for SQLite.
@@ -169,7 +169,10 @@ function sqlite3_bind_blob(hStmt: TSqliteStmt; ParamNum: integer;
   ptrData: pointer; numBytes: integer; ptrDestructor: TSQLite3Destructor): integer;
 cdecl; external SQLiteDLL name 'sqlite3_bind_blob';
 function sqlite3_bind_text(hStmt: TSqliteStmt; ParamNum: integer;
-  Text: PAnsiChar; numBytes: integer; ptrDestructor: TSQLite3Destructor): integer;
+  const Text: PAnsiChar; numBytes: integer; ptrDestructor: TSQLite3Destructor): integer;
+cdecl; external SQLiteDLL name 'sqlite3_bind_text';
+function sqlite3_bind_text_ex(hStmt: TSqliteStmt; ParamNum: integer;
+  const Text: PByte; numBytes: Integer; ptrDestructor: TSQLite3Destructor): integer;
 cdecl; external SQLiteDLL name 'sqlite3_bind_text';
 function sqlite3_bind_double(hStmt: TSqliteStmt; ParamNum: integer; Data: Double): integer;
   cdecl; external SQLiteDLL name 'sqlite3_bind_double';

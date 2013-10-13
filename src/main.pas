@@ -92,8 +92,6 @@ begin
     Exit;
   end;
 
-
-
   FToxCore.OnConnect := ToxOnConnect;
   FToxCore.OnConnecting := ToxOnConnecting;
   FToxCore.OnDisconnect := ToxOnDisconnect;
@@ -158,8 +156,7 @@ begin
   FUserStatus := TUserStatus.Create(LeftPanel);
   FUserStatus.Parent := LeftPanel;
   FUserStatus.Align := alTop;
-  FUserStatus.UserName := FToxCore.UserName;
-  FUserStatus.StatusMessage := FToxCore.StatusMessage;
+  FUserStatus.FriendItem := FToxCore.FriendList.MyItem;
   FUserStatus.OnChangeState := UserStatusStateChange;
   FUserStatus.OnChangeUserName := UserStatusChangeName;
   FUserStatus.OnChangeStatus := UserStatusChangeStatus;
@@ -367,7 +364,7 @@ begin
   if NewName <> '' then
   begin
     FToxCore.UserName := NewName;
-    FUserStatus.UserName := NewName;
+//    FUserStatus.UserName := NewName;
   end;
 end;
 
@@ -390,7 +387,6 @@ begin
   if IsChange then
   begin
     FToxCore.StatusMessage := NewStatus;
-    FUserStatus.StatusMessage := NewStatus;
   end;
 end;
 

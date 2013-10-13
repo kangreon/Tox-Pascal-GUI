@@ -16,7 +16,7 @@ uses
   {$I tox-uses.inc}
   Graphics, Classes, Controls, UserIcon, ResourceImage, ImageUtils,
   StringUtils, SysUtils, UserStatusStyle, ActiveRegion, Menus, ImgList,
-  PaintSprite, libtox;
+  PaintSprite, libtox, FriendItem;
 
 type
   TState = (sOffline, sOnline, sAway, sBusy, sLoading);
@@ -39,6 +39,7 @@ type
     FOnChangeState: TProcChangeState;
     FOnChangeUserName: TNotifyEvent;
     FOnChangeStatus: TNotifyEvent;
+    FFriendItem: TFriendItem;
     procedure DrawRightButton(var Rect: TRect);
     procedure SetUserIcon(const Value: TUserIcon);
     procedure DrawUserIcon(var Rect: TRect);
@@ -57,6 +58,8 @@ type
     procedure StatusRegionMessage(Sender: TObject;
       RegionMessage: TRegionMessage; const x, y: Integer; Button: TMouseButton;
       Shift: TShiftState);
+    procedure SetFriendItem(const Value: TFriendItem);
+    procedure FriendItemUpdate(Sender: TObject);
   protected
     procedure CreateWnd; override;
     procedure Paint; override;
@@ -64,9 +67,8 @@ type
   public
     constructor Create(AOwner: TComponent); override;
 
+    property FriendItem: TFriendItem read FFriendItem write SetFriendItem;
     property UserIcon: TUserIcon read FUserIcon write SetUserIcon;
-    property UserName: DataString read FUserName write SetUserString;
-    property StatusMessage: DataString read FStatusText write SetStatusText;
     property State: TState read FState write SetState;
 
     property OnChangeState: TProcChangeState read FOnChangeState write FOnChangeState;
@@ -418,6 +420,13 @@ begin
     FOnChangeStatus(Self);
 end;
 
+procedure TUserStatus.SetFriendItem(const Value: TFriendItem);
+begin
+  FFriendItem := Value;
+  FFriendItem.OnUpdate := FriendItemUpdate;
+  FriendItemUpdate(FFriendItem);
+end;
+
 procedure TUserStatus.SetState(const Value: TState);
 begin
   FState := Value;
@@ -500,6 +509,12 @@ begin
   Item.ImageIndex := 3;
   Item.Tag := 3;
   Item.OnClick := StatusMenuOnClick;
+end;
+
+procedure TUserStatus.FriendItemUpdate(Sender: TObject);
+begin
+  SetUserString(FFriendItem.UserName);
+  SetStatusText(FFriendItem.StatusMessage);
 end;
 
 end.

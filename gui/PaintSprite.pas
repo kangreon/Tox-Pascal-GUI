@@ -123,7 +123,11 @@ end;
 procedure TPaintSprite.Draw(Canvas: TCanvas; X, Y: Integer);
 begin
   if FTimer.Enabled then
-    FControl.Invalidate
+  begin
+    FControl.Invalidate;
+    FControl.Left := X;
+    FControl.Top := Y;
+  end
   else
   begin
     FImageSelect := 0;

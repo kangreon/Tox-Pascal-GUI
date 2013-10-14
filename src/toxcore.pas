@@ -302,8 +302,7 @@ begin
   FStartThread := False;
 
   // Загрузить Tox только в случае успешной загрузки библиотеки Tox
-  FIsLoadLibrary := ToxLoaded;
-  if IsLoadLibrary then
+  if True then
   begin
     InitTox;
 
@@ -670,10 +669,11 @@ begin
   FTox := tox_new(0);
   if not Assigned(FTox) then
   begin
-    IsToxLoaded := False;
     FIsLoadLibrary := False;
     Exit;
-  end;
+  end
+  else
+    FIsLoadLibrary := True;
 
   // Start callback function
   tox_callback_friendrequest(FTox, OnFriendRequest_, Self);

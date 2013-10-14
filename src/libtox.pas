@@ -13,14 +13,31 @@ unit libtox;
 interface
   {$I tox.inc}
 
-uses
-  {$I tox-uses.inc}
-  {$IFDEF FPC}dynlibs,{$ENDIF}
-  {$IFDEF UNIX}dl,{$ENDIF}
-  SysUtils, Winsock2;
-
 type
 	TTox = Pointer;
+
+type
+  SunB = record
+    s_b1, s_b2, s_b3, s_b4: Byte;
+  end;
+
+  SunC = record
+    s_c1, s_c2, s_c3, s_c4: AnsiChar;
+  end;
+
+  SunW = record
+    s_w1, s_w2: Word;
+  end;
+
+  in_addr = record
+    case Integer of
+      0: (S_un_b: SunB);
+      1: (S_un_c: SunC);
+      2: (S_un_w: SunW);
+      3: (S_addr: Cardinal);
+  end;
+  TInAddr = in_addr;
+  PInAddr = ^in_addr;
 
   PToxIP4 = PInAddr;
   TToxIP4 = TInAddr;
@@ -68,6 +85,17 @@ type
       1: (ip6: TToxIP6);
   end;
 
+///* will replace IP_Port as soon as the complete infrastructure is in place
+// * removed the unused union and padding also */
+//typedef struct {
+//    tox_IPAny ip;
+//    uint16_t  port;
+//} tox_IPAny_Port;
+  TToxIPAnyPort = record
+    ip: TToxIPAny;
+    port: Word;
+  end;
+
 //typedef union {
 //    struct {
 //        tox_IP4  ip;
@@ -88,22 +116,18 @@ type
   TToxIP4Port = record
     case Byte of
       0: (data: TIp4PortData);
-//      1: (uint8: )
+      1: (uint8: array[0..7] of Byte);
   end;
 
-//typedef struct {
-//    tox_IP ip;
-//    uint16_t port;
-//    /* Not used for anything right now. */
-//    uint16_t padding;
-//} tox_IP_Port;
-  PToxIpPort = ^TToxIpPort;
-  TToxIpPort = record
-//    ip: TToxIp;
-    port: Word;
-
-    padding: Word;
-  end;
+  {$DEFINE TOX_ENABLE_IPV6}
+  {$IFDEF TOX_ENABLE_IPV6}
+    {$DEFINE TOX_ENABLE_IPV6_DEFAULT}
+    TToxIp = TToxIPAny;
+    TToxIpPort = TToxIPAnyPort;
+  {$ELSE}
+    TToxIp = TToxIP4;
+    TToxIpPort = TToxIP4Port;
+  {$ENDIF}
 
 //enum {
 //    TOX_FAERR_TOOLONG = -1,

@@ -17,22 +17,30 @@ interface
 uses
 {$I tox-uses.inc}
   Controls, Classes, SysUtils, UserListStyle, ScrollBarNormal, Messages,
-  ActiveRegion, UserListDraw, FriendList, FriendItem;
+  ActiveRegion, UserListDraw, FriendList, FriendItem, libtox;
 
 type
   { TUserList }
+  TListType = (ltAll, ltOnline, ltFriend);
+  TSortStatus = (ssUp, ssDown);
+  TSortName = (snUp, snDown);
 
   TUserList = class(TCustomControl)
   private
     FActiveRegion: TActiveRegion;
-    FScroll: TScrollBarNormal;
-    FList: TUserListDraw;
     FFriends: TFriendList;
+    FList: TUserListDraw;
+    FListType: TListType;
+    FScroll: TScrollBarNormal;
+    FSortName: TSortName;
+    FSortStatus: TSortStatus;
     procedure ScrollOnScroll(Sender: TObject);
     procedure ListOnChangeSize(Sender: TObject);
     procedure FriendsUpdate(Sender: TObject; Index: Integer);
     procedure LoadAllUsers;
     procedure FriendsNewItem(Sender: TObject);
+    procedure SortList(UseBeginUpdate: Boolean);
+    function StatusCmp(Status1, Status2: TToxUserStatus): SmallInt;
   protected
     procedure CreateWnd; override;
     function DoMouseWheelDown(Shift: TShiftState; MousePos: TPoint)
@@ -56,6 +64,10 @@ constructor TUserList.Create(AOwner: TComponent; FriendList: TFriendList);
 begin
   inherited Create(AOwner);
   FFriends := FriendList;
+
+  FListType := ltFriend;
+  FSortName := snDown;
+  FSortStatus := ssDown;
 end;
 
 { *  Процедура вызывается сразу после создания нового окна. Здесь проходит
@@ -99,27 +111,122 @@ end;
 procedure TUserList.FriendsUpdate(Sender: TObject; Index: Integer);
 begin
   FList.UpdateItem(Index);
+  SortList(True);
 end;
 
 procedure TUserList.LoadAllUsers;
 var
   i: Integer;
   Item: TFriendItem;
+  PItem: Pointer;
 begin
   FList.BeginUpdate;
   try
     FList.Clear;
 
-    i := 0;
-    repeat
-      Item := FFriends.ItemFriend[i];
-      Inc(i);
-      if Assigned(Item) then
+    for PItem in FFriends.Item do
+    begin
+      Item := TFriendItem(PItem);
+      case FListType of
+        ltOnline:
+          begin
+            if Item.IsFriend and (Item.UserStatus <> usInvalid) then
+            begin
+              FList.AddItem(Item);
+            end;
+          end;
+        ltFriend:
+          begin
+            if Item.IsFriend then
+            begin
+              FList.AddItem(Item);
+            end;
+          end;
+      else
         FList.AddItem(Item);
-    until not Assigned(Item);
+      end;
+    end;
 
+    SortList(False);
   finally
     FList.EndUpdate;
+  end;
+end;
+
+{ *  Сравнивает двух статусов. Больший статус - в сети, младший - отключен.
+  *  Возвращает больше нуля, если первый статус больше второго.
+  * }
+function TUserList.StatusCmp(Status1, Status2: TToxUserStatus): SmallInt;
+begin
+  Result := Integer(Status2) - Integer(Status1);
+end;
+
+{ *  Сортирует список пользователей с заданными в классе параметрами.
+  * }
+procedure TUserList.SortList(UseBeginUpdate: Boolean);
+var
+  i, j, c: Integer;
+  FirstItem, LastItem: TFriendItem;
+  CmpRes: Integer;
+begin
+  if UseBeginUpdate then
+    FList.BeginUpdate;
+  try
+    c := FList.ItemsCount;
+
+    for i := 0 to c - 2 do
+      for j := i + 1 to c - 1 do
+      begin
+        FirstItem := FList.Items[i].Item;
+        LastItem := FList.Items[j].Item;
+
+        CmpRes := StatusCmp(FirstItem.UserStatus, LastItem.UserStatus);
+        if CmpRes > 0 then
+        begin
+          if FSortStatus = TSortStatus.ssUp then
+            FList.Swap(i, j);
+        end
+        else if CmpRes < 0 then
+        begin
+          if FSortStatus = TSortStatus.ssDown then
+            FList.Swap(i, j);
+        end;
+      end;
+
+    for i := 0 to c - 2 do
+      for j := i + 1 to c - 1 do
+      begin
+        FirstItem := FList.Items[i].Item;
+        LastItem := FList.Items[j].Item;
+
+        if FirstItem.UserStatus <> LastItem.UserStatus then
+          Continue;
+
+        if FirstItem.UserName = '' then
+        begin
+          FList.Swap(i, j);
+          Continue;
+        end;
+
+        if LastItem.UserName = '' then
+          Continue;
+
+        CmpRes := AnsiCompareText(FirstItem.UserName, LastItem.UserName);
+        if CmpRes > 0 then
+        begin
+          if FSortName = TSortName.snDown then
+            FList.Swap(i, j);
+        end
+        else if CmpRes < 0 then
+        begin
+          if FSortName = TSortName.snUp then
+            FList.Swap(i, j);
+        end;
+      end;
+
+  finally
+    if UseBeginUpdate then
+      FList.EndUpdate;
   end;
 end;
 

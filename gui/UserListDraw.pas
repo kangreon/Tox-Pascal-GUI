@@ -75,8 +75,11 @@ type
     procedure Clear;
     procedure EndUpdate;
     procedure UpdateItem(Index: Integer);
+    procedure Swap(Item1, Item2: Integer);
 
     property ActiveRigion: TActiveRegion read FActiveRegion write SetActiveRegion;
+    property Items: TUsers read FItems;
+    property ItemsCount: Integer read FItemsCount;
     property Position: Integer read FPosition write SetPosition;
     property SelectedItem: Integer read FSelectedItem write SetSelectItemProp;
     property Size: Integer read FSize;
@@ -287,6 +290,15 @@ begin
     FItems[FSelectedItem].State := dsDown;
     Invalidate;
   end;
+end;
+
+procedure TUserListDraw.Swap(Item1, Item2: Integer);
+var
+  PItem: PUser;
+begin
+  PItem := FItems[Item1];
+  FItems[Item1] := FItems[Item2];
+  FItems[Item2] := PItem;
 end;
 
 procedure TUserListDraw.ActiveRegionMouseMessage(Sender: TObject;

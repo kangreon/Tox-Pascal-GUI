@@ -857,7 +857,7 @@ end;
 procedure TToxCore.SetUserStatus(Status: TToxUserStatus);
 begin
   if FConnectState = csOnline then
-    tox_set_userstatus(FTox, Status);
+    tox_set_userstatus(FTox, Integer(Status));
 end;
 
 procedure TToxCore.StartTox;

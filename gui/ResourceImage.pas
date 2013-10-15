@@ -36,9 +36,11 @@ type
     FUserListStatus: array of TBitmapList;
     FControlButtons: TBitmapList;
     FSelfStatusIcons: TBitmapList;
+    FMessageHeaderButtons: TBitmapList;
 
     procedure LoadControlButtons(StartLeft, StartTop, Width, Height: Integer);
     procedure LoadSelfStatusIcons(StartLeft, StartTop, Width, Height: Integer);
+    procedure LoadMessageHeaderButtons(StartLeft, StartTop, Width, Height: Integer);
     procedure LoadUserListStatus;
     function LoadImageBmp(Name: string): TBitmap;
     function LoadImageBmpFromPng(Name: string): TBitmap;
@@ -54,6 +56,7 @@ type
       IsNewMessage: Boolean): TBitmap;
 
     property ControlButtons: TBitmapList read FControlButtons;
+    property MessageHeaderButtons: TBitmapList read FMessageHeaderButtons;
 
     property LoadingAnimate10: TPngImage read FLoadingAnimate10;
 
@@ -93,6 +96,7 @@ begin
   LoadUserListStatus;
   LoadControlButtons(0, 108, 20, 20);
   LoadSelfStatusIcons(0, 128, 22, 22);
+  LoadMessageHeaderButtons(0, 172, 52, 32);
 
   FImageMenu := TImageList.Create(nil);
 
@@ -253,6 +257,30 @@ begin
   end;
 
   Result := Image;
+end;
+
+procedure TResourceImage.LoadMessageHeaderButtons(StartLeft, StartTop, Width,
+  Height: Integer);
+var
+  i: Integer;
+  Image: TBitmap;
+  DRect, SRect: TRect;
+begin
+  DRect := Bounds(0, 0, Width, Height);
+
+  SetLength(FMessageHeaderButtons, 8);
+  for i := Low(FMessageHeaderButtons) to High(FMessageHeaderButtons) do
+  begin
+    Image := TBitmap.Create;
+    try
+      Image.SetSize(Width, Height);
+
+      SRect := Bounds(StartLeft + i * Width, StartTop, Width, Height);
+      Image.Canvas.CopyRect(DRect, FToxSkin.Canvas, SRect);
+    finally
+      FMessageHeaderButtons[i] := Image;
+    end;
+  end;
 end;
 
 procedure TResourceImage.LoadSelfStatusIcons(StartLeft, StartTop, Width,

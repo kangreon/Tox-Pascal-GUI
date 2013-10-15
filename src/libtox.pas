@@ -358,7 +358,7 @@ function tox_getname(tox: TTox; friendnumber: Integer; name: PByte): Integer; cd
 //int tox_set_statusmessage(Tox *tox, uint8_t *status, uint16_t length);
 //int tox_set_userstatus(Tox *tox, TOX_USERSTATUS status);
 function tox_set_statusmessage(tox: TTox; status: PByte; length: Word): Integer; cdecl; external TOX_LIBRARY;
-function tox_set_userstatus(tox: TTox; status: TToxUserStatus): Integer; cdecl; external TOX_LIBRARY;
+function tox_set_userstatus(tox: TTox; status: Integer): Integer; cdecl; external TOX_LIBRARY;
 
 ///*  return the length of friendnumber's status message, including null.
 // *  Pass it into malloc

@@ -16,7 +16,7 @@ interface
 uses
   {$I tox-uses.inc}
   Classes, SysUtils, Controls, Graphics, StringUtils, MessageList,
-  MessageDraw, Messages, ActiveRegion, MessageItem, FriendItem;
+  MessageDraw, Messages, ActiveRegion, MessageItem, FriendItem, MessageHeader;
 
 type
   TMessagePosition = (mpBefore, mpAfter);
@@ -29,6 +29,7 @@ type
     FFrienSelect: TFriendItem;
     FMessageList: TMessageList;
     FDraw: TMessageDraw;
+    FMessageHeader: TMessageHeader;
     procedure MessageGet(Sender: TObject; const Index: Integer; out Exist: Boolean;
       out Mess: TMessageItem);
     procedure ActiveOnMessage(Sender: TObject; RegionMessage: TRegionMessage;
@@ -120,6 +121,10 @@ begin
   FDraw.Parent := Self;
   FDraw.OnGet := MessageGet;
   FActive.Parent := Self;
+
+  FMessageHeader := TMessageHeader.Create(Self);
+  FMessageHeader.Align := alTop;
+  FMessageHeader.Parent := Self;
 end;
 
 { *  Запрос на следующее сообщение
@@ -142,6 +147,8 @@ begin
   LastMessage := FMessageList.GetMessageCount(Friend.ClientId) - 1;
   FFrienSelect := Friend;
   FDraw.Redraw(LastMessage);
+
+  FMessageHeader.SelectFriend(Friend);
 end;
 
 procedure TMessageControl.WndProc(var Message: TMessage);

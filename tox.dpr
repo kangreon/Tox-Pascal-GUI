@@ -61,7 +61,9 @@ uses
   MessageItem in 'src\MessageItem.pas',
   FriendItem in 'src\FriendItem.pas',
   FriendBase in 'src\FriendBase.pas',
-  DataBase in 'src\DataBase.pas';
+  DataBase in 'src\DataBase.pas',
+  MessageHeader in 'gui\MessageWidget\MessageHeader.pas',
+  MessageHeaderStyle in 'gui\MessageWidget\MessageHeaderStyle.pas';
 
 { *  Вывод сообщения об ошибке загрузки библиотеки libtoxcore
   * }

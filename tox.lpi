@@ -5,11 +5,14 @@
     <PathDelim Value="\"/>
     <General>
       <Flags>
+        <SaveClosedFiles Value="False"/>
         <MainUnitHasUsesSectionForAllUnits Value="False"/>
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
+        <SaveJumpHistory Value="False"/>
+        <SaveFoldState Value="False"/>
       </Flags>
-      <SessionStorage Value="InProjectDir"/>
+      <SessionStorage Value="None"/>
       <MainUnit Value="0"/>
       <Title Value="tox"/>
       <UseAppBundle Value="False"/>
@@ -160,9 +163,13 @@
   <CompilerOptions>
     <Version Value="11"/>
     <PathDelim Value="\"/>
+    <Target>
+      <Filename Value="Build\tox"/>
+    </Target>
     <SearchPaths>
-      <IncludeFiles Value="src;gui;gui\Forms;$(ProjOutDir)"/>
-      <OtherUnitFiles Value="gui;src;gui\Forms;sqlite"/>
+      <IncludeFiles Value="src;gui;gui\Forms;$(ProjOutDir);inc"/>
+      <OtherUnitFiles Value="gui;src;gui\Forms;sqlite;inc"/>
+      <UnitOutputDirectory Value="Build\dcu"/>
     </SearchPaths>
     <Parsing>
       <SyntaxOptions>

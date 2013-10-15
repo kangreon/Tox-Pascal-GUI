@@ -9,19 +9,26 @@
 program tox;
 
 {$I tox.inc}
-{$IFNDEF Unix}
-{$R tox-res.res}
+{$IFDEF FPC}
+  {$IFNDEF Unix}
+    {$R Resource\tox-res.rc}
+  {$ENDIF}
+  {$R Resource\images.rc}
+{$ELSE}
+  {$R 'images.res' 'Resource\images.rc'}
+{$R 'tox-res.res' 'Resource\tox-res.rc'}
 {$ENDIF}
-{$R images.res}
 
 uses
-{$IFDEF FPC}
-{$IFDEF UNIX}
+  {$IFDEF FPC}
+  {$IFDEF UNIX}
   cthreads,
-{$ENDIF }
+  {$ENDIF }
   Interfaces,
-{$ENDIF }
-{$I tox-uses.inc}
+  {$I}
+  {$ELSE}
+  Windows,
+  {$ENDIF }
   Forms,
   Dialogs,
   main in 'src\main.pas' {Form1},

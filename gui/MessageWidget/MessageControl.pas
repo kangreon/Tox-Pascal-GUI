@@ -16,7 +16,7 @@ interface
 uses
   {$I tox-uses.inc}
   Classes, SysUtils, Controls, Graphics, StringUtils, MessageList,
-  MessageDraw, Messages, ActiveRegion, MessageItem;
+  MessageDraw, Messages, ActiveRegion, MessageItem, FriendItem;
 
 type
   TMessagePosition = (mpBefore, mpAfter);
@@ -26,7 +26,7 @@ type
     FIsDown: Boolean;
     FPosition: Integer;
     FActive: TActiveRegion;
-    FFrienSelect: AnsiString;
+    FFrienSelect: TFriendItem;
     FMessageList: TMessageList;
     FDraw: TMessageDraw;
     procedure MessageGet(Sender: TObject; const Index: Integer; out Exist: Boolean;
@@ -44,7 +44,7 @@ type
     constructor Create(AOwner: TComponent; MessageList: TMessageList); reintroduce;
     destructor Destroy; override;
 
-    procedure SelectFriend(FriendId: AnsiString);
+    procedure SelectFriend(Friend: TFriendItem);
   end;
 
 implementation
@@ -96,14 +96,14 @@ end;
 function TMessageControl.DoMouseWheelDown(Shift: TShiftState;
   MousePos: TPoint): Boolean;
 begin
-  FDraw.ScrollDown(4);
+  FDraw.ScrollDown(40);
   Result := True;
 end;
 
 function TMessageControl.DoMouseWheelUp(Shift: TShiftState;
   MousePos: TPoint): Boolean;
 begin
-  FDraw.ScrollUp(4);
+  FDraw.ScrollUp(40);
   Result := True;
 end;
 
@@ -119,7 +119,6 @@ begin
   FDraw.Align := alClient;
   FDraw.Parent := Self;
   FDraw.OnGet := MessageGet;
-  FDraw.Redraw(FMessageList.GetMessageCount(nil) - 1);
   FActive.Parent := Self;
 end;
 
@@ -128,14 +127,21 @@ end;
 procedure TMessageControl.MessageGet(Sender: TObject; const Index: Integer;
   out Exist: Boolean; out Mess: TMessageItem);
 begin
-//  Exist := FMessageList.GetMessage(FFrienSelect, Index, Mess);
+  if not Assigned(FFrienSelect) then
+    Exist := False
+  else
+    Exist := FMessageList.GetMessage(FFrienSelect.ClientId, Index, Mess);
 end;
 
 { *  Открытие диалога с новым пользователем
   * }
-procedure TMessageControl.SelectFriend(FriendId: AnsiString);
+procedure TMessageControl.SelectFriend(Friend: TFriendItem);
+var
+  LastMessage: Integer;
 begin
-  FFrienSelect := FriendId;
+  LastMessage := FMessageList.GetMessageCount(Friend.ClientId) - 1;
+  FFrienSelect := Friend;
+  FDraw.Redraw(LastMessage);
 end;
 
 procedure TMessageControl.WndProc(var Message: TMessage);

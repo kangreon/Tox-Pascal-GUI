@@ -960,6 +960,18 @@ begin
   Create(DB, SQL, []);
 end;
 
+function IsIntegerColumn(ColumnName: PAnsiChar): Boolean;
+begin
+  Result := (ColumnName = 'INTEGER') or (ColumnName = 'BOOLEAN') or
+    (ColumnName = 'BOOL')
+end;
+
+function IsNumericColumn(ColumnName: PAnsiChar): Boolean;
+begin
+  Result := (ColumnName = 'NUMERIC') or (ColumnName = 'FLOAT') or
+    (ColumnName = 'DOUBLE') or (ColumnName = 'REAL');
+end;
+
 constructor TSQLiteTable.Create(DB: TSQLiteDatabase; const SQL: Ansistring;
   const Bindings: array of const);
 var
@@ -1013,15 +1025,14 @@ begin
                 new(thisColType);
                 DeclaredColType := Sqlite3_ColumnDeclType(Stmt, I);
                 if DeclaredColType = nil then
+                begin
                   thisColType^ := Sqlite3_ColumnType(Stmt, I)
                   // use the actual column type instead
                   // seems to be needed for last_insert_rowid
-                else if (DeclaredColType = 'INTEGER') or
-                  (DeclaredColType = 'BOOLEAN') then
+                end
+                else if IsIntegerColumn(DeclaredColType) then
                   thisColType^ := dtInt
-                else if (DeclaredColType = 'NUMERIC') or
-                  (DeclaredColType = 'FLOAT') or (DeclaredColType = 'DOUBLE') or
-                  (DeclaredColType = 'REAL') then
+                else if IsNumericColumn(DeclaredColType) then
                   thisColType^ := dtNumeric
                 else if DeclaredColType = 'BLOB' then
                   thisColType^ := dtBlob

@@ -34,13 +34,15 @@ type
     FScroll: TScrollBarNormal;
     FSortName: TSortName;
     FSortStatus: TSortStatus;
+    FOnSelectItem: TProcSelectItem;
     procedure ScrollOnScroll(Sender: TObject);
-    procedure ListOnChangeSize(Sender: TObject);
+    procedure ListChangeSize(Sender: TObject);
     procedure FriendsUpdate(Sender: TObject; Index: Integer);
     procedure LoadAllUsers;
     procedure FriendsNewItem(Sender: TObject);
     procedure SortList(UseBeginUpdate: Boolean);
     function StatusCmp(Status1, Status2: TToxUserStatus): SmallInt;
+    procedure ListSelectItem(Sender: TObject; Item: TFriendItem);
   protected
     procedure CreateWnd; override;
     function DoMouseWheelDown(Shift: TShiftState; MousePos: TPoint)
@@ -54,6 +56,9 @@ type
       reintroduce;
 
     property Scroll: TScrollBarNormal read FScroll;
+
+    property OnSelectItem: TProcSelectItem read FOnSelectItem
+      write FOnSelectItem;
   end;
 
 implementation
@@ -89,7 +94,8 @@ begin
   FList := TUserListDraw.Create(Self);
   FList.Align := alClient;
   FList.Parent := Self;
-  FList.OnChangeSize := ListOnChangeSize;
+  FList.OnChangeSize := ListChangeSize;
+  FList.OnSelectItem := ListSelectItem;
 
   FFriends.OnUpdateItem := FriendsUpdate;
   FFriends.OnNewItem := FriendsNewItem;
@@ -114,9 +120,11 @@ begin
   SortList(True);
 end;
 
+{ *  Перезагружает пользователей в список друзей в соответствии с выбранными
+  *  параметрами отображения списка и выбранной сортировкой.
+  * }
 procedure TUserList.LoadAllUsers;
 var
-  i: Integer;
   Item: TFriendItem;
   PItem: Pointer;
 begin
@@ -278,10 +286,16 @@ begin
   end;
 end;
 
-procedure TUserList.ListOnChangeSize(Sender: TObject);
+procedure TUserList.ListChangeSize(Sender: TObject);
 begin
   FScroll.ListSize := FList.Size;
   FScroll.PageSize := FList.ClientHeight;
+end;
+
+procedure TUserList.ListSelectItem(Sender: TObject; Item: TFriendItem);
+begin
+  if Assigned(FOnSelectItem) then
+    FOnSelectItem(Self, Item);
 end;
 
 procedure TUserList.ScrollOnScroll(Sender: TObject);

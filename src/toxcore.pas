@@ -789,6 +789,10 @@ var
   size: Integer;
   savedata: PByte;
 begin
+  if FConnectState <> csOnline then
+    Exit;
+
+
   size := tox_size(FTox);
   savedata := GetMemory(size);
   try
@@ -841,7 +845,8 @@ begin
   FFriendList.MyItem.UserName := Value;
   Data := GetUtf8Text(Value, DataLength);
   try
-    tox_setname(FTox, Data, DataLength);
+    if FConnectState = csOnline then
+      tox_setname(FTox, Data, DataLength);
   finally
     FreeMemory(Data);
   end;

@@ -144,18 +144,21 @@ begin
     BuffStart := Number - 100;
     BuffCount := 200;
 
+    // Выход за нижние границы
     if BuffStart < 0 then
       BuffStart := 0;
 
+    // Выход за верхние границы
     if BuffStart + BuffCount >= FCount then
-      BuffCount := FCount - BuffStart - 1;
+      BuffCount := FCount - BuffStart;
 
-    if (BuffCount = 0) or (BuffStart < 0) or (BuffStart >= FCount) then
+    if (BuffCount = 0) or (BuffStart >= FCount) then
     begin
       Result := nil
     end
     else
     begin
+      FBufferStart := BuffStart;
       SelectRange(BuffStart, BuffCount, Item);
 
       for i := Low(FBuffer) to High(FBuffer) do
@@ -207,6 +210,7 @@ begin
   SQL := 'SELECT * FROM "dialog" WHERE "user_id" = ' + FClient +
     ' LIMIT ' + IntToStr(From) + ', ' + IntToStr(Count) + ';';
   Table := FBase.GetTable(AnsiString(SQL));
+  SetRemoveFlag;
   try
     c := Table.RowCount;
     SetLength(Messages, c);
@@ -233,7 +237,9 @@ begin
         Messages[i].BaseId := Table.Row;
 
         if not Messages[i].IsMy then
-          Messages[i].Friend := FFriendItem;
+          Messages[i].Friend := FFriendItem
+        else
+          Messages[i].Friend := FMyItem;
       end;
 
       Table.Next;

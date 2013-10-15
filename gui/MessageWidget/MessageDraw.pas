@@ -214,7 +214,7 @@ begin
   end;
   PaintTime := Now - PaintTime;
 
-  Canvas.TextOut(0, 0, 'Message count: ' + IntToStr(Length(FDrawItems)));
+  Canvas.TextOut(0, 0, 'Message draw count: ' + IntToStr(Length(FDrawItems)));
   Canvas.TextOut(0, 13, 'Calc time: ' + FormatDateTime('ss.zzz', FCalcTime));
   Canvas.TextOut(0, 26, 'Paint time: ' + FormatDateTime('ss.zzz', PaintTime));
 end;
@@ -564,7 +564,7 @@ begin
   end
   else
   begin
-    ActiveItem := nil
+    ActiveItem := nil;
   end;
 end;
 
@@ -600,12 +600,20 @@ end;
   *  указанного. Указанное сообщение будет в самом низу компонента.
   * }
 procedure TMessageDraw.Redraw(BottomMessageIndex: Integer);
+var
+  Item: TMessageInfo;
 begin
+  for Item in FDrawItems do
+    Item.Free;
+
+  SetLength(FDrawItems, 0);
+
   FIsCreateList := False;
   FBottomMessageIndex := BottomMessageIndex;
-  FBottomMessagePosition := -20;
+  FBottomMessagePosition := 0;
   //RecreateItems;
   Resize;
+  Invalidate;
 end;
 
 procedure TMessageDraw.Resize;
@@ -680,6 +688,7 @@ begin
     Invalidate;
   end;
 end;
+
 
 procedure TMessageDraw.SetDrawFont;
 begin

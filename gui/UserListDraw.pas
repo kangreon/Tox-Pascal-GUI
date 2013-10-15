@@ -30,6 +30,8 @@ type
   end;
   TUsers = array of PUser;
 
+  TProcSelectItem = procedure(Sender: TObject; Item: TFriendItem) of object;
+
   TUserListDraw = class(TGraphicControl)
   private
     FActiveRegion: TActiveRegion;
@@ -43,8 +45,9 @@ type
     FSize: Integer;
     FStopUpdate: Boolean;
     FOnChangeSize: TNotifyEvent;
-    FOnSelectItem: TNotifyEvent;
+
     FSelectedItem: Integer;
+    FOnSelectItem: TProcSelectItem;
     procedure SetPosition(const Value: Integer);
     procedure DrawItem(Y: Integer; UserName, StatusText: DataString;
       Status: TToxUserStatus; IsNewMessage: Boolean; UserIcon: TUserIcon;
@@ -85,7 +88,7 @@ type
     property Size: Integer read FSize;
 
     property OnChangeSize: TNotifyEvent read FOnChangeSize write FOnChangeSize;
-    property OnSelectItem: TNotifyEvent read FOnSelectItem write FOnSelectItem;
+    property OnSelectItem: TProcSelectItem read FOnSelectItem write FOnSelectItem;
   end;
 
 implementation
@@ -263,6 +266,8 @@ begin
   end;
 end;
 
+{ *  Выделение элемента, расположенного в указанных координатах x и y.
+  * }
 procedure TUserListDraw.SetSelectItem(x, y: Integer);
 var
   Item: Integer;
@@ -275,8 +280,9 @@ begin
     FItems[Item].State := dsDown;
 
     FSelectedItem := Item;
+
     if Assigned(FOnSelectItem) then
-      FOnSelectItem(Self);
+      FOnSelectItem(Self, FItems[Item].Item);
 
     Invalidate;
   end;

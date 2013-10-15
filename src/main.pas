@@ -17,7 +17,7 @@ uses
   SysUtils, Controls, Forms, Classes, Dialogs, StdCtrls, toxcore, Settings,
   ServerList, ClientAddress, libtox, StringUtils, ExtCtrls, UserStatus,
   FriendList, ControlPanel, fmUserAdd, fmNewName, UserList,
-  FriendRequestController, MessageControl, MessageList, Clipbrd;
+  FriendRequestController, MessageControl, MessageList, Clipbrd, FriendItem;
 
 type
   { TForm1 }
@@ -60,6 +60,7 @@ type
     procedure RequestOnAddFriend(Sender: TObject;
       ClientAddress: TFriendAddress);
     procedure UserStatusChangeStatus(Sender: TObject);
+    procedure UserListSelectItem(Sender: TObject; Item: TFriendItem);
   public
     property ToxLoadError: Boolean read FToxLoadError;
   end;
@@ -169,12 +170,18 @@ begin
   FUserList := TUserList.Create(LeftPanel, FToxCore.FriendList);
   FUserList.Align := alClient;
   FUserList.Parent := LeftPanel;
+  FUserList.OnSelectItem := UserListSelectItem;
 
   //TODO: Временно. Пока не будет заменено настоящими компонентами
   ActivityList.Align := alClient;
   ActivityList.DoubleBuffered := True;
   ActivityList.Color := $F2F2F1;
   ActivityList.Visible := False;
+end;
+
+procedure TForm1.UserListSelectItem(Sender: TObject; Item: TFriendItem);
+begin
+  FMessageControl.SelectFriend(Item);
 end;
 
 { *  Событие возникает при нажатия на одну из кнопок панели управления.
@@ -364,7 +371,6 @@ begin
   if NewName <> '' then
   begin
     FToxCore.UserName := NewName;
-//    FUserStatus.UserName := NewName;
   end;
 end;
 

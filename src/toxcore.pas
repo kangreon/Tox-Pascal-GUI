@@ -823,11 +823,14 @@ var
   Data: PByte;
   DataLength: Integer;
 begin
-  Data := GetUtf8Text(Text, DataLength);
-  try
-    tox_sendmessage(FTox, FriendNumber, Data, DataLength);
-  finally
-    FreeMem(Data);
+  if FConnectState = csOnline then
+  begin
+    Data := GetUtf8Text(Text, DataLength);
+    try
+      tox_sendmessage(FTox, FriendNumber, Data, DataLength);
+    finally
+      FreeMem(Data);
+    end;
   end;
 end;
 

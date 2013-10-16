@@ -70,7 +70,8 @@ uses
   FriendBase in 'src\FriendBase.pas',
   DataBase in 'src\DataBase.pas',
   MessageHeader in 'gui\MessageWidget\MessageHeader.pas',
-  MessageHeaderStyle in 'gui\MessageWidget\MessageHeaderStyle.pas';
+  MessageHeaderStyle in 'gui\MessageWidget\MessageHeaderStyle.pas',
+  MessageForm in 'gui\MessageWidget\MessageForm.pas';
 
 { *  Вывод сообщения об ошибке загрузки библиотеки libtoxcore
   * }

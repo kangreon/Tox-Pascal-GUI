@@ -159,6 +159,7 @@
         <DCCReference Include="src\DataBase.pas"/>
         <DCCReference Include="gui\MessageWidget\MessageHeader.pas"/>
         <DCCReference Include="gui\MessageWidget\MessageHeaderStyle.pas"/>
+        <DCCReference Include="gui\MessageWidget\MessageForm.pas"/>
         <None Include="inc\tox-uses.inc"/>
         <None Include="inc\tox.inc"/>
         <BuildConfiguration Include="Release">

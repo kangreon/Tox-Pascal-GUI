@@ -121,6 +121,12 @@ begin
     Canvas.TextOut(l, t, Status)
   else
     TextRectW(Canvas, Rect, Status, [tfEndEllipsis]);
+
+  // Вывод нижней ограничивающей линии
+  Canvas.Pen.Color := $d2d2d2;
+  Canvas.Pen.Style := psDot;
+  Canvas.MoveTo(0, ClientHeight - 1);
+  Canvas.LineTo(ClientWidth, ClientHeight - 1);
 end;
 
 procedure TMessageHeader.CreateWnd;

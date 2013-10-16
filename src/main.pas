@@ -61,6 +61,8 @@ type
       ClientAddress: TFriendAddress);
     procedure UserStatusChangeStatus(Sender: TObject);
     procedure UserListSelectItem(Sender: TObject; Item: TFriendItem);
+    procedure MessageControlSendTextFriend(Sender: TObject; Friend: TFriendItem;
+      const Text: DataString);
   public
     property ToxLoadError: Boolean read FToxLoadError;
   end;
@@ -144,7 +146,7 @@ begin
   RightPanel.Parent := Self;
   RightPanel.Align := alClient;
   RightPanel.BevelOuter := bvNone;
-  RightPanel.Color := $F2F2F1;
+  //RightPanel.Color := $F2F2F1;
   RightPanel.DoubleBuffered := True;
   {$IFNDEF FPC}
   RightPanel.ParentBackground := False;
@@ -153,6 +155,7 @@ begin
   FMessageControl := TMessageControl.Create(RightPanel, FToxCore.MessageList);
   FMessageControl.Align := alClient;
   FMessageControl.Parent := RightPanel;
+  FMessageControl.OnSendTextFriend := MessageControlSendTextFriend;
 
   FUserStatus := TUserStatus.Create(LeftPanel);
   FUserStatus.Parent := LeftPanel;
@@ -177,6 +180,15 @@ begin
   ActivityList.DoubleBuffered := True;
   ActivityList.Color := $F2F2F1;
   ActivityList.Visible := False;
+end;
+
+procedure TForm1.MessageControlSendTextFriend(Sender: TObject;
+  Friend: TFriendItem; const Text: DataString);
+begin
+  if Friend.IsFriend then
+  begin
+    FToxCore.SendMessage(Friend.Number, Text);
+  end;
 end;
 
 procedure TForm1.UserListSelectItem(Sender: TObject; Item: TFriendItem);

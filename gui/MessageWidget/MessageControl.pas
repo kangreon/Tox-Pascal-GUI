@@ -16,24 +16,31 @@ interface
 uses
   {$I tox-uses.inc}
   Classes, SysUtils, Controls, Graphics, StringUtils, MessageList,
-  MessageDraw, Messages, ActiveRegion, MessageItem, FriendItem, MessageHeader;
+  MessageDraw, Messages, ActiveRegion, MessageItem, FriendItem, MessageHeader,
+  MessageForm;
 
 type
   TMessagePosition = (mpBefore, mpAfter);
+  TProcSendTextFriend = procedure(Sender: TObject; Friend: TFriendItem;
+    const Text: DataString) of object;
 
   TMessageControl = class(TCustomControl)
   private
-    FIsDown: Boolean;
-    FPosition: Integer;
     FActive: TActiveRegion;
-    FFrienSelect: TFriendItem;
-    FMessageList: TMessageList;
     FDraw: TMessageDraw;
-    FMessageHeader: TMessageHeader;
+    FFriendSelect: TFriendItem;
+    FForm: TMessageForm;
+    FHeader: TMessageHeader;
+    FIsDown: Boolean;
+    FIsFriendSelect: Boolean;
+    FMessageList: TMessageList;
+    FPosition: Integer;
+    FOnSendTextFriend: TProcSendTextFriend;
     procedure MessageGet(Sender: TObject; const Index: Integer; out Exist: Boolean;
       out Mess: TMessageItem);
     procedure ActiveOnMessage(Sender: TObject; RegionMessage: TRegionMessage;
       const x, y: Integer; Button: TMouseButton; Shift: TShiftState);
+    procedure FormSendText(Sender: TObject; const Text: DataString);
   protected
     procedure CreateWnd; override;
     function DoMouseWheelDown(Shift: TShiftState; MousePos: TPoint)
@@ -46,6 +53,9 @@ type
     destructor Destroy; override;
 
     procedure SelectFriend(Friend: TFriendItem);
+
+    property OnSendTextFriend: TProcSendTextFriend read FOnSendTextFriend
+      write FOnSendTextFriend;
   end;
 
 implementation
@@ -60,11 +70,29 @@ begin
   FActive := TActiveRegion.Create(Self);
   FActive.Align := alClient;
   FActive.OnCursorMessage := ActiveOnMessage;
+
+  FHeader := TMessageHeader.Create(Self);
+  FHeader.Align := alTop;
+  FHeader.Visible := False;
+
+  FDraw := TMessageDraw.Create(Self);
+  FDraw.Align := alClient;
+  FDraw.Parent := Self;
+  FDraw.Visible := False;
+  FDraw.OnGet := MessageGet;
+
+  FForm := TMessageForm.Create(Self);
+  FForm.Align := alBottom;
+  FForm.Visible := False;
+  FForm.OnSendText :=FormSendText;
+
+  FIsFriendSelect := False;
 end;
 
 destructor TMessageControl.Destroy;
 begin
   FActive.Free;
+  FForm.Free;
   inherited;
 end;
 
@@ -116,15 +144,10 @@ begin
   ParentBackground := False;
   {$ENDIF}
 
-  FDraw := TMessageDraw.Create(Self);
-  FDraw.Align := alClient;
-  FDraw.Parent := Self;
-  FDraw.OnGet := MessageGet;
   FActive.Parent := Self;
 
-  FMessageHeader := TMessageHeader.Create(Self);
-  FMessageHeader.Align := alTop;
-  FMessageHeader.Parent := Self;
+  FHeader.Parent := Self;
+  FForm.Parent := Self;
 end;
 
 { *  Запрос на следующее сообщение
@@ -132,10 +155,20 @@ end;
 procedure TMessageControl.MessageGet(Sender: TObject; const Index: Integer;
   out Exist: Boolean; out Mess: TMessageItem);
 begin
-  if not Assigned(FFrienSelect) then
+  if not Assigned(FFriendSelect) then
     Exist := False
   else
-    Exist := FMessageList.GetMessage(FFrienSelect.ClientId, Index, Mess);
+    Exist := FMessageList.GetMessage(FFriendSelect.ClientId, Index, Mess);
+end;
+
+{ *  Событие отправки нового собщения Text собеседнику FFrienSelect.
+  * }
+procedure TMessageControl.FormSendText(Sender: TObject; const Text: DataString);
+begin
+  if FIsFriendSelect and Assigned(FOnSendTextFriend) then
+  begin
+    FOnSendTextFriend(Self, FFriendSelect, Text);
+  end;
 end;
 
 { *  Открытие диалога с новым пользователем
@@ -144,11 +177,21 @@ procedure TMessageControl.SelectFriend(Friend: TFriendItem);
 var
   LastMessage: Integer;
 begin
-  LastMessage := FMessageList.GetMessageCount(Friend.ClientId) - 1;
-  FFrienSelect := Friend;
-  FDraw.Redraw(LastMessage);
+  FIsFriendSelect := Assigned(Friend);
 
-  FMessageHeader.SelectFriend(Friend);
+  FDraw.Visible := FIsFriendSelect;
+  FHeader.Visible := FIsFriendSelect;
+  FForm.Visible := FIsFriendSelect;
+
+  if FIsFriendSelect then
+  begin
+    FFriendSelect := Friend;
+
+    LastMessage := FMessageList.GetMessageCount(FFriendSelect.ClientId) - 1;
+    FDraw.Redraw(LastMessage);
+
+    FHeader.SelectFriend(FFriendSelect);
+  end;
 end;
 
 procedure TMessageControl.WndProc(var Message: TMessage);
@@ -161,7 +204,16 @@ begin
   inherited;
   case Message.Msg of
     CM_MOUSEENTER:
-      SetFocus;
+      begin
+        if GetFocus <> FForm.FormHandle then
+          SetFocus;
+      end;
+
+    WM_LBUTTONDOWN:
+      begin
+        if GetFocus <> Handle then
+          SetFocus;
+      end;
 
 {$IFDEF FPC}
     LM_MOUSEWHEEL:

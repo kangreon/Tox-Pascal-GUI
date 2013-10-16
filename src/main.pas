@@ -31,7 +31,7 @@ type
     FToxCore: TToxCore;
     procedure ToxOnConnect(Sender: TObject);
     procedure ToxOnDisconnect(Sender: TObject);
-    procedure ToxOnConnecting(Sender: TObject; Server: TServerItem);
+    procedure ToxOnConnecting(Sender: TObject; ServerCount: Integer);
     procedure ToxFriendRequest(Sender: TObject; ClientAddress: TFriendAddress;
       HelloMessage: DataString);
     procedure ToxFriendMessage(Sender: TObject; FriendNumber: Integer;
@@ -217,9 +217,9 @@ begin
   FUserStatus.State := sOnline;
 end;
 
-procedure TForm1.ToxOnConnecting(Sender: TObject; Server: TServerItem);
+procedure TForm1.ToxOnConnecting(Sender: TObject; ServerCount: Integer);
 begin
-  ActivityList.Lines.Add('Try connect to ' + Server.Name);
+  ActivityList.Lines.Add('Try connect to ' + IntToStr(ServerCount));
   FUserStatus.State := sLoading;
 end;
 

@@ -331,7 +331,6 @@ begin
       MaxHeight);
   end;
 
-  //Вы уверене, что лизвеб дает мастер-ns клиентам? '#13#10#13#10'В какой услуге?
   WordsInfo.Resize;
   MessageItem.Data := WordsInfo;
   Result := WordsInfo;

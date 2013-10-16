@@ -19,7 +19,7 @@ uses
 type
   TConnectState = (csOnline, csConnecting, csOffline);
 
-  TProcConnecting = procedure(Sender: TObject; Server: TServerItem) of object;
+  TProcConnecting = procedure(Sender: TObject; ServerCount: Integer) of object;
   TProcFriendRequest = procedure(Sender: TObject; ClientAddress: TFriendAddress;
     HelloMessage: DataString) of object;
   TProcFriendMessage = procedure(Sender: TObject; FriendNumber: Integer;
@@ -47,7 +47,6 @@ type
     FMessageList: TMessageList;
     FOnConnect: TNotifyEvent;
     FOnDisconnect: TNotifyEvent;
-    FSelectedServer: TServerItem;
     FOnConnecting: TProcConnecting;
     FYourAddress: TFriendAddress;
     FStartThread: Boolean;
@@ -57,6 +56,7 @@ type
     FTempFriendNumber: Integer;
     FTempUserStatus: TToxUserStatus;
     FTempReceipt: Integer;
+    FTempServerCount: Integer;
     FTempStatus: Byte;
     FOnFriendRequest: TProcFriendRequest;
     FOnFriendMessage: TProcFriendMessage;
@@ -72,7 +72,7 @@ type
     FStatusMessage: DataString;
     procedure EventConnect;
     procedure EventConnectSyn;
-    procedure EventConnecting(Server: TServerItem);
+    procedure EventConnecting(ServerCount: Integer);
     procedure EventConnectingSyn;
     procedure EventDisconnect;
     procedure EventDisconnectSyn;
@@ -125,7 +125,6 @@ type
     property FriendList: TFriendList read FFriendList;
     property IsLoadLibrary: Boolean read FIsLoadLibrary;
     property MessageList: TMessageList read FMessageList;
-    property SelectedServer: TServerItem read FSelectedServer;
     property StatusMessage: DataString read FStatusMessage write SetStatusMessage;
     property UserName: DataString read FUserName write SetUserName;
     property YourAddress: TFriendAddress read FYourAddress;
@@ -431,18 +430,16 @@ begin
   Synchronize(EventConnectSyn);
 end;
 
-procedure TToxCore.EventConnecting(Server: TServerItem);
+procedure TToxCore.EventConnecting(ServerCount: Integer);
 begin
-  if Assigned(Server) then
-    FSelectedServer := Server.Clone;
-
+  FTempServerCount := ServerCount;
   Synchronize(EventConnectingSyn);
 end;
 
 procedure TToxCore.EventConnectingSyn;
 begin
   if Assigned(FOnConnecting) then
-    FOnConnecting(Self, FSelectedServer);
+    FOnConnecting(Self, FTempServerCount);
 end;
 
 procedure TToxCore.EventConnectioStatus(FriendNumber: Integer; Status: Byte);
@@ -600,7 +597,6 @@ begin
       if Self.Terminated then
         Exit;
 
-      EventConnecting(nil);
       InitTox;
     end;
 
@@ -630,29 +626,45 @@ begin
   end;          
 end;
 
+{ *  Выбор серверов из списка и подключение к ним
+  * }
 procedure TToxCore.InitConnection;
 var
   Item: TServerItem;
   Data: Pointer;
-  count: Integer;
+  ServerCount: Integer;
   ret: Integer;
+  i, c: Integer;
+  IsUseIpV6: Byte;
 begin
-  count := 0;
-  repeat
-    Inc(count);
-    Item := FSettings.ServerList.RandomItem;
+  if FSettings.UseIPv6 then
+    IsUseIpV6 := 1
+  else
+    IsUseIpV6 := 0;
+
+  ServerCount := 0;
+
+  c := FSettings.ServerList.Count;
+  for i := 0 to c - 1 do
+  begin
+    Item := FSettings.ServerList.Item[i];
 
     Data := hex_string_to_bin(Item.Key);
     try
-      ret := tox_bootstrap_from_address(FTox, PAnsiChar(AnsiString(Item.Ip)), 0, Item.NewPort, Data);
+      ret := tox_bootstrap_from_address(FTox, PAnsiChar(AnsiString(Item.Ip)),
+        IsUseIpV6, Item.NewPort, Data);
+
+      if ret = 1 then
+        ServerCount := ServerCount + 1;
+
     finally
       FreeMemory(Data);
     end;
-  until (count > 10) or (ret <> 0);
+  end;
 
   // Событие начала соединения с выбранным сервером
   FConnectState := csConnecting;
-  EventConnecting(Item);
+  EventConnecting(ServerCount);
 end;
 
 { *   Инициальзация библиотеки Tox, загрузка настроек из файла, получение

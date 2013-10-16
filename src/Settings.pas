@@ -23,9 +23,11 @@ type
     FDataStream: TFileStream;
     FUserName: string;
     FServerList: TServerList;
+    FUseIPv6: Boolean;
     function GetConfigPath: string;
     function GetHomePath: string;
     procedure SetUserName(const Value: string);
+    procedure SetUseIPv6(const Value: Boolean);
   public
     constructor Create;
     destructor Destroy; override;
@@ -36,6 +38,7 @@ type
     property ServerList: TServerList read FServerList;
 
     property ConfigPath: string read GetConfigPath;
+    property UseIPv6: Boolean read FUseIPv6 write SetUseIPv6;
     property UserName: string read FUserName write SetUserName;
   end;
 
@@ -67,6 +70,7 @@ begin
   FDataStream := TFileStream.Create(FileData, OpenMode);
 
   FUserName := {$IFDEF FPC}UTF8Encode{$ENDIF}(FIniFile.ReadString('user', 'name', DEFAULT_USER_NAME));
+  FUseIPv6 := False;
 end;
 
 destructor TSettings.Destroy;
@@ -126,6 +130,11 @@ begin
   FDataStream.Size := 0;
   FDataStream.Position := 0;
   FDataStream.Write(Data^, Size);
+end;
+
+procedure TSettings.SetUseIPv6(const Value: Boolean);
+begin
+  FUseIPv6 := Value;
 end;
 
 procedure TSettings.SetUserName(const Value: string);

@@ -86,29 +86,6 @@ const
 
 { TServerList }
 
-procedure TServerList.Add(Name, Key, Ip: string; Port: Word);
-begin
-  AddServerToList(Name, Key, Ip, Port);
-  FileSave;
-end;
-
-procedure TServerList.AddServerToList(Name, Key, Ip: string; Port: Word);
-var
-  Server: TServerItem;
-  l: Integer;
-begin
-  Server := TServerItem.Create(Name, Key, Ip, Port);
-  Server.OnUpdate := ServerItemUpdate;
-  l := Length(FServerItem);
-  if l <= FServerItemCount then
-  begin
-    SetLength(FServerItem, FServerItemCount + 10);
-  end;
-
-  FServerItem[FServerItemCount] := Server;
-  FServerItemCount := FServerItemCount + 1;
-end;
-
 constructor TServerList.Create(ConfigPath: string);
 const
   MAX_TRY_OPEN = 10;
@@ -131,6 +108,37 @@ begin
   begin
     LoadDefaultList;
   end;
+end;
+
+destructor TServerList.Destroy;
+begin
+  if Assigned(FStream) then
+    FStream.Free;
+
+  inherited;
+end;
+
+procedure TServerList.Add(Name, Key, Ip: string; Port: Word);
+begin
+  AddServerToList(Name, Key, Ip, Port);
+  FileSave;
+end;
+
+procedure TServerList.AddServerToList(Name, Key, Ip: string; Port: Word);
+var
+  Server: TServerItem;
+  l: Integer;
+begin
+  Server := TServerItem.Create(Name, Key, Ip, Port);
+  Server.OnUpdate := ServerItemUpdate;
+  l := Length(FServerItem);
+  if l <= FServerItemCount then
+  begin
+    SetLength(FServerItem, FServerItemCount + 10);
+  end;
+
+  FServerItem[FServerItemCount] := Server;
+  FServerItemCount := FServerItemCount + 1;
 end;
 
 procedure TServerList.Delete(Item: TServerItem);
@@ -164,14 +172,6 @@ begin
 
     Dec(FServerItemCount);
   end;
-end;
-
-destructor TServerList.Destroy;
-begin
-  if Assigned(FStream) then
-    FStream.Free;
-    
-  inherited;
 end;
 
 function TServerList.FileOpen: Boolean;
@@ -273,10 +273,13 @@ end;
 
 procedure TServerList.LoadDefaultList;
 begin
-  AddServerToList('stqism',  '5CD7EB176C19A2FD840406CD56177BB8E75587BB366F7BB3004B19E3EDC04143', '192.184.81.118', 33445);
+  AddServerToList('stqism', '6EDDEE2188EF579303C0766B4796DCBA89C93058B6032FEA51593DCD42FB746C', '54.215.145.71 ', 33445);
+  AddServerToList('stal', '728925473812C7AAC482BE7250BCCAD0B8CB9F737BF3D42ABD34459C1768F854', '198.46.136.167', 33445);
+  AddServerToList('caceous', 'F4BF7C5A9D0EF4CB684090C38DE937FAE1612021F21FEA4DCBFAC6AAFEF58E68', '95.47.140.214', 33445);
+  AddServerToList('JRWR', 'DAC529413F2C1CF0E3282CD8E47D6F2065E6C9D7A0D3DB61B111550E96917555', '198.27.64.29', 33445);
+  AddServerToList('platos', 'B24E2FB924AE66D023FE1E42A2EE3B432010206F751A2FFD3E297383ACF1572E', '66.175.223.88', 33445);
+  AddServerToList('ChlorideCull', '48F0D94C0D54EB1995A2ECEDE7DB6BDD5E05D81704B2F3D1BB9FE43AC97B7269', '81.224.34.47', 33443);
   AddServerToList('JmanGuy', '890D9C546EC2B72476EDFEB86AFEAE229FE8D0686D1ED75E8F7BFC56DCC81C26', '66.74.30.125', 33445);
-  AddServerToList('stal',    '728925473812C7AAC482BE7250BCCAD0B8CB9F737BF3D42ABD34459C1768F854', '198.46.136.167', 33445);
-  AddServerToList('platos',    'B24E2FB924AE66D023FE1E42A2EE3B432010206F751A2FFD3E297383ACF1572E', '66.175.223.88', 33445);
 end;
 
 function TServerList.OpenFile(FileName: string): Boolean;

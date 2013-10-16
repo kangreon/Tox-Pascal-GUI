@@ -1,4 +1,4 @@
-unit MessageItem;
+п»їunit MessageItem;
 
 interface
 
@@ -6,7 +6,7 @@ uses
   StringUtils, SysUtils, FriendList, FriendItem;
 
 type
-  // Класс, описывающий одно сообщение
+  // РљР»Р°СЃСЃ, РѕРїРёСЃС‹РІР°СЋС‰РёР№ РѕРґРЅРѕ СЃРѕРѕР±С‰РµРЅРёРµ
   TMessageItem = class
   private
     FTime: TDateTime;
@@ -26,16 +26,16 @@ type
     property Data: TObject read FData write FData;
     property Friend: TFriendItem read FFriend write FFriend;
     property Index: Integer read FIndex write FIndex;
-    // Время отправки сообщения
+    // Р’СЂРµРјСЏ РѕС‚РїСЂР°РІРєРё СЃРѕРѕР±С‰РµРЅРёСЏ
     property Time: TDateTime read FTime write FTime;
-    // Текст сообщения
+    // РўРµРєСЃС‚ СЃРѕРѕР±С‰РµРЅРёСЏ
     property Text: DataString read FText write SetText;
 
     property IsMy: Boolean read FUserMessage write FUserMessage;
-    // Состояние доставки сообщения пользователю
+    // РЎРѕСЃС‚РѕСЏРЅРёРµ РґРѕСЃС‚Р°РІРєРё СЃРѕРѕР±С‰РµРЅРёСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЋ
     property IsSend: Boolean read FStatusSend write FStatusSend;
     property IsRead: Boolean read FIsRead write FIsRead;
-    // Номер сообщения в базе данных
+    // РќРѕРјРµСЂ СЃРѕРѕР±С‰РµРЅРёСЏ РІ Р±Р°Р·Рµ РґР°РЅРЅС‹С…
     property Number: Integer read FNumber write FNumber;
   end;
 

@@ -202,10 +202,11 @@ const
 //      TOX_FILECONTROL_KILL,
 //      TOX_FILECONTROL_FINISHED
 //  };
-  TOX_FILECONTROL_ACCEPT    = 0;
-  TOX_FILECONTROL_PAUSE     = 1;
-  TOX_FILECONTROL_KILL      = 2;
-  TOX_FILECONTROL_FINISHED  = 3;
+  TOX_FILECONTROL_ACCEPT        = 0;
+  TOX_FILECONTROL_PAUSE         = 1;
+  TOX_FILECONTROL_KILL          = 2;
+  TOX_FILECONTROL_FINISHED      = 3;
+  TOX_FILECONTROL_RESUME_BROKEN = 4;
 
   TOX_LIBRARY = {$IFDEF Win32}'libtoxcore-0.dll'{$ENDIF}
                 {$IFDEF Unix}'libtoxcore-0.so'{$ENDIF};
@@ -563,6 +564,13 @@ function tox_group_message_send(Tox: TTox; groupnumber: Integer; message: PByte;
 // *
 // * tox_file_dataremaining(...) can be used to know how many bytes are left to send/receive.
 // *
+// * If the connection breaks during file sending (The other person goes offline without pausing the sending and then comes back)
+// * the reciever must send a control packet with receive_send == 0 message_id = TOX_FILECONTROL_RESUME_BROKEN and the data being
+// * a uint64_t (in host byte order) containing the number of bytes recieved.
+// *
+// * If the sender recieves this packet, he must send a control packet with receive_send == 1 and control_type == TOX_FILECONTROL_ACCEPT
+// * then he must start sending file data from the position (data , uint64_t in host byte order) recieved in the TOX_FILECONTROL_RESUME_BROKEN packet.
+// * 
 // * More to come...
 // */
 

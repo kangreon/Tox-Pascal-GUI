@@ -1,5 +1,5 @@
 {$IFNDEF FPC}
-  Windows,
+  Windows, Types,
 {$ELSE}
   LCLIntf, LCLType, LMessages, FileUtil, Types,
 {$ENDIF}

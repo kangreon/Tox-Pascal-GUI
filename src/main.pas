@@ -107,8 +107,6 @@ begin
   FToxCore.OnReadReceipt := ToxReadReceipt;
   FToxCore.OnConnectioStatus := ToxConnectionStatus;
 
-  Clipboard.SetTextBuf(PChar(FToxCore.YourAddress.DataHex));
-
   FRequestConrtoller := TFriendRequestController.Create(Self);
   FRequestConrtoller.OnAddFriend := RequestOnAddFriend;
 
@@ -123,38 +121,23 @@ end;
 procedure TForm1.InitGui;
 var
   LeftPanel: TPanel;
-  RightPanel: TPanel;
 begin
   LeftPanel := TPanel.Create(Self);
   LeftPanel.Parent := Self;
   LeftPanel.Align := alLeft;
   LeftPanel.Width := 223;
   LeftPanel.BevelOuter := bvNone;
-  // Устраняет проблему при изменении размера формы.
-  // Проблема заключается в проступании цвета формы-родителя.
   LeftPanel.DoubleBuffered := True;
-  {$IFNDEF FPC}
-  LeftPanel.ParentBackground := False;
-  {$ENDIF}
+  LeftPanel.ControlStyle := LeftPanel.ControlStyle - [csParentBackground];
   LeftPanel.TabOrder := 0;
   LeftPanel.TabStop := True;
 
   Splitter1.Left := LeftPanel.Width;
   Splitter1.ResizeStyle := rsUpdate;
 
-  RightPanel := TPanel.Create(Self);
-  RightPanel.Parent := Self;
-  RightPanel.Align := alClient;
-  RightPanel.BevelOuter := bvNone;
-  //RightPanel.Color := $F2F2F1;
-  RightPanel.DoubleBuffered := True;
-  {$IFNDEF FPC}
-  RightPanel.ParentBackground := False;
-  {$ENDIF}
-
-  FMessageControl := TMessageControl.Create(RightPanel, FToxCore.MessageList);
+  FMessageControl := TMessageControl.Create(Self, FToxCore.MessageList);
   FMessageControl.Align := alClient;
-  FMessageControl.Parent := RightPanel;
+  FMessageControl.Parent := Self;
   FMessageControl.OnSendTextFriend := MessageControlSendTextFriend;
 
   FUserStatus := TUserStatus.Create(LeftPanel);

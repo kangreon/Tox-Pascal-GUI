@@ -20,3 +20,5 @@ Win32/*
 *.db
 *.lps
 *.a
+Build/*
+*.tmp

@@ -17,7 +17,7 @@ uses
   FriendItem, StringUtils, UserIcon, ImageUtils, Types;
 
 type
-  TMessageHeader = class(TCustomControl)
+  TMessageHeader = class(TGraphicControl)
   private
     FImageCall: TButtonActive;
     FImageCallVideo: TButtonActive;
@@ -25,8 +25,8 @@ type
     FUserIcon: TUserIcon;
     procedure FriendUpdate(Sender: TObject);
   protected
-    procedure CreateWnd; override;
     procedure Resize; override;
+    procedure SetParent(AParent: TWinControl); override;
     procedure Paint; override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -129,19 +129,6 @@ begin
   Canvas.LineTo(ClientWidth, ClientHeight - 1);
 end;
 
-procedure TMessageHeader.CreateWnd;
-begin
-  inherited;
-  DoubleBuffered := True;
-
-  Constraints.MinHeight := TMHStyle.ControlHeight;
-  Constraints.MaxHeight := TMHStyle.ControlHeight;
-  ClientHeight := TMHStyle.ControlHeight;
-
-  FImageCall.Parent := Self;
-  FImageCallVideo.Parent := Self;
-end;
-
 procedure TMessageHeader.Resize;
 begin
   inherited;
@@ -168,6 +155,17 @@ begin
     Visible := True;
     Invalidate;
   end;
+end;
+
+procedure TMessageHeader.SetParent(AParent: TWinControl);
+begin
+  inherited;
+  Constraints.MinHeight := TMHStyle.ControlHeight;
+  Constraints.MaxHeight := TMHStyle.ControlHeight;
+  ClientHeight := TMHStyle.ControlHeight;
+
+  FImageCall.Parent := AParent;
+  FImageCallVideo.Parent := AParent;
 end;
 
 procedure TMessageHeader.FriendUpdate(Sender: TObject);

@@ -14,7 +14,7 @@ interface
 
 uses
 {$I tox-uses.inc}
-  fmFriendRequest, {$IFDEF NEW_DELPHI}Types, {$ENDIF}Classes, ClientAddress, StringUtils, Forms, ExtCtrls;
+  fmFriendRequest, Classes, ClientAddress, StringUtils, Forms, ExtCtrls;
 
 type
   PRequestItem = ^TRequestItem;

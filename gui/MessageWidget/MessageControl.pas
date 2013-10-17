@@ -140,9 +140,7 @@ procedure TMessageControl.CreateWnd;
 begin
   inherited;
   DoubleBuffered := True;
-  {$IFNDEF FPC}
-  ParentBackground := False;
-  {$ENDIF}
+  ControlStyle := ControlStyle - [csParentBackground];
 
   FActive.Parent := Self;
 
@@ -195,10 +193,12 @@ begin
 end;
 
 procedure TMessageControl.WndProc(var Message: TMessage);
+{$IFDEF FPC}
   function GET_WHEEL_DELTA_WPARAM(wp: longint): smallint;
   begin
     Result := smallint(wp shr 16);
   end;
+{$ENDIF}
 
 begin
   inherited;

@@ -11,14 +11,17 @@ unit MessageForm;
 interface
 
 uses
+  {$I tox-uses.inc} Messages,
   Classes, Controls, StdCtrls, ButtonActive, Forms, StringUtils, SysUtils;
 
 type
   TProcSendText = procedure(Sender: TObject; const Text: DataString) of object;
 
-  TMessageForm = class(TCustomControl)
+  TMessageForm = class(TGraphicControl)
   private
     FTextForm: TMemo;
+    FTextFormLineHeight: Integer;
+    FTextFormShowScroll: Boolean;
     FButtonSend: TButtonActive;
     FOnSendText: TProcSendText;
     FFormHandle: THandle;
@@ -26,9 +29,11 @@ type
     procedure TextFormEnter(Sender: TObject);
     procedure TextFormExit(Sender: TObject);
     procedure LockTextForm;
+    procedure TextFormChange(Sender: TObject);
   protected
-    procedure CreateWnd; override;
     procedure Paint; override;
+    procedure Resize; override;
+    procedure SetParent(AParent: TWinControl); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -45,38 +50,19 @@ constructor TMessageForm.Create(AOwner: TComponent);
 begin
   inherited;
   FTextForm := TMemo.Create(Self);
-  FTextForm.Align := alClient;
-  FTextForm.BorderStyle := bsNone;
+  FTextForm.BorderStyle := TFormBorderStyle.bsNone;
+  FTextForm.ScrollBars := ssNone;
+  FTextForm.WordWrap := True;
+  FTextForm.DoubleBuffered := True;
   FTextForm.OnKeyPress := TextFormKeyPress;
   FTextForm.OnEnter := TextFormEnter;
   FTextForm.OnExit := TextFormExit;
+  FTextForm.OnChange := TextFormChange;
+  FTextFormShowScroll := False;
   LockTextForm;
-
-  FTextForm.AlignWithMargins := True;
-  with FTextForm.Margins do
-  begin
-    Left := 2;
-    Top := 2;
-    Right := 2;
-    Bottom := 2;
-  end;
-
 
   FButtonSend := TButtonActive.Create(Self);
   FButtonSend.Align := alRight;
-end;
-
-procedure TMessageForm.CreateWnd;
-begin
-  inherited;
-  Constraints.MinHeight := 40;
-  ClientHeight := 40;
-
-  FTextForm.Parent := Self;
-  FTextForm.Color := Color;
-  FFormHandle := FTextForm.Handle;
-
-  FButtonSend.Parent := Self;
 end;
 
 destructor TMessageForm.Destroy;
@@ -98,6 +84,65 @@ begin
   Canvas.LineTo(ClientWidth - 1, ClientHeight - 1);
   Canvas.LineTo(1, ClientHeight - 1);
   Canvas.LineTo(1, 0);
+end;
+
+procedure TMessageForm.Resize;
+var
+  FormRect: TRect;
+begin
+  inherited;
+  FormRect := BoundsRect;
+  //TODO: Исправить после устранения всех проблем с TMemo
+  FormRect.Left := FormRect.Left + 2 + Parent.Left;
+  FormRect.Top := FormRect.Top + 2;
+  FormRect.Right := FormRect.Right - 2 + Parent.Left;
+  FormRect.Bottom := FormRect.Bottom - 2;
+
+  FTextForm.BoundsRect := FormRect;
+end;
+
+procedure TMessageForm.SetParent(AParent: TWinControl);
+begin
+  inherited;
+  Constraints.MinHeight := 40;
+  ClientHeight := 80;
+
+  FTextForm.Parent := AParent.Parent;
+  FTextForm.BringToFront;
+  Canvas.Font.Assign(FTextForm.Font);
+  FTextFormLineHeight := Canvas.TextHeight(' ');
+
+  FTextForm.Color := Color;
+  FFormHandle := FTextForm.Handle;
+
+//  FButtonSend.Parent := AParent;
+end;
+
+{ *  Показывает и прячет полосу прокрутки когда это необходимо.
+  * }
+procedure TMessageForm.TextFormChange(Sender: TObject);
+var
+  TextLines, TextHeight: Integer;
+begin
+  if not Assigned(Parent) then
+    Exit;
+
+  TextLines := FTextForm.Lines.Count;
+  TextHeight := FTextFormLineHeight * TextLines;
+  if FTextForm.Height >= TextHeight then
+  begin
+    if FTextFormShowScroll then
+      FTextForm.ScrollBars := ssNone;
+
+    FTextFormShowScroll := False;
+  end
+  else
+  begin
+    if not FTextFormShowScroll then
+      FTextForm.ScrollBars := ssVertical;
+
+    FTextFormShowScroll := True;
+  end;
 end;
 
 { * Ожидание нажатия клавиши Enter для очистки формы и отправки тектста.
@@ -131,6 +176,15 @@ begin
   end;
 end;
 
+procedure SetMargins(Memo: HWND);
+var
+  Rect: TRect;
+begin
+  SendMessage(Memo, EM_GETRECT, 0, Longint(@Rect));
+  Rect.Right := Rect.Right - GetSystemMetrics(SM_CXHSCROLL);
+  SendMessage(Memo, EM_SETRECT, 0, Longint(@Rect));
+end;
+
 procedure TMessageForm.TextFormExit(Sender: TObject);
 var
   Text: string;
@@ -148,7 +202,7 @@ begin
   FTextForm.Tag := 1;
 
   FTextForm.Font.Color := $555555;
-  FTextForm.Text := 'Введите ваше сообщение здесь...';
+  FTextForm.Text := {$IFDEF FPC}UTF8Encode{$ENDIF}('Введите ваше сообщение здесь...');
 end;
 
 end.

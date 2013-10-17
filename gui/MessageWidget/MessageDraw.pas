@@ -16,8 +16,6 @@ uses
   {$I tox-uses.inc}
   {$IFDEF FPC}
   LazUTF8,
-  {$ELSE}
-  Types,
   {$ENDIF}
   Classes, SysUtils, Controls, Graphics, StringUtils, MessageList, MessageItem,
   TextLineInfo, Math;

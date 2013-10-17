@@ -3,10 +3,11 @@
 echo Clean
 call clean.bat
 
-echo Build resources
-call build-resource.bat >NUL
-
 call rsvars.bat
 call %FrameworkDir%\msbuild /p:config=Release tox.dproj
+
+copy libtoxcore-0.dll Build\libtoxcore-0.dll
+copy sqlite3.dll Build\sqlite3.dll
+
 
 pause

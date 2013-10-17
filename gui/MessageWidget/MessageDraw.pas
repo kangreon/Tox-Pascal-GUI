@@ -513,6 +513,7 @@ begin
           FBottomMessagePosition := BottomPosition;
         end;
 
+        MessageInfo.BottomMargin := 4;
         MessageInfo.BottomPosition := BottomPosition;
         ItemList[ItemListCount] := MessageInfo;
         Inc(ItemListCount);
@@ -608,7 +609,6 @@ begin
   FIsCreateList := False;
   FBottomMessageIndex := BottomMessageIndex;
   FBottomMessagePosition := 0;
-  //RecreateItems;
   Resize;
   Invalidate;
 end;

@@ -104,6 +104,9 @@ end;
 procedure TMessageForm.SetParent(AParent: TWinControl);
 begin
   inherited;
+  if not Assigned(AParent) then
+    Exit;
+
   Constraints.MinHeight := 40;
   ClientHeight := 80;
 

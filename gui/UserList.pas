@@ -98,7 +98,7 @@ begin
   FList.OnSelectItem := ListSelectItem;
 
   FFriends.OnUpdateItem := FriendsUpdate;
-  FFriends.OnNewItem := FriendsNewItem;
+  FFriends.OnNewFriend := FriendsNewItem;
   LoadAllUsers;
 
   FActiveRegion := TActiveRegion.Create(Self);

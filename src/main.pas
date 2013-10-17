@@ -25,6 +25,7 @@ type
     ActivityList: TMemo;
     Splitter1: TSplitter;
     procedure FormCreate(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     FRequestConrtoller: TFriendRequestController;
     FSettings: TSettings;
@@ -34,7 +35,7 @@ type
     procedure ToxOnConnecting(Sender: TObject; ServerCount: Integer);
     procedure ToxFriendRequest(Sender: TObject; ClientAddress: TFriendAddress;
       HelloMessage: DataString);
-    procedure ToxFriendMessage(Sender: TObject; FriendNumber: Integer;
+    procedure ToxFriendMessage(Sender: TObject; Friend: TFriendItem;
       MessageStr: DataString);
     procedure ToxOnAction(Sender: TObject; FriendNumber: Integer;
       Action: DataString);
@@ -63,6 +64,7 @@ type
     procedure UserListSelectItem(Sender: TObject; Item: TFriendItem);
     procedure MessageControlSendTextFriend(Sender: TObject; Friend: TFriendItem;
       const Text: DataString);
+    procedure DestrGui;
   public
     property ToxLoadError: Boolean read FToxLoadError;
   end;
@@ -73,6 +75,11 @@ var
 implementation
 
 {$R *.dfm}
+
+procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  DestrGui;
+end;
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
@@ -165,12 +172,22 @@ begin
   ActivityList.Visible := False;
 end;
 
+{ *  Освобождение памяти
+  * }
+procedure TForm1.DestrGui;
+begin
+  FMessageControl.Free;
+  FUserList.Free;
+  FControlPanel.Free;
+  FUserStatus.Free;
+end;
+
 procedure TForm1.MessageControlSendTextFriend(Sender: TObject;
   Friend: TFriendItem; const Text: DataString);
 begin
   if Friend.IsFriend then
   begin
-    FToxCore.SendMessage(Friend.Number, Text);
+    FToxCore.SendMessage(Friend, Text);
   end;
 end;
 
@@ -231,10 +248,10 @@ begin
   FUserStatus.State := sOffline;
 end;
 
-procedure TForm1.ToxFriendMessage(Sender: TObject; FriendNumber: Integer;
+procedure TForm1.ToxFriendMessage(Sender: TObject; Friend: TFriendItem;
   MessageStr: DataString);
 begin
-  ActivityList.Lines.Add('New message from user ' + IntToStr(FriendNumber) +
+  ActivityList.Lines.Add('New message from user ' + Friend.UserName +
     ' with text: ' + MessageStr);
 end;
 

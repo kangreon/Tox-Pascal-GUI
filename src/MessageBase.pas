@@ -17,6 +17,9 @@ uses
   FriendList, Math, FriendItem, DataBase, Classes;
 
 type
+  TProcNewMessage = procedure(Sender: TObject; FriendDialog: TFriendItem;
+    Message: TMessageItem) of object;
+
   TMessageBase = class
   private
     FBase: TSQLiteDatabase;
@@ -27,15 +30,20 @@ type
     FBuffer: TMessageArray;
     FBufferRemove: array of Boolean;
     FBufferStart: Integer;
+    FLastMessages: TMessageArray;
+    FLastMessagesCount: Integer;
     FFriendItem: TFriendItem;
     FMyItem: TFriendItem;
+    FOnNewMessage: TProcNewMessage;
     function GetItemByNumber(Number: Integer): TMessageItem;
     procedure SetRemoveFlag;
+    procedure InsertInLastList(Mess: TMessageItem);
   public
     constructor Create(MyItem, FriendItem: TFriendItem; DataBase: TDataBase);
     destructor Destroy; override;
 
-    procedure Insert(Mess: TMessageItem);
+    procedure InsertInTable(Mess: TMessageItem);
+    procedure InserMessage(Text: DataString; IsMy: Boolean);
 
     function Select(Number: Integer): TMessageItem;
     function SelectRange(From, Count: Integer; out Messages: TMessageArray): Boolean;
@@ -43,6 +51,8 @@ type
 
     property Count: Integer read FCount;
     property Friend: TFriendItem read FFriendItem;
+
+    property OnNewMessage: TProcNewMessage read FOnNewMessage write FOnNewMessage;
   end;
 
   TMessageBaseList = TList;
@@ -97,7 +107,48 @@ begin
   Result := Value <> 0;
 end;
 
-procedure TMessageBase.Insert(Mess: TMessageItem);
+{ *  Добавление нового сообщения в базу
+  * }
+procedure TMessageBase.InserMessage(Text: DataString; IsMy: Boolean);
+var
+  Item: TMessageItem;
+begin
+  Item := TMessageItem.FromText(Text);
+  if IsMy then
+    Item.Friend := FMyItem
+  else
+    Item.Friend := FFriendItem;
+
+  Item.IsMy := IsMy;
+
+  InsertInLastList(Item);
+  InsertInTable(Item);
+
+  if Assigned(FOnNewMessage) then
+    FOnNewMessage(Self, FFriendItem, Item);
+end;
+
+{ *  Добовление сообщения в список последних сообщений. Эти сообщения хранятся
+  *  всю(?) последнюю сессию.
+  * }
+procedure TMessageBase.InsertInLastList(Mess: TMessageItem);
+var
+  c: Integer;
+begin
+  c := Length(FLastMessages);
+  if c <= FLastMessagesCount then
+  begin
+    SetLength(FLastMessages, c + 20);
+  end;
+
+  FLastMessages[FLastMessagesCount] := Mess;
+  Inc(FLastMessagesCount);
+end;
+
+{ *  Добавляет сообщение в базу данных и записывает идентификатор записи в
+  *  структуру сообщения.
+  * }
+procedure TMessageBase.InsertInTable(Mess: TMessageItem);
 var
   SQL: AnsiString;
   Query: TSQLiteQuery;

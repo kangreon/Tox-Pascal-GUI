@@ -3,7 +3,7 @@
 interface
 
 uses
-  FriendItem, SysUtils, SQliteTable3, StringUtils, ClientAddress, Classes;
+  FriendItem, SysUtils, SQliteTable3, StringUtils, ClientAddress, Classes, Dialogs;
 
 type
   TFriendBase = class
@@ -28,6 +28,8 @@ type
       ClientId: TClientId): TFriendItem; overload;
     function Add(Name, LocalName, Status: DataString;
       Address: TFriendAddress): TFriendItem; overload;
+    procedure BeginUpdate;
+    procedure EndUpdate;
 
     property Count: Integer read GetCount;
     property Friends: TFriendItemList read FFriends;
@@ -52,6 +54,16 @@ destructor TFriendBase.Destroy;
 begin
   FFriends.Free;
   inherited;
+end;
+
+procedure TFriendBase.BeginUpdate;
+begin
+  FBase.BeginTransaction;
+end;
+
+procedure TFriendBase.EndUpdate;
+begin
+  FBase.Commit;
 end;
 
 function TFriendBase.GetCount: Integer;

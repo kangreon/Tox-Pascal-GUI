@@ -24,7 +24,7 @@ type
     FBase: TFriendBase;
     FStopUpdate: Boolean;
     FOnUpdateItem: TProcUpdateItem;
-    FOnNewItem: TNotifyEvent;
+    FOnNewFriend: TNotifyEvent;
     FMyItem: TFriendItem;
     function GetCount: Integer;
     function GetItemFriend(Index: Integer): TFriendItem;
@@ -54,7 +54,7 @@ type
     property ItemFriend[Index: Integer]: TFriendItem read GetItemFriend;
     property MyItem: TFriendItem read FMyItem;
 
-    property OnNewItem: TNotifyEvent read FOnNewItem write FOnNewItem;
+    property OnNewFriend: TNotifyEvent read FOnNewFriend write FOnNewFriend;
     property OnUpdateItem: TProcUpdateItem read FOnUpdateItem write FOnUpdateItem;
   end;
 
@@ -90,8 +90,8 @@ end;
 
 procedure TFriendList.BaseNewItem(Sender: TObject);
 begin
-  if Assigned(FOnNewItem) then
-    FOnNewItem(Sender);
+  if Assigned(FOnNewFriend) then
+    FOnNewFriend(Sender);
 end;
 
 function TFriendList.Add(Address: TFriendAddress; Number: Integer): TFriendItem;
@@ -109,33 +109,36 @@ end;
 function TFriendList.Add(Client: TClientId; Number: Integer): TFriendItem;
 var
   Item: TFriendItem;
+  IsNewFriend: Boolean;
 begin
   UnfriendNumber(Number);
 
   Item := GetItemWithClientId(Client);
 
-  if not Assigned(Item) then
+  IsNewFriend := not Assigned(Item);
+  if IsNewFriend then
     Item := FBase.Add('', '', '', Client);
 
   Item.IsFriend := True;
   Item.Number := Number;
   Result := Item;
 
-  if Assigned(FOnNewItem) then
-    FOnNewItem(Self);
+  if Assigned(FOnNewFriend) then
+    FOnNewFriend(Self);
 end;
 
 procedure TFriendList.BeginUpdate;
 begin
   FStopUpdate := True;
+  FBase.BeginUpdate;
 end;
 
 procedure TFriendList.ClearFriend;
 begin
   UnfriendClients;
 
-  if (not FStopUpdate) and Assigned(FOnNewItem) then
-    FOnNewItem(Self);
+  if (not FStopUpdate) and Assigned(FOnNewFriend) then
+    FOnNewFriend(Self);
 end;
 
 procedure TFriendList.EndUpdate;
@@ -143,9 +146,10 @@ begin
   if FStopUpdate then
   begin
     FStopUpdate := False;
+    FBase.EndUpdate;
 
-    if Assigned(FOnNewItem) then
-      FOnNewItem(Self);
+    if Assigned(FOnNewFriend) then
+      FOnNewFriend(Self);
   end;
 end;
 

@@ -160,6 +160,9 @@ end;
 procedure TMessageHeader.SetParent(AParent: TWinControl);
 begin
   inherited;
+  if not Assigned(AParent) then
+    Exit;
+
   Constraints.MinHeight := TMHStyle.ControlHeight;
   Constraints.MaxHeight := TMHStyle.ControlHeight;
   ClientHeight := TMHStyle.ControlHeight;

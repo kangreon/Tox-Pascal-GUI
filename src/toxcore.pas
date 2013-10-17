@@ -22,7 +22,7 @@ type
   TProcConnecting = procedure(Sender: TObject; ServerCount: Integer) of object;
   TProcFriendRequest = procedure(Sender: TObject; ClientAddress: TFriendAddress;
     HelloMessage: DataString) of object;
-  TProcFriendMessage = procedure(Sender: TObject; FriendNumber: Integer;
+  TProcFriendMessage = procedure(Sender: TObject; Friend: TFriendItem;
     MessageStr: DataString) of object;
   TProcAction = procedure(Sender: TObject; FriendNumber: Integer;
     Action: DataString) of object;
@@ -53,6 +53,7 @@ type
     FStatusOnline: Boolean;
     FTempAddress: TFriendAddress;
     FTemtMessage: DataString;
+    FTempFriend: TFriendItem;
     FTempFriendNumber: Integer;
     FTempUserStatus: TToxUserStatus;
     FTempReceipt: Integer;
@@ -79,7 +80,7 @@ type
     procedure EventFriendRequest(ClientAddress: TFriendAddress;
       HelloMessage: DataString);
     procedure EventFriendRequestSyn;
-    procedure EventFriendMessage(FriendNumber: Integer; MessageStr: DataString);
+    procedure EventFriendMessage(Friend: TFriendItem; MessageStr: DataString);
     procedure EventFriendMessageSyn;
     procedure EventAction(FriendNumber: Integer; Action: DataString);
     procedure EventActionSyn;
@@ -116,7 +117,7 @@ type
     function AddFriend(Address: TFriendAddress; HelloMessage: DataString;
       out FriendNumber: Integer): TToxFaerr;
     function AddFriendNoRequest(Address: TFriendAddress): Boolean;
-    procedure SendMessage(FriendNumber: Integer; Text: DataString);
+    procedure SendMessage(Friend: TFriendItem; Text: DataString);
     procedure SetUserStatus(Status: TToxUserStatus);
     procedure StartTox;
     procedure StopTox;
@@ -344,8 +345,15 @@ end;
   * }
 procedure TToxCore.DoFriendMessage(FriendNumber: Integer;
   MessageStr: DataString);
+var
+  Friend: TFriendItem;
 begin
-  EventFriendMessage(FriendNumber, MessageStr);
+  Friend := FFriendList.ItemFriend[FriendNumber];
+  if Assigned(Friend) then
+  begin
+    FMessageList.SetMessage(Friend, MessageStr, False);
+    EventFriendMessage(Friend, MessageStr);
+  end;
 end;
 
 procedure TToxCore.DoFriendRequest(FriendAddress: TFriendAddress;
@@ -479,10 +487,10 @@ begin
     FOnDisconnect(Self);
 end;
 
-procedure TToxCore.EventFriendMessage(FriendNumber: Integer;
+procedure TToxCore.EventFriendMessage(Friend: TFriendItem;
   MessageStr: DataString);
 begin
-  FTempFriendNumber := FriendNumber;
+  FTempFriend := Friend;
   FTemtMessage := MessageStr;
   Synchronize(EventFriendMessageSyn);
 end;
@@ -490,7 +498,7 @@ end;
 procedure TToxCore.EventFriendMessageSyn;
 begin
   if Assigned(FOnFriendMessage) then
-    FOnFriendMessage(Self, FTempFriendNumber, FTemtMessage);
+    FOnFriendMessage(Self, FTempFriend, FTemtMessage);
 end;
 
 procedure TToxCore.EventFriendRequest(ClientAddress: TFriendAddress;
@@ -818,16 +826,18 @@ begin
   end;
 end;
 
-procedure TToxCore.SendMessage(FriendNumber: Integer; Text: DataString);
+procedure TToxCore.SendMessage(Friend: TFriendItem; Text: DataString);
 var
   Data: PByte;
   DataLength: Integer;
 begin
-  if FConnectState = csOnline then
+  if (FConnectState = csOnline) and Assigned(Friend) and Friend.IsFriend then
   begin
+    FMessageList.SetMessage(Friend, Text, True);
+
     Data := GetUtf8Text(Text, DataLength);
     try
-      tox_sendmessage(FTox, FriendNumber, Data, DataLength);
+      tox_sendmessage(FTox, Friend.Number, Data, DataLength);
     finally
       FreeMem(Data);
     end;

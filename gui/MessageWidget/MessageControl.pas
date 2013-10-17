@@ -41,6 +41,8 @@ type
     procedure ActiveOnMessage(Sender: TObject; RegionMessage: TRegionMessage;
       const x, y: Integer; Button: TMouseButton; Shift: TShiftState);
     procedure FormSendText(Sender: TObject; const Text: DataString);
+    procedure MessageNewMess(Sender: TObject; Friend: TFriendItem;
+      Message: TMessageItem);
   protected
     procedure CreateWnd; override;
     function DoMouseWheelDown(Shift: TShiftState; MousePos: TPoint)
@@ -66,7 +68,10 @@ constructor TMessageControl.Create(AOwner: TComponent;
   MessageList: TMessageList);
 begin
   inherited Create(AOwner);
+
   FMessageList := MessageList;
+  FMessageList.OnNewMessage := MessageNewMess;
+
   FActive := TActiveRegion.Create(Self);
   FActive.Align := alClient;
   FActive.OnCursorMessage := ActiveOnMessage;
@@ -91,9 +96,30 @@ end;
 
 destructor TMessageControl.Destroy;
 begin
-  FActive.Free;
+  FIsFriendSelect := False;
+
   FForm.Free;
+  FDraw.Free;
+  FHeader.Free;
+  FActive.Free;
   inherited;
+end;
+
+{ *  В базе появилось новое сообщение. В случае если список сообщений прокручен
+  *  на последние (1-2?) сообщения, прокрутка к только что добавленному
+  *  сообщению. //TODO: (Реализовать)
+  * }
+procedure TMessageControl.MessageNewMess(Sender: TObject; Friend: TFriendItem;
+  Message: TMessageItem);
+var
+  MessageCount: Integer;
+begin
+  if Assigned(FFriendSelect) and (Assigned(Friend)) and
+    FFriendSelect.ClientId.IsCompare(Friend.ClientId) then
+  begin
+    MessageCount := FMessageList.GetMessageCount(Friend.ClientId);
+    FDraw.Redraw(MessageCount - 1);
+  end;
 end;
 
 procedure TMessageControl.ActiveOnMessage(Sender: TObject; RegionMessage: TRegionMessage;

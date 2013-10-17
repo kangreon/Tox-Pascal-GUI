@@ -11,7 +11,7 @@ type
   private
     FTime: TDateTime;
     FText: DataString;
-    FUserMessage: Boolean;
+    FIsMy: Boolean;
     FStatusSend: Boolean;
     FIndex: Integer;
     FData: TObject;
@@ -31,7 +31,7 @@ type
     // Текст сообщения
     property Text: DataString read FText write SetText;
 
-    property IsMy: Boolean read FUserMessage write FUserMessage;
+    property IsMy: Boolean read FIsMy write FIsMy;
     // Состояние доставки сообщения пользователю
     property IsSend: Boolean read FStatusSend write FStatusSend;
     property IsRead: Boolean read FIsRead write FIsRead;
@@ -52,6 +52,7 @@ begin
   Item := TMessageItem.Create;
   Item.Text := Text;
   Item.Time := Now;
+  Item.IsRead := False;
   Result := Item;
 end;
 

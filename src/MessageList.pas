@@ -23,7 +23,10 @@ type
     FDataBase: TDataBase;
     FFriends: TFriendList;
     FMessages: TMessageBaseList;
+    FOnNewMessage: TProcNewMessage;
     function GetMessageBase(Client: TClientId): TMessageBase;
+    procedure BaseNewMessage(Sender: TObject; FriendDialog: TFriendItem;
+      Message: TMessageItem);
   public
     constructor Create(DataBase: TDataBase; Friends: TFriendList);
     destructor Destroy; override;
@@ -31,8 +34,11 @@ type
     function GetMessage(Client: TClientId; Index: Integer;
       out Mess: TMessageItem): Boolean;
     function GetMessageCount(Client: TClientId): Integer;
-    procedure SetMessage(FriendId: AnsiString; Text: DataString;
-      UserMessage: Boolean);
+    procedure SetMessage(Friend: TFriendItem; Text: DataString;
+      IsMy: Boolean);
+
+    property OnNewMessage: TProcNewMessage read FOnNewMessage
+      write FOnNewMessage;
   end;
 
 implementation
@@ -55,14 +61,34 @@ begin
     Item := TFriendItem(PItem);
 
     BaseItem := TMessageBase.Create(FFriends.MyItem, Item, FDataBase);
+    BaseItem.OnNewMessage := BaseNewMessage;
     FMessages.Add(BaseItem);
   end;
 end;
 
 destructor TMessageList.Destroy;
+var
+  PItem: Pointer;
+  Item: TFriendItem;
 begin
+  for PItem in FFriends.Item do
+  begin
+    Item := TFriendItem(PItem);
+    Item.Free;
+  end;
+  FFriends.Free;
 
   inherited;
+end;
+
+procedure TMessageList.BaseNewMessage(Sender: TObject; FriendDialog: TFriendItem;
+  Message: TMessageItem);
+begin
+  if Assigned(FOnNewMessage) and Assigned(FriendDialog) and
+    Assigned(Message) then
+  begin
+    FOnNewMessage(Self, FriendDialog, Message);
+  end;
 end;
 
 { *  Возвращает сообщение для выбранного пользователя. Загрузка происходит с
@@ -127,11 +153,20 @@ begin
     Result := 0;
 end;
 
-// Добавляет новое сообщение в базу данных
-procedure TMessageList.SetMessage(FriendId: AnsiString; Text: DataString;
-  UserMessage: Boolean);
+{ *  Добавляет новое сообщение Text в базу данных диалога с пользователем
+  *  Friend. Если сообщение является отправленное Вами, IsMy = TRUE
+  * }
+procedure TMessageList.SetMessage(Friend: TFriendItem; Text: DataString;
+  IsMy: Boolean);
+var
+  Item: TMessageBase;
 begin
-// TODO: Реализовать
+  if Assigned(Friend) and Assigned(Friend.ClientId) then
+  begin
+    Item := GetMessageBase(Friend.ClientId);
+    if Assigned(Item) then
+      Item.InserMessage(Text, IsMy);
+  end;
 end;
 
 end.

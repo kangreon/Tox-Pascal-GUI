@@ -23,14 +23,17 @@ type
     FDataBase: TDataBase;
     FFriends: TFriendList;
     FMessages: TMessageBaseList;
+    FMyItem: TFriendItem;
     FOnNewMessage: TProcNewMessage;
     function GetMessageBase(Client: TClientId): TMessageBase;
     procedure BaseNewMessage(Sender: TObject; FriendDialog: TFriendItem;
       Message: TMessageItem);
+    procedure CreateBaseForFriend(Friend: TFriendItem);
   public
     constructor Create(DataBase: TDataBase; Friends: TFriendList);
     destructor Destroy; override;
 
+    procedure InsertFriend(Friend: TFriendItem);
     function GetMessage(Client: TClientId; Index: Integer;
       out Mess: TMessageItem): Boolean;
     function GetMessageCount(Client: TClientId): Integer;
@@ -49,9 +52,9 @@ constructor TMessageList.Create(DataBase: TDataBase; Friends: TFriendList);
 var
   PItem: Pointer;
   Item: TFriendItem;
-  BaseItem: TMessageBase;
 begin
   FFriends := Friends;
+  FMyItem := FFriends.MyItem;
   FDataBase := DataBase;
   FMessages := TMessageBaseList.Create;
 
@@ -60,9 +63,7 @@ begin
   begin
     Item := TFriendItem(PItem);
 
-    BaseItem := TMessageBase.Create(FFriends.MyItem, Item, FDataBase);
-    BaseItem.OnNewMessage := BaseNewMessage;
-    FMessages.Add(BaseItem);
+    CreateBaseForFriend(Item);
   end;
 end;
 
@@ -79,6 +80,17 @@ begin
   FFriends.Free;
 
   inherited;
+end;
+
+{ *  Создание обработчика сообщений для диалога с пользователем.
+  * }
+procedure TMessageList.CreateBaseForFriend(Friend: TFriendItem);
+var
+  Base: TMessageBase;
+begin
+  Base := TMessageBase.Create(FMyItem, Friend, FDataBase);
+  Base.OnNewMessage := BaseNewMessage;
+  FMessages.Add(Base);
 end;
 
 procedure TMessageList.BaseNewMessage(Sender: TObject; FriendDialog: TFriendItem;
@@ -151,6 +163,11 @@ begin
   end
   else
     Result := 0;
+end;
+
+procedure TMessageList.InsertFriend(Friend: TFriendItem);
+begin
+  CreateBaseForFriend(Friend);
 end;
 
 { *  Добавляет новое сообщение Text в базу данных диалога с пользователем

@@ -1,4 +1,4 @@
-set REMOVE_EXTENTIONS=*.db *.o *.ppu *.a *.res~ *.dcu *.ddp *.local *.identcache *.exe *.or *.compiled *.cfg *.dbg *.dof *.lps *.res
+set REMOVE_EXTENTIONS=*.db *.o *.ppu *.a *.res~ *.dcu *.ddp *.local *.identcache *.exe *.or *.compiled *.cfg *.dbg *.dof *.lps *.res *.tvsconfig
 
 for /F "delims=" %%A in ('dir %REMOVE_EXTENTIONS% /b /s /a:-d 2^>nul') do (
   del /Q "%%A"

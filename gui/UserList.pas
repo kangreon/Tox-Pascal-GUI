@@ -39,7 +39,7 @@ type
     procedure ListChangeSize(Sender: TObject);
     procedure FriendsUpdate(Sender: TObject; Index: Integer);
     procedure LoadAllUsers;
-    procedure FriendsNewItem(Sender: TObject);
+    procedure FriendsUpdateList(Sender: TObject);
     procedure SortList(UseBeginUpdate: Boolean);
     function StatusCmp(Status1, Status2: TToxUserStatus): SmallInt;
     procedure ListSelectItem(Sender: TObject; Item: TFriendItem);
@@ -98,7 +98,7 @@ begin
   FList.OnSelectItem := ListSelectItem;
 
   FFriends.OnUpdateItem := FriendsUpdate;
-  FFriends.OnNewFriend := FriendsNewItem;
+  FFriends.OnUpdateList := FriendsUpdateList;
   LoadAllUsers;
 
   FActiveRegion := TActiveRegion.Create(Self);
@@ -107,7 +107,7 @@ begin
   FList.ActiveRigion := FActiveRegion;
 end;
 
-procedure TUserList.FriendsNewItem(Sender: TObject);
+procedure TUserList.FriendsUpdateList(Sender: TObject);
 begin
   LoadAllUsers;
 end;

@@ -24,8 +24,9 @@ type
     FBase: TFriendBase;
     FStopUpdate: Boolean;
     FOnUpdateItem: TProcUpdateItem;
-    FOnNewFriend: TNotifyEvent;
     FMyItem: TFriendItem;
+    FOnNewFriend: TProcNewFriend;
+    FOnUpdateList: TNotifyEvent;
     function GetCount: Integer;
     function GetItemFriend(Index: Integer): TFriendItem;
     function GetItemWithAddress(Address: TFriendAddress): TFriendItem;
@@ -35,7 +36,8 @@ type
     function GetItemWithClientId(ClientId: TClientId): TFriendItem;
     function GetItem: TFriendItemList;
     procedure BaseItemUpdate(Sender: TObject);
-    procedure BaseNewItem(Sender: TObject);
+    procedure BaseNewItem(Sender: TObject; Item: TFriendItem);
+    procedure EventUpdateList;
   public
     constructor Create(Base: TFriendBase; MyId: TFriendAddress; Name,
       Status: DataString);
@@ -54,11 +56,15 @@ type
     property ItemFriend[Index: Integer]: TFriendItem read GetItemFriend;
     property MyItem: TFriendItem read FMyItem;
 
-    property OnNewFriend: TNotifyEvent read FOnNewFriend write FOnNewFriend;
+    property OnNewFriend: TProcNewFriend read FOnNewFriend write FOnNewFriend;
     property OnUpdateItem: TProcUpdateItem read FOnUpdateItem write FOnUpdateItem;
+    property OnUpdateList: TNotifyEvent read FOnUpdateList write FOnUpdateList;
   end;
 
 implementation
+
+const
+  EVENT_NEW_FRIEND  = 1;
 
 { TFiendList }
 
@@ -88,10 +94,14 @@ begin
     FOnUpdateItem(Sender, -1);
 end;
 
-procedure TFriendList.BaseNewItem(Sender: TObject);
+{ *  Событие возникает при добавлении в базу нового пользователя Sender.
+  * }
+procedure TFriendList.BaseNewItem(Sender: TObject; Item: TFriendItem);
 begin
-  if Assigned(FOnNewFriend) then
-    FOnNewFriend(Sender);
+  if Assigned(FOnNewFriend) and Assigned(Sender) then
+    FOnNewFriend(Self, Item);
+
+  EventUpdateList;
 end;
 
 function TFriendList.Add(Address: TFriendAddress; Number: Integer): TFriendItem;
@@ -123,8 +133,7 @@ begin
   Item.Number := Number;
   Result := Item;
 
-  if Assigned(FOnNewFriend) then
-    FOnNewFriend(Self);
+  EventUpdateList;
 end;
 
 procedure TFriendList.BeginUpdate;
@@ -136,9 +145,6 @@ end;
 procedure TFriendList.ClearFriend;
 begin
   UnfriendClients;
-
-  if (not FStopUpdate) and Assigned(FOnNewFriend) then
-    FOnNewFriend(Self);
 end;
 
 procedure TFriendList.EndUpdate;
@@ -147,10 +153,13 @@ begin
   begin
     FStopUpdate := False;
     FBase.EndUpdate;
-
-    if Assigned(FOnNewFriend) then
-      FOnNewFriend(Self);
   end;
+end;
+
+procedure TFriendList.EventUpdateList;
+begin
+  if Assigned(FOnUpdateList) then
+    FOnUpdateList(Self);
 end;
 
 function TFriendList.FindByAddress(FindValue: TFriendAddress): TFriendItem;
@@ -215,6 +224,8 @@ begin
       Item.Number := -1;
     end;
   end;
+
+  EventUpdateList;
 end;
 
 function TFriendList.GetItemWithNumber(Number: Integer): TFriendItem;
@@ -253,6 +264,8 @@ begin
       Item.Number := -1;
     end;
   end;
+
+  EventUpdateList;
 end;
 
 { *  Находит в списке пользователя с идентификатором

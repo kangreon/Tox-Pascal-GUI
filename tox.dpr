@@ -23,12 +23,11 @@ uses
   {$IFDEF FPC}
   {$IFDEF UNIX}
   cthreads,
-  {$ENDIF }
+  {$ENDIF}
   Interfaces,
-  {$I}
   {$ELSE}
   Windows,
-  {$ENDIF }
+  {$ENDIF}
   Forms,
   Dialogs,
   main in 'src\main.pas' {Form1},

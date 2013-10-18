@@ -1,18 +1,28 @@
-﻿unit FriendBase;
+﻿//  FriendBase.pas
+//
+//  Загружает и сохраняет информацию о пользовательских идентификаторах
+//
+//  The MIT License (MIT)
+//
+//  Copyright (c) 2013 Dmitry
+//
+unit FriendBase;
 
 interface
 
 uses
-  FriendItem, SysUtils, SQliteTable3, StringUtils, ClientAddress, Classes, Dialogs;
+  FriendItem, SysUtils, SQliteTable3, StringUtils, ClientAddress, Classes;
 
 type
+  TProcNewFriend = procedure(Sender: TObject; Friend: TFriendItem) of object;
+
   TFriendBase = class
   private
     FBase: TSQLiteDatabase;
     FCount: Integer;
     FFriends: TFriendItemList;
     FOnUpdateItem: TNotifyEvent;
-    FOnNewItem: TNotifyEvent;
+    FOnNewItem: TProcNewFriend;
     function LoadUsers: Boolean;
     function CreateItem(RowId: Integer; Name, LocalName, Status: DataString;
       ClientId: TClientId): TFriendItem;
@@ -34,7 +44,7 @@ type
     property Count: Integer read GetCount;
     property Friends: TFriendItemList read FFriends;
 
-    property OnNewItem: TNotifyEvent read FOnNewItem write FOnNewItem;
+    property OnNewItem: TProcNewFriend read FOnNewItem write FOnNewItem;
     property OnUpdateItem: TNotifyEvent read FOnUpdateItem write FOnUpdateItem;
   end;
 
@@ -113,6 +123,11 @@ var
 begin
   Item := CreateItem(-1, name, LocalName, Status, ClientId);
   UpdateItem(Item);
+
+  // Событие о новом пользователе
+  if Assigned(FOnNewItem) then
+    FOnNewItem(Self, Item);
+
   Result := Item;
 end;
 
@@ -145,10 +160,6 @@ begin
   Item.OnUpdateBase := ItemUpdateBase;
   Item.OnUpdate := ItemUpdate;
   FFriends.Add(Item);
-
-  // Событие о новом пользователе
-  if Assigned(FOnNewItem) then
-    FOnNewItem(Item);
 
   Result := Item;
 end;

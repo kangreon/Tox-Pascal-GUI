@@ -109,6 +109,7 @@ type
     procedure DoConnectionStatus(FriendNumber: Integer; Status: Byte);
     procedure UpdateFriends(const Clear: Boolean = True);
     procedure SetStatusMessage(const Value: DataString);
+    procedure FriendListNewFriend(Sender: TObject; Friend: TFriendItem);
   protected
     procedure Execute; override;
   public
@@ -301,19 +302,18 @@ begin
   FStatusOnline := False;
   FStartThread := False;
 
-  // Загрузить Tox только в случае успешной загрузки библиотеки Tox
-  if True then
-  begin
-    InitTox;
+  InitTox;
 
-    FDataBase := TDataBase.Create(FSettings);
-    FDataBase.LoadBase;
+  FDataBase := TDataBase.Create(FSettings);
+  FDataBase.LoadBase;
 
-    FFriendList := TFriendList.Create(FDataBase.FriendBase, FYourAddress, FUserName, FStatusMessage);
-    FMessageList := TMessageList.Create(FDataBase, FFriendList);
+  FFriendList := TFriendList.Create(FDataBase.FriendBase, FYourAddress,
+    FUserName, FStatusMessage);
+  FFriendList.OnNewFriend := FriendListNewFriend;
 
-    UpdateFriends(True);
-  end;
+  FMessageList := TMessageList.Create(FDataBase, FFriendList);
+
+  UpdateFriends(True);
 end;
 
 procedure TToxCore.DoAction(FriendNumber: Integer; Action: DataString);
@@ -898,6 +898,13 @@ end;
 procedure TToxCore.StopTox;
 begin
   FStatusOnline := False;
+end;
+
+{ *  Собтие возникает при изменении количества пользователей в списке.
+  * }
+procedure TToxCore.FriendListNewFriend(Sender: TObject; Friend: TFriendItem);
+begin
+  FMessageList.InsertFriend(Friend);
 end;
 
 end.

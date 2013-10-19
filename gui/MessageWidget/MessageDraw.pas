@@ -32,6 +32,7 @@ type
     FCalcTime: TDateTime;
     FIsCreateList: Boolean;
     FIsCalcPositionForLastMessage: Boolean;
+    FMessageCount: Integer;
 
     FSpaceWidth: Integer;
     FTextHeight: Integer;
@@ -39,8 +40,8 @@ type
     FTextMarginRight: Integer;
 
     FBottomMessageIndex: Integer;
-    FOnGet: TProcGet;
     FBottomMessagePosition: Integer;
+    FOnGet: TProcGet;
     FFormatPaintDate: DataString;
     FFormatPaintTime: DataString;
     procedure SetDrawFont;
@@ -62,7 +63,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    procedure Redraw(BottomMessageIndex: Integer);
+    procedure Redraw(BottomMessageIndex: Integer; MessageCount: Integer);
     procedure ScrollDown(Value: Integer);
     procedure ScrollUp(Value: Integer);
 
@@ -505,16 +506,60 @@ begin
         MessageInfo.IsMessageHeader := (not Assigned(PrevItem)) or
           (PrevItem.Friend <> ActiveItem.Friend);
         MessageInfo.HeaderHeight := 20;
+        MessageInfo.BottomMargin := 4;
 
         if FIsCalcPositionForLastMessage then
         begin
           BottomPosition := BottomPosition - MessageInfo.MessageHeight;
+
           FIsCalcPositionForLastMessage := False;
           FBottomMessagePosition := BottomPosition;
         end;
 
-        MessageInfo.BottomMargin := 4;
+        // Изменение активного элемента в случае его нахождения выше нижней
+        // границы
+        if ActiveElementIndex = FBottomMessageIndex then
+        begin
+          if FBottomMessagePosition > 0 then
+          begin
+            if ActiveElementIndex + 1 >= FMessageCount then
+            begin
+              FBottomMessagePosition := 0;
+              BottomPosition := 0;
+            end
+            else
+            begin
+              ActiveElementIndex := ActiveElementIndex + 1;
+              FBottomMessageIndex := FBottomMessageIndex + 1;
+              FBottomMessagePosition := FBottomMessagePosition - MessageInfo.MessageHeight;
+              BottomPosition := FBottomMessagePosition;
+
+              ItemList[ItemListCount] := MessageInfo;
+              Inc(ItemListCount);
+
+              Continue;
+            end;
+          end;
+        end;
+
         MessageInfo.BottomPosition := BottomPosition;
+
+        // Отсечение элементов, которые полностью прячутся за нижнюю границу
+        if (MessageInfo.BottomPosition + MessageInfo.MessageHeight < 0) and
+          (FBottomMessageIndex = ActiveElementIndex) then
+        begin
+          //TODO: Проверка на перове сообщение
+          BottomPosition := BottomPosition + MessageInfo.MessageHeight;
+
+          ActiveElementIndex := ActiveElementIndex - 1;
+          FBottomMessageIndex := FBottomMessageIndex - 1;
+          FBottomMessagePosition := BottomPosition;
+
+          ItemList[ItemListCount] := MessageInfo;
+          Inc(ItemListCount);
+          Continue;
+        end;
+
         ItemList[ItemListCount] := MessageInfo;
         Inc(ItemListCount);
 
@@ -528,31 +573,7 @@ begin
       end;
     end;
 
-    // Расчет элементов после базового вниз компонента до самого конца
-    ActiveElementIndex := FBottomMessageIndex + 1;
-    BottomPosition := FBottomMessagePosition;
-
-    while (BottomPosition > 0) and
-      EventGet(ActiveElementIndex, ActiveItem) do
-    begin
-      // Получение информации для нового элемента списка
-      if not GetOldPositionInfo(ActiveItem, MaxWidth, MessageInfo) then
-        MessageInfo := CalcBreakItem(ActiveItem, MaxWidth);
-
-      if Length(ItemList) <= ItemListCount then
-      begin
-        SetLength(ItemList, Length(ItemList) + 20);
-      end;
-
-      MessageInfo.BottomPosition := BottomPosition;
-      ItemList[ItemListCount] := MessageInfo;
-      Inc(ItemListCount);
-
-      BottomPosition := BottomPosition - MessageInfo.MessageHeight;
-      ActiveElementIndex := ActiveElementIndex + 1;
-    end;
-
-    // Новый список составлен. ЗаменаОсновного списка отрисовки новым.
+    // Новый список составлен. Замена основного списка отрисовки новым.
     // TODO: Возможна утечка памяти
     SetLength(ItemList, ItemListCount);
 
@@ -597,7 +618,7 @@ end;
 { *  Выполняет очистку кэша и перерисовывает все сообщения, начиная с
   *  указанного. Указанное сообщение будет в самом низу компонента.
   * }
-procedure TMessageDraw.Redraw(BottomMessageIndex: Integer);
+procedure TMessageDraw.Redraw(BottomMessageIndex: Integer; MessageCount: Integer);
 var
   Item: TMessageInfo;
 begin
@@ -609,6 +630,7 @@ begin
   FIsCreateList := False;
   FBottomMessageIndex := BottomMessageIndex;
   FBottomMessagePosition := 0;
+  FMessageCount := MessageCount;
   Resize;
   Invalidate;
 end;

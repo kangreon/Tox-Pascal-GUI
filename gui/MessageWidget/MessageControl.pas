@@ -118,7 +118,7 @@ begin
     FFriendSelect.ClientId.IsCompare(Friend.ClientId) then
   begin
     MessageCount := FMessageList.GetMessageCount(Friend.ClientId);
-    FDraw.Redraw(MessageCount - 1);
+    FDraw.Redraw(MessageCount - 1, MessageCount);
   end;
 end;
 
@@ -200,6 +200,7 @@ end;
 procedure TMessageControl.SelectFriend(Friend: TFriendItem);
 var
   LastMessage: Integer;
+  MessageCount: Integer;
 begin
   FIsFriendSelect := Assigned(Friend);
 
@@ -211,8 +212,9 @@ begin
   begin
     FFriendSelect := Friend;
 
-    LastMessage := FMessageList.GetMessageCount(FFriendSelect.ClientId) - 1;
-    FDraw.Redraw(LastMessage);
+    MessageCount := FMessageList.GetMessageCount(FFriendSelect.ClientId);
+    LastMessage := MessageCount - 1;
+    FDraw.Redraw(LastMessage, MessageCount);
 
     FHeader.SelectFriend(FFriendSelect);
   end;

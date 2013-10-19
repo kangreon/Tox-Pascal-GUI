@@ -534,9 +534,6 @@ begin
               FBottomMessagePosition := FBottomMessagePosition - MessageInfo.MessageHeight;
               BottomPosition := FBottomMessagePosition;
 
-              ItemList[ItemListCount] := MessageInfo;
-              Inc(ItemListCount);
-
               Continue;
             end;
           end;
@@ -544,19 +541,31 @@ begin
 
         MessageInfo.BottomPosition := BottomPosition;
 
+        if (MessageInfo.BottomPosition < 0) and (ActiveElementIndex <= 0) then
+        begin
+          // Не пускает первое сообщение за нижнюю границу окна
+          ActiveElementIndex := 0;
+          BottomPosition := 0;
+          MessageInfo.BottomPosition := 0;
+          FBottomMessageIndex := 0;
+          FBottomMessagePosition := 0;
+
+          ItemListCount := 0;
+
+          // TODO: Возможна утечка памяти. MessageInfo
+        end
+        else
         // Отсечение элементов, которые полностью прячутся за нижнюю границу
         if (MessageInfo.BottomPosition + MessageInfo.MessageHeight < 0) and
           (FBottomMessageIndex = ActiveElementIndex) then
         begin
-          //TODO: Проверка на перове сообщение
           BottomPosition := BottomPosition + MessageInfo.MessageHeight;
 
           ActiveElementIndex := ActiveElementIndex - 1;
           FBottomMessageIndex := FBottomMessageIndex - 1;
           FBottomMessagePosition := BottomPosition;
 
-          ItemList[ItemListCount] := MessageInfo;
-          Inc(ItemListCount);
+          // TODO: Возможна утечка памяти. MessageInfo
           Continue;
         end;
 
@@ -600,7 +609,7 @@ begin
     ItemExist := False;
     for j := Low(ItemNew) to High(ItemNew) do
     begin
-      if ItemOld[i] = ItemNew[j] then
+      if (ItemOld[i] = ItemNew[j]) then
       begin
         ItemExist := True;
         Break;
@@ -670,10 +679,18 @@ begin
   begin
     Item := FDrawItems[0];
 
-    if (FBottomMessagePosition < 0) and (Abs(FBottomMessagePosition) > Item.MessageHeight) then
+    if (FBottomMessageIndex <= 0) and (Value < 0) then
+    begin
+      // Запрет на прокрутку дальше чем самое первое сообщение
+      FBottomMessageIndex := 0;
+      FBottomMessagePosition := 0;
+      IsScroll := True;
+    end
+    else if (FBottomMessagePosition < 0) and (Abs(FBottomMessagePosition) > Item.MessageHeight) then
     begin
       FBottomMessageIndex := FBottomMessageIndex - 1;
       FBottomMessagePosition := FBottomMessagePosition + Item.MessageHeight;
+
       IsScroll := True;
     end
     else if FBottomMessagePosition > 0 then

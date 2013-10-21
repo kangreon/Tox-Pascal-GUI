@@ -209,7 +209,7 @@ const
   TOX_FILECONTROL_RESUME_BROKEN = 4;
 
   TOX_LIBRARY = {$IFDEF Win32}'libtoxcore-0.dll'{$ENDIF}
-                {$IFDEF Unix}'libtoxcore-0.so'{$ENDIF};
+                {$IFDEF Unix}'libtoxcore.so'{$ENDIF};
 
 ///*  return FRIEND_ADDRESS_SIZE byte address to give to others.
 // * format: [client_id (32 bytes)][nospam number (4 bytes)][checksum (2 bytes)]

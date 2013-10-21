@@ -102,7 +102,7 @@ begin
   gbFriendRequest.Caption := InsertTextUnicode('Запрос на добавления в друзья:');
   labFromUser.Caption := InsertTextUnicode('От пользователя:');
   btnAdd.Caption := InsertTextUnicode('Добавить');
-  btnReject.Caption := InsertTextUnicode('Откланить');
+  btnReject.Caption := InsertTextUnicode('Отклонить');
   btnIgnore.Caption := InsertTextUnicode('Игнорировать');
   labWithMessage.Caption := InsertTextUnicode('С текстом:');
 end;

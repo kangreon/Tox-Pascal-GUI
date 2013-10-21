@@ -261,10 +261,12 @@ begin
 end;
 
 procedure TUserList.WndProc(var Message: TMessage);
-  function GET_WHEEL_DELTA_WPARAM(wp: longint): smallint;
+{$IFDEF FPC}
+  function GET_WHEEL_DELTA_WPARAM(wp: WPARAM): SmallInt;
   begin
-    Result := smallint(wp shr 16);
+    Result := SmallInt(wp shr 16);
   end;
+{$ENDIF}
 
 begin
   inherited;

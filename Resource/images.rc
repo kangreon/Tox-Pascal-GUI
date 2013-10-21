@@ -1,4 +1,4 @@
-DefaultUserface  BITMAP  "..\\Image\\default-userface.bmp"
-UserstatusButtonDown  BITMAP "..\\Image\\UserstatusButtonDown.bmp"
-ToxSkin RCDATA "..\\Image\\ToxUISkin.png"
-LoadingAnimate10 RCDATA "..\\Image\\loading-animate-10.png"
+DefaultUserface  BITMAP  "../Image/default-userface.bmp"
+UserstatusButtonDown  BITMAP "../Image/UserstatusButtonDown.bmp"
+ToxSkin RCDATA "../Image/ToxUISkin.png"
+LoadingAnimate10 RCDATA "../Image/loading-animate-10.png"

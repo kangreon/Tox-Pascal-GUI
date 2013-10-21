@@ -802,6 +802,8 @@ begin
     FreeMem(name);
     FreeMemory(data);
   end;
+
+  FFriendList.MyItem.Addressg.DataHex := FYourAddress.DataHex;
 end;
 
 procedure TToxCore.SaveData;

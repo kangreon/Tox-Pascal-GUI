@@ -22,6 +22,7 @@ type
     FBaseId: Integer;
     FOnUpdate: array of TNotifyEvent;
     FOnUpdateBase: TNotifyEvent;
+    FIsMy: Boolean;
     procedure EventUpdate;
     procedure EventUpdateBase;
     procedure SetUserName(const Value: DataString);
@@ -43,6 +44,7 @@ type
     property Data: Pointer read FData write FData;
     property IsAddressExist: Boolean read FIsAddressExist;
     property IsFriend: Boolean read FIsFriend write FIsFriend;
+    property IsMy: Boolean read FIsMy write FIsMy;
     property LocaleName: DataString read FLocaleName write SetLocaleName;
     property Number: Integer read FNumber write FNumber;
     property Online: Boolean read FOnline write SetOnline;
@@ -85,12 +87,15 @@ constructor TFriendItem.Create(IsFriend: Boolean; Client: TClientId;
   Number: Integer);
 begin
   FIsAddressExist := Assigned(Addressg);
+  FAddress := TFriendAddress.Create;
 
   FClientId := Client.Clone;
 
   FIsFriend := IsFriend;
   FNumber := Number;
   FUserStatus := usInvalid;
+
+  FIsMy := False;
 end;
 
 destructor TFriendItem.Destroy;

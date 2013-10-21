@@ -128,6 +128,7 @@ var
   Text, TextOut, DateTimeOut: DataString;
   StartCopy, CountCopy: Integer;
   LineInfo: TLineInfoEx;
+  OldColor: TColor;
 begin
   c := Item.Count;
   LeftDraw := FTextMarginLeft;
@@ -143,15 +144,30 @@ begin
     if i = 0 then
     begin
       // Первая строчка сообщения
-      Canvas.Font.Style := [fsBold];
+      Canvas.Font.Style := [];
 
       DateTimeOut := FormatDateTime(FormatPaintTime, Item.MessageItem.Time);
 
       Canvas.TextOut(ClientWidth - Canvas.TextWidth(DateTimeOut), TopDraw,
         DateTimeOut);
 
+      Canvas.Font.Style := [fsBold];
+
       if IsDrawName then
+      begin
+        OldColor := Canvas.Font.Color;
+        if Item.MessageItem.Friend.IsMy then
+        begin
+          Canvas.Font.Color := $666666;
+        end;
+
         Canvas.TextOut(2, TopDraw, Item.MessageItem.Friend.UserName);
+
+        if Item.MessageItem.Friend.IsMy then
+        begin
+          Canvas.Font.Color := OldColor;
+        end;
+      end;
 
       Canvas.Font.Style := [];
     end;
@@ -195,12 +211,17 @@ end;
 procedure TMessageDraw.Paint;
 var
   i: Integer;
+  {$IFDEF DEBUG}
   PaintTime: TDateTime;
+  {$ENDIF}
 begin
   inherited;
   SetDrawFont;
 
+  {$IFDEF DEBUG}
   PaintTime := Now;
+  {$ENDIF}
+
   if FIsCreateList then
   begin
     for i := Low(FDrawItems) to High(FDrawItems) do
@@ -211,11 +232,14 @@ begin
       DrawItem(FDrawItems[i], FDrawItems[i].IsMessageHeader);
     end;
   end;
+
+  {$IFDEF DEBUG}
   PaintTime := Now - PaintTime;
 
   Canvas.TextOut(0, 0, 'Message draw count: ' + IntToStr(Length(FDrawItems)));
   Canvas.TextOut(0, 13, 'Calc time: ' + FormatDateTime('ss.zzz', FCalcTime));
   Canvas.TextOut(0, 26, 'Paint time: ' + FormatDateTime('ss.zzz', PaintTime));
+  {$ENDIF}
 end;
 
 { *  Рассчитывает позиции и размеры всех слов в строке

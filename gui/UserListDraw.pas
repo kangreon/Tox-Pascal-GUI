@@ -35,7 +35,9 @@ type
   TUserListDraw = class(TGraphicControl)
   private
     FActiveRegion: TActiveRegion;
+    {$IFDEF DEBUG}
     FCountRepaint: Integer;
+    {$ENDIF}
     FDefaultUserIcon: TUserIcon;
     FImages: TResourceImage;
     FIsActiveItem: Boolean;
@@ -107,7 +109,9 @@ begin
 
   SetLength(FItems, 20);
   FItemsCount := 0;
+  {$IFDEF DEBUG}
   FCountRepaint := 0;
+  {$ENDIF}
 end;
 
 destructor TUserListDraw.Destroy;
@@ -502,10 +506,12 @@ begin
       FOnChangeSize(Self);
   end;
 
+  {$IFDEF DEBUG}
   FCountRepaint := FCountRepaint + 1;
   Canvas.Brush.Style := bsClear;
   Canvas.Font.Color := clWhite;
   Canvas.TextOut(0, 0, IntToStr(FCountRepaint));
+  {$ENDIF}
 end;
 
 procedure TUserListDraw.SetActiveRegion(const Value: TActiveRegion);

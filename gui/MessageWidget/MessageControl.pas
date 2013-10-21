@@ -222,9 +222,9 @@ end;
 
 procedure TMessageControl.WndProc(var Message: TMessage);
 {$IFDEF FPC}
-  function GET_WHEEL_DELTA_WPARAM(wp: longint): smallint;
+  function GET_WHEEL_DELTA_WPARAM(wp: WPARAM): SmallInt;
   begin
-    Result := smallint(wp shr 16);
+    Result := SmallInt(wp shr 16);
   end;
 {$ENDIF}
 

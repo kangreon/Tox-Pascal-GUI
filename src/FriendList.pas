@@ -80,6 +80,8 @@ begin
   FMyItem := GetItemWithAddress(MyId);
   if not Assigned(FMyItem) then
     FMyItem := FBase.Add(Name, '', Status, MyId);
+
+  FMyItem.IsMy := True;
 end;
 
 destructor TFriendList.Destroy;

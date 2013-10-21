@@ -16,11 +16,11 @@ uses
   {$I tox-uses.inc}
   Graphics, Classes, Controls, UserIcon, ResourceImage, ImageUtils,
   StringUtils, SysUtils, UserStatusStyle, ActiveRegion, Menus, ImgList,
-  PaintSprite, libtox, FriendItem;
+  PaintSprite, libtox, FriendItem, Clipbrd;
 
 type
   TState = (sOffline, sOnline, sAway, sBusy, sLoading);
-  TProcChangeState = procedure(Sender: TObject; State: TState) of object;
+  Address = procedure(Sender: TObject; State: TState) of object;
 
   TUserStatus = class(TCustomControl)
   private
@@ -36,7 +36,7 @@ type
     FUserIconRegion: TActiveRegion;
     FUserName: DataString;
     FUsernameRegion: TActiveRegion;
-    FOnChangeState: TProcChangeState;
+    FOnChangeState: Address;
     FOnChangeUserName: TNotifyEvent;
     FOnChangeStatus: TNotifyEvent;
     FFriendItem: TFriendItem;
@@ -71,7 +71,7 @@ type
     property UserIcon: TUserIcon read FUserIcon write SetUserIcon;
     property State: TState read FState write SetState;
 
-    property OnChangeState: TProcChangeState read FOnChangeState write FOnChangeState;
+    property OnChangeState: Address read FOnChangeState write FOnChangeState;
     property OnChangeStatus: TNotifyEvent read FOnChangeStatus write FOnChangeStatus;
     property OnChangeUserName: TNotifyEvent read FOnChangeUserName write FOnChangeUserName;
   end;
@@ -460,6 +460,12 @@ begin
     1: State := sAway;
     2: State := sBusy;
     3: State := sOffline;
+    4:
+      begin
+        //TODO: Временное размещение
+        Clipboard.SetTextBuf(PChar(FFriendItem.Addressg.DataHex));
+        Exit;
+      end
   else
     State := sOffline;
   end;
@@ -476,6 +482,17 @@ var
   Item: TMenuItem;
 begin
   FStateMenu.Items.Clear;
+
+  Item := TMenuItem.Create(FStateMenu);
+  FStateMenu.Items.Add(Item);
+  Item.Caption := 'Copy address';
+  //Item.ImageIndex := 0;
+  Item.Tag := 4;
+  Item.OnClick := StatusMenuOnClick;
+
+  Item := TMenuItem.Create(FStateMenu);
+  FStateMenu.Items.Add(Item);
+  Item.Caption := '-';
 
   Item := TMenuItem.Create(FStateMenu);
   FStateMenu.Items.Add(Item);

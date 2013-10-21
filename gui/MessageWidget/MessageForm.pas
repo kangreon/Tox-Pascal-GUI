@@ -25,11 +25,13 @@ type
     FButtonSend: TButtonActive;
     FOnSendText: TProcSendText;
     FFormHandle: THandle;
+    FVisible: Boolean;
     procedure TextFormKeyPress(Sender: TObject; var Key: Char);
     procedure TextFormEnter(Sender: TObject);
     procedure TextFormExit(Sender: TObject);
     procedure LockTextForm;
     procedure TextFormChange(Sender: TObject);
+    procedure SetVisible(const Value: Boolean);
   protected
     procedure Paint; override;
     procedure Resize; override;
@@ -39,6 +41,8 @@ type
     destructor Destroy; override;
 
     property FormHandle: THandle read FFormHandle;
+    property Visible: Boolean read FVisible write SetVisible;
+
     property OnSendText: TProcSendText read FOnSendText write FOnSendText;
   end;
 
@@ -58,6 +62,7 @@ begin
   FTextForm.OnEnter := TextFormEnter;
   FTextForm.OnExit := TextFormExit;
   FTextForm.OnChange := TextFormChange;
+  FTextForm.Visible := False;
   FTextFormShowScroll := False;
   LockTextForm;
 
@@ -121,6 +126,15 @@ begin
 //  FButtonSend.Parent := AParent;
 end;
 
+procedure TMessageForm.SetVisible(const Value: Boolean);
+begin
+  FVisible := Value;
+
+  inherited Visible := Value;
+
+  FTextForm.Visible := Value;
+end;
+
 { *  Показывает и прячет полосу прокрутки когда это необходимо.
   * }
 procedure TMessageForm.TextFormChange(Sender: TObject);
@@ -180,6 +194,11 @@ begin
 end;
 
 procedure SetMargins(Memo: HWND);
+{$IFDEF FPC}
+const
+  EM_GETRECT             = $00B2;
+  EM_SETRECT             = $00B3;
+{$ENDIF}
 var
   Rect: TRect;
 begin

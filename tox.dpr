@@ -12,8 +12,10 @@ program tox;
 {$IFDEF FPC}
   {$IFNDEF Unix}
     {$R Resource\tox-res.rc}
+    {$R Resource\images.rc}
+  {$ELSE}
+    {$R Resource\images.rc}
   {$ENDIF}
-  {$R Resource\images.rc}
 {$ELSE}
   {$R 'images.res' 'Resource\images.rc'}
 {$R 'tox-res.res' 'Resource\tox-res.rc'}

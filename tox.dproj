@@ -1,7 +1,7 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
         <ProjectGuid>{B572F594-2F03-41DE-B390-B351FD9A3BD7}</ProjectGuid>
-        <ProjectVersion>14.6</ProjectVersion>
+        <ProjectVersion>15.1</ProjectVersion>
         <FrameworkType>VCL</FrameworkType>
         <MainSource>tox.dpr</MainSource>
         <Base>True</Base>
@@ -94,7 +94,7 @@
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
         <DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
         <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
-        <DCC_DebugInformation>false</DCC_DebugInformation>
+        <DCC_DebugInformation>0</DCC_DebugInformation>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
         <DCC_ExeOutput>.\Build</DCC_ExeOutput>
@@ -160,6 +160,9 @@
         <DCCReference Include="gui\MessageWidget\MessageHeader.pas"/>
         <DCCReference Include="gui\MessageWidget\MessageHeaderStyle.pas"/>
         <DCCReference Include="gui\MessageWidget\MessageForm.pas"/>
+        <RcCompile Include="Resource\images.rc">
+            <Form>images.res</Form>
+        </RcCompile>
         <None Include="inc\tox-uses.inc"/>
         <None Include="inc\tox.inc"/>
         <BuildConfiguration Include="Release">
@@ -218,8 +221,8 @@
                     <Source Name="MainSource">tox.dpr</Source>
                 </Source>
                 <Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dcloffice2k180.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dclofficexp180.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\dcloffice2k190.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\dclofficexp190.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
                 </Excluded_Packages>
             </Delphi.Personality>
             <Deployment/>

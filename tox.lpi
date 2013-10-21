@@ -43,7 +43,7 @@
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="23">
+    <Units Count="24">
       <Unit0>
         <Filename Value="tox.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -158,6 +158,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="SQLiteTable3"/>
       </Unit22>
+      <Unit23>
+        <Filename Value="gui\MessageWidget\MessageDraw.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="MessageDraw"/>
+      </Unit23>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -168,7 +173,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="src;gui;gui\Forms;$(ProjOutDir);inc"/>
-      <OtherUnitFiles Value="gui;src;gui\Forms;sqlite;inc"/>
+      <OtherUnitFiles Value="gui;src;gui\Forms;sqlite;inc;gui\MessageWidget"/>
       <UnitOutputDirectory Value="Build\dcu"/>
     </SearchPaths>
     <Parsing>
@@ -194,6 +199,7 @@
         <IgnoredMessages idx5023="True" idx5024="True"/>
         <MsgFileName Value=""/>
       </CompilerMessages>
+      <CustomOptions Value="-dDEBUG"/>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>

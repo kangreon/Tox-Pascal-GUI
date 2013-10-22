@@ -17,13 +17,12 @@ uses
   SysUtils, Controls, Forms, Classes, Dialogs, StdCtrls, toxcore, Settings,
   ServerList, ClientAddress, libtox, StringUtils, ExtCtrls, UserStatus,
   FriendList, ControlPanel, fmUserAdd, fmNewName, UserList,
-  FriendRequestController, MessageControl, MessageList, Clipbrd, FriendItem;
+  FriendRequestController, MessageControl, MessageList, Clipbrd, FriendItem,
+  Splitter;
 
 type
   { TForm1 }
   TForm1 = class(TForm)
-    ActivityList: TMemo;
-    Splitter1: TSplitter;
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
@@ -65,6 +64,7 @@ type
     procedure MessageControlSendTextFriend(Sender: TObject; Friend: TFriendItem;
       const Text: DataString);
     procedure DestrGui;
+    procedure SplitterSetWidth(Sender: TObject; NewWidth: Integer);
   public
     property ToxLoadError: Boolean read FToxLoadError;
   end;
@@ -117,7 +117,7 @@ begin
   FRequestConrtoller := TFriendRequestController.Create(Self);
   FRequestConrtoller.OnAddFriend := RequestOnAddFriend;
 
-  ActivityList.Lines.Add(FToxCore.YourAddress.DataHex);
+  //ActivityList.Lines.Add(FToxCore.YourAddress.DataHex);
   FToxCore.StartTox;
 
   InitGui;
@@ -128,19 +128,27 @@ end;
 procedure TForm1.InitGui;
 var
   LeftPanel: TPanel;
+  Spl: TSplitterEx;
 begin
   LeftPanel := TPanel.Create(Self);
   LeftPanel.Parent := Self;
   LeftPanel.Align := alLeft;
-  LeftPanel.Width := 223;
+  LeftPanel.Width := FSettings.UserListWidth;
   LeftPanel.BevelOuter := bvNone;
+  LeftPanel.ParentColor := False;
+  LeftPanel.FullRepaint := False;
   LeftPanel.DoubleBuffered := True;
   LeftPanel.ControlStyle := LeftPanel.ControlStyle - [csParentBackground];
   LeftPanel.TabOrder := 0;
   LeftPanel.TabStop := True;
+  LeftPanel.Constraints.MinWidth := USER_LIST_MIN_WIDTH;
+  LeftPanel.Constraints.MaxWidth := USER_LIST_MAX_WIDTH;
 
-  Splitter1.Left := LeftPanel.Width;
-  Splitter1.ResizeStyle := rsUpdate;
+  Spl := TSplitterEx.Create(Self);
+  Spl.Parent := Self;
+  Spl.ControlResize := LeftPanel;
+  Spl.OnSetWidth := SplitterSetWidth;
+  Spl.Left := 1;
 
   FMessageControl := TMessageControl.Create(Self, FToxCore.MessageList);
   FMessageControl.Align := alClient;
@@ -164,12 +172,6 @@ begin
   FUserList.Align := alClient;
   FUserList.Parent := LeftPanel;
   FUserList.OnSelectItem := UserListSelectItem;
-
-  //TODO: Временно. Пока не будет заменено настоящими компонентами
-  ActivityList.Align := alClient;
-  ActivityList.DoubleBuffered := True;
-  ActivityList.Color := $F2F2F1;
-  ActivityList.Visible := False;
 end;
 
 { *  Освобождение памяти
@@ -180,6 +182,11 @@ begin
   FUserList.Free;
   FControlPanel.Free;
   FUserStatus.Free;
+end;
+
+procedure TForm1.SplitterSetWidth(Sender: TObject; NewWidth: Integer);
+begin
+  FSettings.UserListWidth := NewWidth;
 end;
 
 procedure TForm1.MessageControlSendTextFriend(Sender: TObject;
@@ -219,59 +226,59 @@ end;
 procedure TForm1.ToxOnAction(Sender: TObject; FriendNumber: Integer;
   Action: DataString);
 begin
-  ActivityList.Lines.Add('Action from user ' + IntToStr(FriendNumber) +
-    ' with text: ' + Action);
+  //ActivityList.Lines.Add('Action from user ' + IntToStr(FriendNumber) +
+  //  ' with text: ' + Action);
 end;
 
 procedure TForm1.ToxOnConnect(Sender: TObject);
 begin
-  ActivityList.Lines.Add('connect');
+  //ActivityList.Lines.Add('connect');
   FUserStatus.State := sOnline;
 end;
 
 procedure TForm1.ToxOnConnecting(Sender: TObject; ServerCount: Integer);
 begin
-  ActivityList.Lines.Add('Try connect to ' + IntToStr(ServerCount));
+  //ActivityList.Lines.Add('Try connect to ' + IntToStr(ServerCount));
   FUserStatus.State := sLoading;
 end;
 
 procedure TForm1.ToxConnectionStatus(Sender: TObject; FriendNumber: Integer;
   Status: Byte);
 begin
-  ActivityList.Lines.Add('User ' + IntToStr(FriendNumber) +
-    ' change connection status to ' + IntToStr(Status));
+  //ActivityList.Lines.Add('User ' + IntToStr(FriendNumber) +
+  //  ' change connection status to ' + IntToStr(Status));
 end;
 
 procedure TForm1.ToxOnDisconnect(Sender: TObject);
 begin
-  ActivityList.Lines.Add('desconnect');
+  //ActivityList.Lines.Add('desconnect');
   FUserStatus.State := sOffline;
 end;
 
 procedure TForm1.ToxFriendMessage(Sender: TObject; Friend: TFriendItem;
   MessageStr: DataString);
 begin
-  ActivityList.Lines.Add('New message from user ' + Friend.UserName +
-    ' with text: ' + MessageStr);
+  //ActivityList.Lines.Add('New message from user ' + Friend.UserName +
+  //  ' with text: ' + MessageStr);
 end;
 
 procedure TForm1.ToxFriendRequest(Sender: TObject; ClientAddress: TFriendAddress;
   HelloMessage: DataString);
 begin
-  ActivityList.Lines.Add('User ' + ClientAddress.DataHex + ' send request with text: ' + HelloMessage);
+  //ActivityList.Lines.Add('User ' + ClientAddress.DataHex + ' send request with text: ' + HelloMessage);
   FRequestConrtoller.InsertRequest(ClientAddress, HelloMessage);
 end;
 
 procedure TForm1.ToxNameChange(Sender: TObject; FriendNumber: Integer;
   NewName: DataString);
 begin
-  ActivityList.Lines.Add('User ' + IntToStr(FriendNumber) + ' change name to ' + NewName)
+  //ActivityList.Lines.Add('User ' + IntToStr(FriendNumber) + ' change name to ' + NewName)
 end;
 
 procedure TForm1.ToxStatusMessage(Sender: TObject; FriendNumber: Integer;
   NewStatus: DataString);
 begin
-  ActivityList.Lines.Add('User ' + IntToStr(FriendNumber) + ' change status message to ' + NewStatus);
+  //ActivityList.Lines.Add('User ' + IntToStr(FriendNumber) + ' change status message to ' + NewStatus);
 end;
 
 procedure TForm1.ToxUserStatus(Sender: TObject; FriendNumber: Integer;
@@ -286,13 +293,13 @@ begin
     usInvalid: Status := 'invalid';
   end;
 
-  ActivityList.Lines.Add('User ' + IntToStr(FriendNumber) + ' change user status to ' + Status);
+  //ActivityList.Lines.Add('User ' + IntToStr(FriendNumber) + ' change user status to ' + Status);
 end;
 
 procedure TForm1.ToxReadReceipt(Sender: TObject; FriendNumber, Receipt: Integer
   );
 begin
-  ActivityList.Lines.Add('User ' + IntToStr(FriendNumber) + ' read you message ' + IntToStr(Receipt));
+  //ActivityList.Lines.Add('User ' + IntToStr(FriendNumber) + ' read you message ' + IntToStr(Receipt));
 end;
 
 {*  Событие на выбор пользователем состояния

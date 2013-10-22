@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
     <Version Value="9"/>
@@ -148,6 +148,7 @@
       <Unit20>
         <Filename Value="gui\ControlPanel.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="ControlPanel"/>
       </Unit20>
       <Unit21>
         <Filename Value="gui\ButtonActive.pas"/>

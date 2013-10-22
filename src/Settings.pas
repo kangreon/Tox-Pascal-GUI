@@ -24,10 +24,12 @@ type
     FUserName: string;
     FServerList: TServerList;
     FUseIPv6: Boolean;
+    FUserListWidth: Integer;
     function GetConfigPath: string;
     function GetHomePath: string;
     procedure SetUserName(const Value: string);
     procedure SetUseIPv6(const Value: Boolean);
+    procedure SetUserListWidth(const Value: Integer);
   public
     constructor Create;
     destructor Destroy; override;
@@ -40,7 +42,14 @@ type
     property ConfigPath: string read GetConfigPath;
     property UseIPv6: Boolean read FUseIPv6 write SetUseIPv6;
     property UserName: string read FUserName write SetUserName;
+
+    // Настройки списка пользователей
+    property UserListWidth: Integer read FUserListWidth write SetUserListWidth;
   end;
+
+const
+  USER_LIST_MIN_WIDTH = 223;
+  USER_LIST_MAX_WIDTH = 300;
 
 implementation
 
@@ -71,6 +80,8 @@ begin
 
   FUserName := {$IFDEF FPC}UTF8Encode{$ENDIF}(FIniFile.ReadString('user', 'name', DEFAULT_USER_NAME));
   FUseIPv6 := False;
+
+  FUserListWidth := FIniFile.ReadInteger('UserList', 'Width', USER_LIST_MIN_WIDTH);
 end;
 
 destructor TSettings.Destroy;
@@ -135,6 +146,15 @@ end;
 procedure TSettings.SetUseIPv6(const Value: Boolean);
 begin
   FUseIPv6 := Value;
+end;
+
+procedure TSettings.SetUserListWidth(const Value: Integer);
+begin
+  if FUserListWidth <> Value then
+  begin
+    FUserListWidth := Value;
+    FIniFile.WriteInteger('UserList', 'Width', Value);
+  end;
 end;
 
 procedure TSettings.SetUserName(const Value: string);

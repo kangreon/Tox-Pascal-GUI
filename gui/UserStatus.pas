@@ -63,7 +63,6 @@ type
   protected
     procedure CreateWnd; override;
     procedure Paint; override;
-
   public
     constructor Create(AOwner: TComponent); override;
 
@@ -92,8 +91,6 @@ begin
 
   // Получение ссылки на объект с изображениями
   FImages := TResourceImage.Clone;
-
-  DoubleBuffered := True;
 
   // Активный регион для правой кнопки изменения статуса
   FRightButtonRegion := TActiveRegion.Create(Self);
@@ -142,6 +139,9 @@ procedure TUserStatus.CreateWnd;
 begin
   inherited;
   // Установка минимального размера компонента
+  DoubleBuffered := True;
+  ControlStyle := ControlStyle - [csParentBackground];
+
   Constraints.MinWidth := TUserStatusStyle.MinWidth;
   Constraints.MinHeight := TUserStatusStyle.Height;
   Constraints.MaxHeight := TUserStatusStyle.Height;

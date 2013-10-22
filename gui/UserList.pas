@@ -82,6 +82,7 @@ procedure TUserList.CreateWnd;
 begin
   inherited;
   DoubleBuffered := True;
+  ControlStyle := COntrolStyle - [csParentBackground];
   Color := TUserListStyle.BackgroundColor;
 
   FScroll := TScrollBarNormal.Create(Self);

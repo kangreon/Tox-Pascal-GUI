@@ -72,7 +72,8 @@ uses
   DataBase in 'src\DataBase.pas',
   MessageHeader in 'gui\MessageWidget\MessageHeader.pas',
   MessageHeaderStyle in 'gui\MessageWidget\MessageHeaderStyle.pas',
-  MessageForm in 'gui\MessageWidget\MessageForm.pas';
+  MessageForm in 'gui\MessageWidget\MessageForm.pas',
+  Splitter in 'gui\Splitter.pas';
 
 { *  Вывод сообщения об ошибке загрузки библиотеки libtoxcore
   * }

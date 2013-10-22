@@ -94,7 +94,7 @@
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
         <DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
         <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
-        <DCC_DebugInformation>0</DCC_DebugInformation>
+        <DCC_DebugInformation>False</DCC_DebugInformation>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
         <DCC_ExeOutput>.\Build</DCC_ExeOutput>
@@ -160,9 +160,7 @@
         <DCCReference Include="gui\MessageWidget\MessageHeader.pas"/>
         <DCCReference Include="gui\MessageWidget\MessageHeaderStyle.pas"/>
         <DCCReference Include="gui\MessageWidget\MessageForm.pas"/>
-        <RcCompile Include="Resource\images.rc">
-            <Form>images.res</Form>
-        </RcCompile>
+        <DCCReference Include="gui\Splitter.pas"/>
         <None Include="inc\tox-uses.inc"/>
         <None Include="inc\tox.inc"/>
         <BuildConfiguration Include="Release">

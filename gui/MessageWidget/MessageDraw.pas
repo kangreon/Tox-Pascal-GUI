@@ -18,7 +18,7 @@ uses
   LazUTF8,
   {$ENDIF}
   Classes, SysUtils, Controls, Graphics, StringUtils, MessageList, MessageItem,
-  TextLineInfo, Math;
+  TextLineInfo, Math, SkinTypes, SkinMessageList, DateUtils;
 
 type
   TDrawItemList = array of TMessageInfo;
@@ -34,17 +34,14 @@ type
     FIsCalcPositionForLastMessage: Boolean;
     FMessageCount: Integer;
 
+    FSkin: TSkinMessageList;
     FSpaceWidth: Integer;
-    FTextHeight: Integer;
     FTextMarginLeft: Integer;
     FTextMarginRight: Integer;
 
     FBottomMessageIndex: Integer;
     FBottomMessagePosition: Integer;
     FOnGet: TProcGet;
-    FFormatPaintDate: DataString;
-    FFormatPaintTime: DataString;
-    procedure SetDrawFont;
     function EventGet(Index: Integer; out Mess: TMessageItem): Boolean;
     procedure DrawItem(Item: TMessageInfo; IsDrawName: Boolean);
     procedure RecreateItems;
@@ -56,12 +53,15 @@ type
     function CalcWordPosition(MessageItem: TMessageItem): TWordsInfo;
     procedure DrawDividingLine(Mess: TMessageInfo);
     procedure ScrollPage(Value: Integer);
+    procedure CalcShowTime;
   protected
     procedure Paint; override;
     procedure Resize; override;
   public
-    constructor Create(AOwner: TComponent); override;
+    constructor Create(AOwner: TComponent; Skin: TSkinMessageList); reintroduce;
     destructor Destroy; override;
+
+    procedure CreateWnd;
 
     procedure Redraw(BottomMessageIndex: Integer; MessageCount: Integer);
     procedure ScrollDown(Value: Integer);
@@ -69,8 +69,6 @@ type
 
     property BottomMessageIndex: Integer read FBottomMessageIndex;
     property BottomMessagePosition: Integer read FBottomMessagePosition;
-    property FormatPaintDate: DataString read FFormatPaintDate write FFormatPaintDate;
-    property FormatPaintTime: DataString read FFormatPaintTime write FFormatPaintTime;
 
     property OnGet: TProcGet read FOnGet write FOnGet;
   end;
@@ -80,38 +78,28 @@ implementation
 
 { TMessageDraw }
 
-constructor TMessageDraw.Create(AOwner: TComponent);
-var
-  Bitmap: TBitmap;
+constructor TMessageDraw.Create(AOwner: TComponent; Skin: TSkinMessageList);
 begin
-  inherited;
+  inherited Create(AOwner);
+  FSkin := Skin;
+
   Cursor := crIBeam;
   FBottomMessageIndex := -1;
   FIsCreateList := False;
   FIsCalcPositionForLastMessage := False;
+end;
 
-  // Форматы вывода даты и времени
-  FFormatPaintDate := '  dd/mm/yyyy  ';
-  FFormatPaintTime := '  hh:nn:ss  ';
+procedure TMessageDraw.CreateWnd;
+begin
+  FSkin.SetCanvasForDate(Canvas);
+  FTextMarginRight := Max(
+    Canvas.TextWidth(FormatDateTime(FSkin.DateFormat, Now)),
+    Canvas.TextWidth(FormatDateTime(FSkin.TimeFormat, Now))
+  );
+  FTextMarginLeft := FSkin.ColNameWidth;
 
-  Bitmap := TBitmap.Create;
-  try
-    Bitmap.Canvas.Font.Name := 'DejaVu Sans';
-    Bitmap.Canvas.Font.Height := 13;
-    Bitmap.Canvas.Brush.Style := bsSolid;
-    Bitmap.Canvas.Brush.Color := Color;
-
-    FSpaceWidth := Bitmap.Canvas.TextWidth(' ');
-    FTextHeight := Bitmap.Canvas.TextHeight('Q');
-    FTextMarginLeft := 80;
-
-    FTextMarginRight := Max(
-      Bitmap.Canvas.TextWidth(FormatDateTime(FormatPaintDate, Now)),
-      Bitmap.Canvas.TextWidth(FormatDateTime(FormatPaintTime, Now))
-    );
-  finally
-    Bitmap.Free;
-  end;
+  FSkin.SetCanvasForText(Canvas);
+  FSpaceWidth := Canvas.TextWidth(' ');
 end;
 
 destructor TMessageDraw.Destroy;
@@ -125,63 +113,67 @@ procedure TMessageDraw.DrawItem(Item: TMessageInfo; IsDrawName: Boolean);
 var
   i, c: Integer;
   LeftDraw, TopDraw: Integer;
-  Text, TextOut, DateTimeOut: DataString;
+  Text, TextOut, DateTimeText: DataString;
   StartCopy, CountCopy: Integer;
   LineInfo: TLineInfoEx;
-  OldColor: TColor;
+  IsMy: Boolean;
+  TextWidth: Integer;
+  MessageTime: TDateTime;
 begin
   c := Item.Count;
   LeftDraw := FTextMarginLeft;
   Text := Item.MessageItem.Text;
+  IsMy := Item.MessageItem.IsMy;
+  MessageTime := Item.MessageItem.Time;
 
-  TopDraw := ClientHeight - Item.BottomPosition - Item.BottomMargin;
+  TopDraw := ClientHeight - Item.BottomPosition - Item.MessageBottomMargin;
   for i := c - 1 downto 0 do
   begin
     LineInfo := Item.Item[i]^;
 
     TopDraw := TopDraw - LineInfo.LineHeight;
 
-    if i = 0 then
+    if i = 0 then // Первая строчка сообщения
     begin
-      // Первая строчка сообщения
-      Canvas.Font.Style := [];
+      if Item.TimeInfo <> tiNone then
+      begin
+        FSkin.SetCanvasForDate(Canvas, False, IsMy);
 
-      DateTimeOut := FormatDateTime(FormatPaintTime, Item.MessageItem.Time);
+        case Item.TimeInfo of
+          tiTime:
+              DateTimeText := FormatDateTime(FSkin.TimeFormat, MessageTime);
+          tiDate:
+              DateTimeText := FormatDateTime(FSkin.DateFormat, MessageTime);
+        end;
 
-      Canvas.TextOut(ClientWidth - Canvas.TextWidth(DateTimeOut), TopDraw,
-        DateTimeOut);
-
-      Canvas.Font.Style := [fsBold];
+        TextWidth := Canvas.TextWidth(DateTimeText);
+        Canvas.TextOut(ClientWidth - TextWidth, TopDraw, DateTimeText);
+      end;
 
       if IsDrawName then
       begin
-        OldColor := Canvas.Font.Color;
-        if Item.MessageItem.Friend.IsMy then
-        begin
-          Canvas.Font.Color := $666666;
-        end;
+        FSkin.SetCanvasForName(Canvas, False, IsMy);
 
-        Canvas.TextOut(2, TopDraw, Item.MessageItem.Friend.UserName);
-
-        if Item.MessageItem.Friend.IsMy then
-        begin
-          Canvas.Font.Color := OldColor;
-        end;
+        //TODO: Ограничить поле вывода текста
+        Canvas.TextOut(FSkin.NamePositionLeft, TopDraw,
+          Item.MessageItem.Friend.UserName);
       end;
-
-      Canvas.Font.Style := [];
     end;
 
     if c > 1 then
     begin
       StartCopy := LineInfo.StartPosition;
       CountCopy := LineInfo.Length;
-
-      TextOut := {$IFDEF FPC}UTF8Copy{$ELSE}Copy{$ENDIF}(Text, StartCopy, CountCopy);
+      {$IFDEF FPC}
+        TextOut := UTF8Copy(Text, StartCopy, CountCopy);
+      {$ELSE}
+        TextOut := Copy(Text, StartCopy, CountCopy);
+      {$ENDIF}
     end
     else
       TextOut := Text;
 
+    FSkin.SetCanvasForText(Canvas, False, IsMy);
     Canvas.TextOut(LeftDraw, TopDraw, TextOut);
   end;
 end;
@@ -216,8 +208,6 @@ var
   {$ENDIF}
 begin
   inherited;
-  SetDrawFont;
-
   {$IFDEF DEBUG}
   PaintTime := Now;
   {$ENDIF}
@@ -234,6 +224,7 @@ begin
   end;
 
   {$IFDEF DEBUG}
+  FSkin.SetCanvasForText(Canvas);
   PaintTime := Now - PaintTime;
 
   Canvas.TextOut(0, 0, 'Message draw count: ' + IntToStr(Length(FDrawItems)));
@@ -265,6 +256,8 @@ begin
     Result := TWordsInfo(MessageItem.Data);
     Exit;
   end;
+
+  FSkin.SetCanvasForText(Canvas);
 
   {$IFDEF FPC}
   Text := UTF8Decode(MessageItem.Text);
@@ -493,9 +486,9 @@ var
   ItemList: TDrawItemList;
   ItemListCount: Integer;
 begin
-  SetDrawFont;
+  FSkin.SetCanvasForText(Canvas);
 
-  MaxWidth := ClientWidth - FTextMarginLeft - FTextMarginRight;
+  MaxWidth := (ClientWidth - FTextMarginLeft) - FTextMarginRight;
   FIsCreateList := MaxWidth > 20;
 
   BottomPosition := FBottomMessagePosition;
@@ -529,8 +522,9 @@ begin
 
         MessageInfo.IsMessageHeader := (not Assigned(PrevItem)) or
           (PrevItem.Friend <> ActiveItem.Friend);
-        MessageInfo.HeaderHeight := 20;
-        MessageInfo.BottomMargin := 4;
+
+        MessageInfo.MessageHeaderHeight := FSkin.MessageHeaderHeight;
+        MessageInfo.MessageBottomMargin := FSkin.MessageBottomMargin;
 
         if FIsCalcPositionForLastMessage then
         begin
@@ -607,16 +601,67 @@ begin
     end;
 
     // Новый список составлен. Замена основного списка отрисовки новым.
-    // TODO: Возможна утечка памяти
     SetLength(ItemList, ItemListCount);
-
-    //TODO: Вроде, утечки памяти нету?
     CombineDrawInfoArrays(FDrawItems, ItemList);
+    CalcShowTime;
     FIsCreateList := True;
   end
   else
   begin
     ActiveItem := nil;
+  end;
+end;
+
+procedure TMessageDraw.CalcShowTime;
+var
+  i: Integer;
+  OldTime, NewTime: TDateTime;
+  Item: TMessageInfo;
+begin
+  if Length(FDrawItems) = 0 then
+    Exit;
+
+  Item := FDrawItems[High(FDrawItems)];
+  OldTime := Item.MessageItem.Time;
+  if (HoursBetween(Now, OldTime) <= 24) and (DayOf(Now) = DayOf(OldTime)) then
+  begin
+    Item.TimeInfo := TTimeInfo.tiTime;
+  end
+  else
+  begin
+    Item.TimeInfo := TTimeInfo.tiDate;
+  end;
+
+  for i := High(FDrawItems) - 1 downto Low(FDrawItems) do
+  begin
+    Item := FDrawItems[i];
+    NewTime := Item.MessageItem.Time;
+
+    if (HoursBetween(Now, NewTime) <= 24) and (DayOf(Now) = DayOf(NewTime)) then
+    begin
+      // Вывод времени
+      if MinutesBetween(NewTime, OldTime) > 10 then
+      begin
+        Item.TimeInfo := TTimeInfo.tiTime;
+      end
+      else
+        Item.TimeInfo := TTimeInfo.tiNone;
+
+    end
+    else
+    begin
+      // Вывод даты
+      if not ((HoursBetween(NewTime, OldTime) <= 24) and
+        (DayOf(OldTime) = DayOf(NewTime))) then
+      begin
+        Item.TimeInfo := TTimeInfo.tiDate;
+      end
+      else
+        Item.TimeInfo := TTimeInfo.tiNone;
+
+    end;
+
+    OldTime := NewTime;
   end;
 end;
 
@@ -749,16 +794,5 @@ begin
   end;
 end;
 
-
-procedure TMessageDraw.SetDrawFont;
-begin
-  if not Assigned(Parent) then
-    Exit;
-
-  Canvas.Font.Name := 'DejaVu Sans';
-  Canvas.Font.Height := 13;
-  Canvas.Brush.Color := Color;
-  Canvas.Brush.Style := bsSolid;
-end;
 
 end.

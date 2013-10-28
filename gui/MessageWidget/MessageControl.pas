@@ -17,7 +17,7 @@ uses
   {$I tox-uses.inc}
   Classes, SysUtils, Controls, Graphics, StringUtils, MessageList,
   MessageDraw, Messages, ActiveRegion, MessageItem, FriendItem, MessageHeader,
-  MessageForm;
+  MessageForm, SkinTypes, SkinManager;
 
 type
   TMessagePosition = (mpBefore, mpAfter);
@@ -34,6 +34,7 @@ type
     FIsDown: Boolean;
     FIsFriendSelect: Boolean;
     FMessageList: TMessageList;
+    FSkin: TSkinManager;
     FPosition: Integer;
     FOnSendTextFriend: TProcSendTextFriend;
     procedure MessageGet(Sender: TObject; const Index: Integer; out Exist: Boolean;
@@ -51,7 +52,8 @@ type
       : Boolean; override;
     procedure WndProc(var Message: TMessage); override;
   public
-    constructor Create(AOwner: TComponent; MessageList: TMessageList); reintroduce;
+    constructor Create(AOwner: TComponent; MessageList: TMessageList;
+      Skin: TSkinManager); reintroduce;
     destructor Destroy; override;
 
     procedure SelectFriend(Friend: TFriendItem);
@@ -65,9 +67,11 @@ implementation
 { TMessageControl }
 
 constructor TMessageControl.Create(AOwner: TComponent;
-  MessageList: TMessageList);
+  MessageList: TMessageList; Skin: TSkinManager);
 begin
   inherited Create(AOwner);
+
+  FSkin := Skin;
 
   FMessageList := MessageList;
   FMessageList.OnNewMessage := MessageNewMess;
@@ -76,13 +80,12 @@ begin
   FActive.Align := alClient;
   FActive.OnCursorMessage := ActiveOnMessage;
 
-  FHeader := TMessageHeader.Create(Self);
+  FHeader := TMessageHeader.Create(Self, FSkin.MessageHeader);
   FHeader.Align := alTop;
   FHeader.Visible := False;
 
-  FDraw := TMessageDraw.Create(Self);
+  FDraw := TMessageDraw.Create(Self, FSkin.MessageList);
   FDraw.Align := alClient;
-  FDraw.Parent := Self;
   FDraw.Visible := False;
   FDraw.OnGet := MessageGet;
 
@@ -104,6 +107,22 @@ begin
   FActive.Free;
   inherited;
 end;
+
+procedure TMessageControl.CreateWnd;
+begin
+  inherited;
+  DoubleBuffered := True;
+  ControlStyle := ControlStyle - [csParentBackground];
+
+  FActive.Parent := Self;
+
+  FHeader.Parent := Self;
+  FForm.Parent := Self;
+
+  FDraw.Parent := Self;
+  FDraw.CreateWnd;
+end;
+
 
 { *  В базе появилось новое сообщение. В случае если список сообщений прокручен
   *  на последние (1-2?) сообщения, прокрутка к только что добавленному
@@ -160,18 +179,6 @@ function TMessageControl.DoMouseWheelUp(Shift: TShiftState;
 begin
   FDraw.ScrollUp(40);
   Result := True;
-end;
-
-procedure TMessageControl.CreateWnd;
-begin
-  inherited;
-  DoubleBuffered := True;
-  ControlStyle := ControlStyle - [csParentBackground];
-
-  FActive.Parent := Self;
-
-  FHeader.Parent := Self;
-  FForm.Parent := Self;
 end;
 
 { *  Запрос на следующее сообщение

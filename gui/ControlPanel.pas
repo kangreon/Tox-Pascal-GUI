@@ -13,7 +13,7 @@ interface
 
 uses
   {$I tox-uses.inc}
-  Classes, Controls, ResourceImage, ButtonActive;
+  Classes, Controls, ResourceImage, ButtonActive, SkinControlPanel;
 
 type
   TControlButton = (cbAddUser, cbSettings, cbGroup);
@@ -21,10 +21,10 @@ type
 
   TControlPanel = class(TCustomControl)
   private
-    FImages: TResourceImage;
     FButtonAddUser: TButtonActive;
     FButtonSettings: TButtonActive;
     FButtonGroup: TButtonActive;
+    FSkin: TSkinControlPanel;
     FOnClick: TControlPanelClick;
     procedure EventClick(Button: TControlButton);
     procedure ButtonClick(Sender: TObject);
@@ -32,7 +32,7 @@ type
     procedure CreateWnd; override;
     procedure Resize; override;
   public
-    constructor Create(AOwner: TComponent); override;
+    constructor Create(AOwner: TComponent; Skin: TSkinControlPanel); reintroduce;
     destructor Destroy; override;
 
     property OnClick: TControlPanelClick read FOnClick write FOnClick;
@@ -47,6 +47,61 @@ const
 
 { TControlPanel }
 
+constructor TControlPanel.Create(AOwner: TComponent; Skin: TSkinControlPanel);
+begin
+  inherited Create(AOwner);
+  FSkin := Skin;
+  Align := alBottom;
+end;
+
+procedure TControlPanel.CreateWnd;
+begin
+  inherited;
+  DoubleBuffered := True;
+
+  Color := FSkin.BackColor;
+  Constraints.MinHeight := FSkin.Height;
+  Constraints.MaxHeight := FSkin.Height;
+
+  FButtonAddUser := TButtonActive.Create(Self);
+  FButtonAddUser.InsertImage(FSkin.ImgNewFriend[0], FSkin.ImgNewFriend[1],
+    FSkin.ImgNewFriend[2]);
+  FButtonAddUser.Cursor := crHandPoint;
+  FButtonAddUser.Left := FSkin.MarginLeft;
+  FButtonAddUser.Top := (ClientHeight - FButtonAddUser.Height) div 2;
+  FButtonAddUser.Tag := BUTTON_ADD_USER;
+  FButtonAddUser.OnClick := ButtonClick;
+  FButtonAddUser.Parent := Self;
+
+  FButtonSettings := TButtonActive.Create(Self);
+  FButtonSettings.InsertImage(FSkin.ImgSettings[0], FSkin.ImgSettings[1],
+    FSkin.ImgSettings[2]);
+  FButtonSettings.Cursor := crHandPoint;
+  FButtonSettings.Top := (ClientHeight - FButtonSettings.Height) div 2;
+  FButtonSettings.Left := Width - FButtonSettings.Width - FSkin.MarginRight;
+  FButtonSettings.Tag := BUTTON_SETTINGS;
+  FButtonSettings.OnClick := ButtonClick;
+  FButtonSettings.Parent := Self;
+
+  FButtonGroup := TButtonActive.Create(Self);
+  FButtonGroup.Parent := Self;
+  FButtonGroup.InsertImage(FSkin.ImgNewGroup[0], FSkin.ImgNewGroup[1],
+    FSkin.ImgNewGroup[2]);
+  FButtonGroup.Top := (Height - FButtonGroup.Height) div 2;
+  FButtonGroup.Left := (Width - FButtonGroup.Width) div 2;
+  FButtonGroup.Cursor := crHandPoint;
+  FButtonGroup.Tag := BUTTON_GROUP;
+  FButtonGroup.OnClick := ButtonClick;
+end;
+
+destructor TControlPanel.Destroy;
+begin
+  FButtonAddUser.Free;
+  FButtonSettings.Free;
+  FButtonGroup.Free;
+  inherited;
+end;
+
 procedure TControlPanel.Resize;
 begin
   if not Assigned(FButtonAddUser) then
@@ -55,59 +110,10 @@ begin
   FButtonAddUser.Top := (Height - FButtonAddUser.Height) div 2;
 
   FButtonSettings.Top := (Height - FButtonSettings.Height) div 2;
-  FButtonSettings.Left := Width - FButtonSettings.Width - 20;
+  FButtonSettings.Left := Width - FButtonSettings.Width - FSkin.MarginRight;
 
   FButtonGroup.Top := (Height - FButtonGroup.Height) div 2;
   FButtonGroup.Left := (Width - FButtonGroup.Width) div 2;
-end;
-
-constructor TControlPanel.Create(AOwner: TComponent);
-begin
-  inherited;
-  FImages := TResourceImage.Clone;
-
-  Height := 50;
-  Align := alBottom;
-  Color := RGB(35, 31, 32);
-
-  DoubleBuffered := True;
-end;
-
-procedure TControlPanel.CreateWnd;
-begin
-  inherited;
-  FButtonAddUser := TButtonActive.Create(Self);
-  FButtonAddUser.Parent := Self;
-  FButtonAddUser.Cursor := crHandPoint;
-  FButtonAddUser.InsertImage(FImages.ControlButtons, 0);
-  FButtonAddUser.Left := 20;
-  FButtonAddUser.Top := (Height - FButtonAddUser.Height) div 2;
-  FButtonAddUser.Tag := BUTTON_ADD_USER;
-  FButtonAddUser.OnClick := ButtonClick;
-
-  FButtonSettings := TButtonActive.Create(Self);
-  FButtonSettings.Parent := Self;
-  FButtonSettings.Cursor := crHandPoint;
-  FButtonSettings.InsertImage(FImages.ControlButtons, 3);
-  FButtonSettings.Top := (Height - FButtonSettings.Height) div 2;
-  FButtonSettings.Left := Width - FButtonSettings.Width - 20;
-  FButtonSettings.Tag := BUTTON_SETTINGS;
-  FButtonSettings.OnClick := ButtonClick;
-
-  FButtonGroup := TButtonActive.Create(Self);
-  FButtonGroup.Parent := Self;
-  FButtonGroup.Cursor := crHandPoint;
-  FButtonGroup.InsertImage(FImages.ControlButtons, 6);
-  FButtonGroup.Top := (Height - FButtonGroup.Height) div 2;
-  FButtonGroup.Left := (Width - FButtonGroup.Width) div 2;
-  FButtonGroup.Tag := BUTTON_GROUP;
-  FButtonGroup.OnClick := ButtonClick;
-end;
-
-destructor TControlPanel.Destroy;
-begin
-  FButtonAddUser.Free;
-  inherited;
 end;
 
 procedure TControlPanel.EventClick(Button: TControlButton);

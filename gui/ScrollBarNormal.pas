@@ -12,8 +12,8 @@ interface
   {$I tox.inc}
 
 uses
-  Classes, Graphics, SysUtils, Types, Controls, ScrollBarNormalStyle,
-  ActiveRegion, Messages;
+  Classes, Graphics, SysUtils, Types, Controls, ActiveRegion, Messages,
+  SkinUserList;
 
 type
   TScrollBarNormal = class(TGraphicControl)
@@ -22,6 +22,7 @@ type
     FPosition: Integer;
     FListSize: Integer;
     FMouseDownY: Integer;
+    FSkin: TSkinUserList;
     // Позиция слайдера без учета одного пикселя сверху
     FSliderTop: Integer;
     FSliderTopDown: Integer;
@@ -31,7 +32,7 @@ type
     procedure SetPageSize(const Value: Integer);
     procedure SetPosition(const Value: Integer);
     procedure SetListSize(const Value: Integer);
-    procedure DrawSliderTop(Top, Margin: Integer);
+    procedure DrawSlider(Left, Top, BottomTop: Integer; Center: TRect);
   protected
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState;
       X, Y: Integer); override;
@@ -41,7 +42,7 @@ type
     procedure Paint; override;
     procedure WndProc(var Message: TMessage); override;
   public
-    constructor Create(AOwner: TComponent); override;
+    constructor Create(AOwner: TComponent; Skin: TSkinUserList); reintroduce;
     destructor Destroy; override;
 
     property ListSize: Integer read FListSize write SetListSize;
@@ -55,12 +56,16 @@ implementation
 
 { TScrollBarNormal }
 
-constructor TScrollBarNormal.Create(AOwner: TComponent);
+constructor TScrollBarNormal.Create(AOwner: TComponent; Skin: TSkinUserList);
 begin
-  inherited;
-  Constraints.MinWidth := TSBNStyle.MinWidth;
-  FPosition := 0;
+  inherited Create(AOwner);
+  FSkin := Skin;
 
+  Constraints.MinWidth := FSkin.ScrollBarWidth;
+  Constraints.MaxWidth := Constraints.MinWidth;
+  Width := Constraints.MinWidth;
+
+  FPosition := 0;
   FSliderState := dsNone;
 end;
 
@@ -76,19 +81,21 @@ end;
  *}
 procedure TScrollBarNormal.Paint;
 var
-  DrawColor: TColor;
   HeightMaximal: Integer;
   OtherListSize: Integer;
-  SliderSize: Integer;
+  SliderHeight: Integer;
   SlideMaxHeight: Integer;
   DrawTop: Integer;
-  DrawBottom: Integer;
   SliderRect: TRect;
+  SliderMinHeight, CenterHeight: Integer;
+  SliderWidth: Integer;
+  SliderLeft: Integer;
+  SliderTopHeight: Integer;
 begin
   inherited;
 
   // Зарисовка фона полосы прокрутки
-  Canvas.Brush.Color := TSBNStyle.BackgroundColor;
+  Canvas.Brush.Color := FSkin.ScrollBarBack;
   Canvas.FillRect(Canvas.ClipRect);
 
   if (ListSize <= PageSize) or (FListSize <= 0) or (FPageSize <= 0) then
@@ -98,78 +105,68 @@ begin
     Exit;
   end;
 
-  case FSliderState of
-    dsActive:
-      DrawColor := TSBNStyle.SliderColorActive;
-    dsDown:
-      DrawColor := TSBNStyle.SliderColorDown;
-  else
-    DrawColor := TSBNStyle.SliderColorNormal;
-  end;
-
+  // Отступы от верхнего и нижнего края. Всегда постоянны
   HeightMaximal := ClientHeight - 2;
   OtherListSize := ListSize - PageSize;
 
-  SliderSize := HeightMaximal - OtherListSize;
-  if SliderSize < TSBNStyle.SliderMinHeight then
-    SliderSize := TSBNStyle.SliderMinHeight;
+  CenterHeight := FSkin.ScrollBarMinCenterHeight;
+  SliderTopHeight := FSkin.ImgScrollBarTop[0].Height;
 
-  SlideMaxHeight := HeightMaximal - SliderSize;
+  SliderMinHeight := SliderTopHeight * 2 + CenterHeight;
+  SliderWidth := FSkin.ImgScrollBarTop[0].Width;
+
+  SliderHeight := HeightMaximal - OtherListSize;
+  if SliderHeight < SliderMinHeight then
+    SliderHeight := SliderMinHeight;
+
+  SlideMaxHeight := HeightMaximal - SliderHeight;
   DrawTop := FPosition * SlideMaxHeight div (FListSize - FPageSize) + 1;
-  DrawBottom := DrawTop + SliderSize;
+
   FSliderTop := DrawTop;
-  FSliderHeight := SliderSize;
+  FSliderHeight := SliderHeight;
 
-  SliderRect := Bounds(1, DrawTop + 2, ClientWidth - 2, SliderSize - 4);
+  SliderLeft := (ClientWidth - SliderWidth) div 2;
+  SliderRect := Bounds(
+    SliderLeft,
+    DrawTop + SliderTopHeight,
+    SliderWidth,
+    SliderHeight - SliderTopHeight * 2
+  );
 
-  // Рисование тела слайдера
+  DrawSlider(SliderLeft, DrawTop, DrawTop + SliderHeight - SliderTopHeight,
+    SliderRect);
+end;
+
+{ *  Рисует верхнюю нижнюю и центрольную части слайдера в заданной
+  *  позиции.
+  * }
+procedure TScrollBarNormal.DrawSlider(Left, Top, BottomTop: Integer;
+  Center: TRect);
+var
+  DrawColor: TColor;
+begin
+  case FSliderState of
+    dsActive:
+      DrawColor := FSkin.ScrollbarCenterColorActive;
+
+    dsDown:
+      DrawColor := FSkin.ScrollbarCenterColorDown;
+  else
+    DrawColor := FSkin.ScrollbarCenterColor;
+  end;
+
+  // Рисование центральной части слайдера
   Canvas.Brush.Color := DrawColor;
   Canvas.Brush.Style := bsSolid;
   Canvas.Pen.Color := DrawColor;
-  Canvas.FillRect(SliderRect);
+  Canvas.FillRect(Center);
 
-  // Рисование верхних и нижних краев слайдера
-  DrawSliderTop(DrawTop, 1);
-  DrawSliderTop(DrawTop + 1, 0);
-  DrawSliderTop(DrawBottom - 1, 1);
-  DrawSliderTop(DrawBottom - 2, 0);
-end;
+  // Рисование краев
+  if Length(FSkin.ImgScrollBarTop) = 3 then
+    Canvas.Draw(Left, Top, FSkin.ImgScrollBarTop[Integer(FSliderState)]);
 
-procedure TScrollBarNormal.DrawSliderTop(Top, Margin: Integer);
-var
-  LeftDraw, RightDraw: Integer;
-  Color, ColorExt: TColor;
-begin
-  ColorExt := TSBNStyle.SliderColorExtNormal;
-  Color := TSBNStyle.SliderColorNormal;
-
-  case FSliderState of
-    dsNone:
-      Color := TSBNStyle.SliderColorNormal;
-    dsActive:
-      Color := TSBNStyle.SliderColorActive;
-    dsDown:
-      Color := TSBNStyle.SliderColorDown;
-  end;
-
-  case FSliderState of
-    dsNone:
-      ColorExt := TSBNStyle.SliderColorExtNormal;
-    dsActive:
-      ColorExt := TSBNStyle.SliderColorExtActive;
-    dsDown:
-      ColorExt := TSBNStyle.SliderColorExtDown;
-  end;
-
-  LeftDraw := Margin + 1;
-  RightDraw := ClientWidth - Margin - 2;
-
-  Canvas.Pixels[LeftDraw, Top] := ColorExt;
-  Canvas.Pixels[RightDraw, Top] := ColorExt;
-
-  Canvas.Pen.Color := Color;
-  Canvas.MoveTo(LeftDraw + 1, Top);
-  Canvas.LineTo(RightDraw, Top);
+  if Length(FSkin.ImgScrollBarBottom) = 3 then
+    Canvas.Draw(Left, BottomTop, FSkin.ImgScrollBarBottom[Integer(FSliderState)]);
 end;
 
 procedure TScrollBarNormal.MouseDown(Button: TMouseButton; Shift: TShiftState;

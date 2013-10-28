@@ -14,9 +14,9 @@ interface
 
 uses
   {$I tox-uses.inc}
-  Graphics, Classes, Controls, UserIcon, ResourceImage, ImageUtils,
-  StringUtils, SysUtils, UserStatusStyle, ActiveRegion, Menus, ImgList,
-  PaintSprite, libtox, FriendItem, Clipbrd;
+  Graphics, Classes, Controls, UserIcon, ResourceImage, ImageUtils, StringUtils,
+  SysUtils, ActiveRegion, Menus, ImgList, PaintSprite, libtox, FriendItem,
+  Clipbrd, SkinUserStatus;
 
 type
   TState = (sOffline, sOnline, sAway, sBusy, sLoading);
@@ -29,6 +29,7 @@ type
     FImageLoading: TPaintSprite;
     FRightButtonRegion: TActiveRegion;
     FRightButtonState: TDownState;
+    FSkin: TSkinUserStatus;
     FState: TState;
     FStateMenu: TPopupMenu;
     FStatusRegion: TActiveRegion;
@@ -64,7 +65,8 @@ type
     procedure CreateWnd; override;
     procedure Paint; override;
   public
-    constructor Create(AOwner: TComponent); override;
+    constructor Create(AOwner: TComponent; Skin: TSkinUserStatus); reintroduce;
+    destructor Destroy; override;
 
     property FriendItem: TFriendItem read FFriendItem write SetFriendItem;
     property UserIcon: TUserIcon read FUserIcon write SetUserIcon;
@@ -80,11 +82,13 @@ implementation
 
 { TUserStatus }
 
-constructor TUserStatus.Create(AOwner: TComponent);
+constructor TUserStatus.Create(AOwner: TComponent;
+  Skin: TSkinUserStatus);
 begin
-  inherited;
+  inherited Create(AOwner);
   // TODO: временно
   UserIcon := TUserIcon.Create;
+  FSkin := Skin;
 
   FState := sOffline;
   FRightButtonState := dsNone;
@@ -94,32 +98,19 @@ begin
 
   // Активный регион для правой кнопки изменения статуса
   FRightButtonRegion := TActiveRegion.Create(Self);
-  FRightButtonRegion.Parent := Self;
-  FRightButtonRegion.Width := TUserStatusStyle.RightButtonWidth;
-  FRightButtonRegion.Height := TUserStatusStyle.Height;
   FRightButtonRegion.OnCursorMessage := RightButtonMessage;
   FRightButtonRegion.Cursor := crHandPoint;
 
   // Активный регион для иконки пользователя
   FUserIconRegion := TActiveRegion.Create(Self);
-  FUserIconRegion.Parent := Self;
-  FUserIconRegion.Width := TUserStatusStyle.IconWidth;
-  FUserIconRegion.Height := TUserStatusStyle.IconHeight;
-  FUserIconRegion.Left := TUserStatusStyle.IconPositionLeft;
   FUserIconRegion.Cursor := crHandPoint;
 
   FUsernameRegion := TActiveRegion.Create(Self);
   FUsernameRegion.Parent := Self;
-  FUsernameRegion.Left := TUserStatusStyle.IconPositionLeft +
-    TUserStatusStyle.IconWidth + TUserStatusStyle.UserNameMarginLeft;
-  FUsernameRegion.Top := TUserStatusStyle.UserNameMarginTop;
-  FUsernameRegion.Height := TUserStatusStyle.UserNameHeight;
-  FUsernameRegion.Width := Width - 35 - FUsernameRegion.Left;
   FUsernameRegion.Cursor := crHandPoint;
   FUsernameRegion.OnCursorMessage := UserNameMessage;
 
   FStatusRegion := TActiveRegion.Create(Self);
-  FStatusRegion.Parent := Self;
   FStatusRegion.Cursor := crHandPoint;
   FStatusRegion.OnCursorMessage := StatusRegionMessage;
 
@@ -130,7 +121,7 @@ begin
   UpdateStateMenu;
 
   // Изображение загрузки
-  FImageLoading := TPaintSprite.Create(FImages.LoadingAnimate10, Self);
+  FImageLoading := TPaintSprite.Create(FSkin.ImgLoading, Self);
 end;
 
 {*  Событие вызывается при создании окна
@@ -142,16 +133,23 @@ begin
   DoubleBuffered := True;
   ControlStyle := ControlStyle - [csParentBackground];
 
-  Constraints.MinWidth := TUserStatusStyle.MinWidth;
-  Constraints.MinHeight := TUserStatusStyle.Height;
-  Constraints.MaxHeight := TUserStatusStyle.Height;
+  FRightButtonRegion.Parent := Self;
+  FUserIconRegion.Parent := Self;
+  FStatusRegion.Parent := Self;
 
-  ClientWidth := TUserStatusStyle.MinWidth;
-  ClientHeight := TUserStatusStyle.Height;
+  Constraints.MinWidth := FSkin.MinWidth;
+  Constraints.MaxWidth := FSkin.MaxWidth;
+  Constraints.MinHeight := FSkin.Height;
+  Constraints.MaxHeight := FSkin.Height;
 
-  // Установка цвета фона
-  ParentColor := False;
-  Color := TUserStatusStyle.BackgroundColor;
+  ClientWidth := FSkin.MinWidth;
+  ClientHeight := FSkin.Height;
+end;
+
+destructor TUserStatus.Destroy;
+begin
+  FUserIcon.Free;
+  inherited;
 end;
 
 { *  Рисование кнопки, расположенной с правой стороны
@@ -167,35 +165,29 @@ var
   ImageWidth: Integer;
   ImageHeight: Integer;
 begin
-  Canvas.Brush.Style := bsSolid;
-  case FRightButtonState of
-    dsNone:
-      Canvas.Brush.Color := TUserStatusStyle.RightButtonBackgroundNormal;
-    dsActive:
-      Canvas.Brush.Color := TUserStatusStyle.RightButtonBackgroundActive;
-    dsDown:
-      Canvas.Brush.Color := TUserStatusStyle.RightButtonBackgroundDown;
-  end;
-
-  LeftPoint := Rect.Right - TUserStatusStyle.RightButtonWidth;
+  LeftPoint := Rect.Right - FSkin.ButtonWidth;
   TopPoint := Rect.Top;
 
   // Рисование фона кнопки
-  PaintRect.Left := LeftPoint;
-  PaintRect.Top := TopPoint;
-  PaintRect.Right := Rect.Right;
-  PaintRect.Bottom := Rect.Bottom;
+  Canvas.Brush.Style := bsSolid;
+  case FRightButtonState of
+    dsNone: Canvas.Brush.Color := FSkin.ButtonBack;
+    dsActive: Canvas.Brush.Color := FSkin.ButtonBackActive;
+    dsDown: Canvas.Brush.Color := FSkin.ButtonBackDown;
+  end;
+  PaintRect := Bounds(LeftPoint, TopPoint, FSkin.ButtonWidth, FSkin.Height);
   Canvas.FillRect(PaintRect);
 
   // Установка позиции региона для кнопки
-  FRightButtonRegion.Left := LeftPoint;
-  FRightButtonRegion.Top := TopPoint;
+  FRightButtonRegion.SetRect(PaintRect);
 
-  // Рисование иконки  на кнопке по центру
+  // Рисование иконки на кнопке по центру
   ImageWidth := FImages.UserstatusButtonDown.Width;
   ImageHeight := FImages.UserstatusButtonDown.Height;
-  LeftPoint := ((PaintRect.Right - PaintRect.Left) - ImageWidth) div 2 + LeftPoint;
-  TopPoint := ((Rect.Bottom - Rect.Top) - ImageHeight) div 2;
+
+  LeftPoint := ((FSkin.ButtonWidth - ImageWidth) div 2) + LeftPoint;
+  TopPoint := (FSkin.Height - ImageHeight) div 2;
+
   Canvas.Draw(LeftPoint, TopPoint, FImages.UserstatusButtonDown);
 
   Rect.Right := PaintRect.Left;
@@ -211,18 +203,10 @@ begin
     FImageLoading.Stop;
 
   case FState of
-    sOffline:
-      Image := FImages.GetSelfStatusIcon(usInvalid);
-
-    sOnline:
-      Image := FImages.GetSelfStatusIcon(usNone);
-
-    sAway:
-      Image := FImages.GetSelfStatusIcon(usAway);
-
-    sBusy:
-      Image := FImages.GetSelfSTatusIcon(usBusy);
-
+    sOffline: Image := FSkin.ImgStateOffline;
+    sOnline: Image := FSkin.ImgStateOnline;
+    sAway: Image := FSkin.ImgStateAway;
+    sBusy: Image := FSkin.ImgStateBusy;
     sLoading:
       begin
         Image := nil;
@@ -236,14 +220,14 @@ begin
       end;
 
   else
-    Image := nil;
+    Exit;
   end;
 
   // Рисование выбранной иконки
   if Assigned(Image) then
   begin
     LeftPoint := Rect.Right - Image.Width;
-    TopPoint := ((Rect.Bottom - Rect.Top) - Image.Height) div 2;
+    TopPoint := (FSkin.Height - Image.Height) div 2;
     Canvas.Draw(LeftPoint, TopPoint, Image);
 
     Rect.Right := LeftPoint;
@@ -261,12 +245,16 @@ var
   HeightRect: Integer;
 begin
   HeightRect := Rect.Bottom - Rect.Top;
-  LeftPoint := TUserStatusStyle.IconPositionLeft + Rect.Left;
-  TopPoint := (HeightRect - FUserIcon.Image.Height) div 2 + Rect.Top;
+  LeftPoint := FSkin.IconLeft + Rect.Left;
+  TopPoint := (HeightRect - FSkin.IconHeight) div 2 + Rect.Top;
 
-  Rect.Left := LeftPoint + FUserIcon.Image.Width + TUserStatusStyle.IconMarginRight;
+  Rect.Left := LeftPoint + FSkin.IconWidth + FSkin.IconMarginRight;
 
-  FUserIconRegion.Top := TopPoint;
+  FUserIconRegion.SetRect(Bounds(
+    FSkin.IconLeft, TopPoint,
+    FSkin.IconWidth, FSkin.IconHeight
+  ));
+
   Canvas.Draw(LeftPoint, TopPoint, FUserIcon.Image);
 end;
 
@@ -277,26 +265,15 @@ var
   PaintRect: TRect;
   CharHeight: Integer;
 begin
-  Canvas.Brush.Style := bsClear;
-  Canvas.Font.Color := TUserStatusStyle.UserNameColor;
-  Canvas.Font.Style := [fsBold];
-  Canvas.Font.Name := 'Fira Sans';
-  {$IFDEF FPC}
-  Canvas.Font.Size := 10;
-  {$ELSE}
-  Canvas.Font.Height := TUserStatusStyle.UserNameHeight;
-  {$ENDIF}
+  CharHeight := FSkin.SetCanvasForName(Canvas);
 
-  CharHeight := Canvas.TextExtent('Q').cy;
-
-  PaintRect.Left := Rect.Left + TUserStatusStyle.UserNameMarginLeft;
-  PaintRect.Top := (Rect.Bottom - Rect.Top) div 2 - CharHeight;
+  PaintRect.Left := Rect.Left;
+  PaintRect.Top := (Rect.Bottom - Rect.Top) div 2 - CharHeight - FSkin.NameMarginBottom;
   PaintRect.Right := Rect.Right;
   PaintRect.Bottom := PaintRect.Top + CharHeight;
-  TextRectW(Canvas, PaintRect, FUserName, [tfEndEllipsis]);
+  TextRectEndEllipsis(Canvas, PaintRect, FUserName);
 
-  FUsernameRegion.Top := PaintRect.Top;
-  FUsernameRegion.Width := PaintRect.Right - PaintRect.Left;
+  FUsernameRegion.SetRect(PaintRect);
 
   Rect.Top := PaintRect.Bottom;
 end;
@@ -309,24 +286,13 @@ var
   CharHeight: Integer;
   PaintRect: TRect;
 begin
-  Canvas.Brush.Style := bsClear;
-  Canvas.Font.Color := TUserStatusStyle.StatusMessageColor;
-  Canvas.Font.Style := [];
-  Canvas.Font.Name := 'Fira Sans';
-  {$IFDEF FPC}
-  Canvas.Font.Size := 9;
-  {$ELSE}
-  Canvas.Font.Height := TUserStatusStyle.StatusMessageHeight;
-  {$ENDIF}
+  CharHeight := FSkin.SetCanvasForStatus(Canvas);
 
-  CharHeight := Canvas.TextExtent('Q').cy;
   PaintRect := Rect;
-  PaintRect.Left := PaintRect.Left + TUserStatusStyle.UserNameMarginLeft;
   PaintRect.Bottom := PaintRect.Top + CharHeight;
-  TextRectW(Canvas, PaintRect, FStatusText, [tfEndEllipsis]);
+  TextRectEndEllipsis(Canvas, PaintRect, FStatusText);
 
   FStatusRegion.SetRect(PaintRect);
-
   Rect.Top := PaintRect.Bottom;
 end;
 
@@ -338,7 +304,9 @@ var
 begin
   inherited;
 
+  Canvas.Brush.Color := FSkin.BackColor;
   DrawRect := ClientRect;
+  Canvas.FillRect(DrawRect);
 
   DrawUserIcon(DrawRect);
   DrawRightButton(DrawRect);
@@ -391,8 +359,8 @@ begin
 
     rmMouseClick, rmMouseDblClick:
       begin
-        p.X := FRightButtonRegion.Left + TUserStatusStyle.RightButtonWidth;
-        p.Y := FRightButtonRegion.Top + TUserStatusStyle.Height;
+        p.X := FRightButtonRegion.Left + FSkin.ButtonWidth;
+        p.Y := FRightButtonRegion.Top + FSkin.Height;
         p := ClientToScreen(p);
         FStateMenu.Popup(p.X, p.Y);
 

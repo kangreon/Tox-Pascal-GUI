@@ -38,8 +38,7 @@ type
 
   TPaintSprite = class
   private
-    FBackground: TBitmap;
-    FImage: TPngImage;
+    FImage: TBitmap;
     FImageList: array of TBitmapEx;
     FImageSelect: Integer;
     FWidth: Integer;
@@ -54,7 +53,7 @@ type
     procedure TimerTime(Sender: TObject);
     function GetActive: Boolean;
   public
-    constructor Create(AImage: TPngImage; AControl: TControl);
+    constructor Create(AImage: TBitmap; AControl: TControl);
     destructor Destroy; override;
 
     procedure Draw(Canvas: TCanvas; X, Y: Integer);
@@ -71,11 +70,11 @@ implementation
 
 { TPaintSprite }
 
-constructor TPaintSprite.Create(AImage: TPngImage; AControl: TControl);
+constructor TPaintSprite.Create(AImage: TBitmap; AControl: TControl);
 var
   i: Integer;
 begin
-  FImage := TPngImage.Create;
+  FImage := TBitmap.Create;
   FImage.Assign(AImage);
 
   FWidth := FImage.Height;
@@ -91,10 +90,6 @@ begin
   FControl.Height := Height;
   FControl.OnPaint := Repaint;
   FControl.DoubleBuffered := True;
-
-  FBackground := TBitmap.Create;
-  FBackground.Width := FWidth;
-  FBackground.Height := Height;
 
   SetLength(FImageList, FCount);
   for i := 0 to FCount - 1 do
@@ -116,7 +111,6 @@ destructor TPaintSprite.Destroy;
 begin
   FImage.Free;
   FControl.Free;
-  FBackground.Free;
   inherited;
 end;
 
@@ -133,9 +127,6 @@ begin
     FImageSelect := 0;
 
     FTimer.Enabled := True;
-    FBackground.Canvas.CopyRect(Rect(0, 0, FWidth, FHeignt), Canvas,
-      Rect(X, Y, X + FWidth, Y + FHeignt));
-
     FControl.Left := X;
     FControl.Top := Y;
     FControl.Parent := TWinControl(FOwnControl);
@@ -174,7 +165,6 @@ begin
 
   if Bitmap.Tag = 0 then
   begin
-    Bitmap.Canvas.Draw(0, 0, FBackground);
     Bitmap.Canvas.Draw(-1 * FImageSelect * FWidth, 0, FImage);
     Bitmap.Tag := 1;
   end;

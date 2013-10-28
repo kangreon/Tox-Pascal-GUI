@@ -105,12 +105,6 @@
         <DelphiCompile Include="$(MainSource)">
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
-        <RcCompile Include="Resource\images.rc">
-            <Form>images.res</Form>
-        </RcCompile>
-        <RcCompile Include="Resource\tox-res.rc">
-            <Form>tox-res.res</Form>
-        </RcCompile>
         <DCCReference Include="src\main.pas">
             <Form>Form1</Form>
         </DCCReference>
@@ -126,7 +120,6 @@
         <DCCReference Include="gui\UserIcon.pas"/>
         <DCCReference Include="gui\ResourceImage.pas"/>
         <DCCReference Include="gui\ImageUtils.pas"/>
-        <DCCReference Include="gui\UserStatusStyle.pas"/>
         <DCCReference Include="gui\ActiveRegion.pas"/>
         <DCCReference Include="gui\PaintSprite.pas"/>
         <DCCReference Include="gui\ControlPanel.pas"/>
@@ -140,9 +133,7 @@
         <DCCReference Include="gui\UserList.pas"/>
         <DCCReference Include="gui\UserListStyle.pas"/>
         <DCCReference Include="gui\ScrollBarNormal.pas"/>
-        <DCCReference Include="gui\ScrollBarNormalStyle.pas"/>
         <DCCReference Include="gui\UserListDraw.pas"/>
-        <DCCReference Include="gui\UserListDrawStyle.pas"/>
         <DCCReference Include="gui\Forms\fmFriendRequest.pas">
             <Form>FormFriendRequest</Form>
         </DCCReference>
@@ -158,11 +149,26 @@
         <DCCReference Include="src\FriendBase.pas"/>
         <DCCReference Include="src\DataBase.pas"/>
         <DCCReference Include="gui\MessageWidget\MessageHeader.pas"/>
-        <DCCReference Include="gui\MessageWidget\MessageHeaderStyle.pas"/>
         <DCCReference Include="gui\MessageWidget\MessageForm.pas"/>
         <DCCReference Include="gui\Splitter.pas"/>
+        <DCCReference Include="gui\SkinManager\SkinBase.pas"/>
+        <DCCReference Include="gui\SkinManager\SkinManager.pas"/>
+        <DCCReference Include="gui\SkinManager\SkinUserList.pas"/>
+        <DCCReference Include="gui\SkinManager\SkinUserStatus.pas"/>
+        <DCCReference Include="gui\SkinManager\SkinTypes.pas"/>
+        <DCCReference Include="gui\SkinManager\SkinMessageList.pas"/>
+        <DCCReference Include="gui\SkinManager\SkinMessageHeader.pas"/>
+        <DCCReference Include="gui\SkinManager\SkinControlPanel.pas"/>
+        <RcCompile Include="Resource\images.rc">
+            <Form>images.res</Form>
+        </RcCompile>
+        <RcCompile Include="Resource\tox-res.rc">
+            <Form>tox-res.res</Form>
+        </RcCompile>
         <None Include="inc\tox-uses.inc"/>
         <None Include="inc\tox.inc"/>
+        <None Include="inc\ResourceInclude.inc"/>
+        <None Include="inc\FirstUses.inc"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -219,8 +225,8 @@
                     <Source Name="MainSource">tox.dpr</Source>
                 </Source>
                 <Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dcloffice2k190.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dclofficexp190.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\dcloffice2k170.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\dclofficexp170.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
                 </Excluded_Packages>
             </Delphi.Personality>
             <Deployment/>
@@ -228,6 +234,7 @@
                 <Platform value="Win32">True</Platform>
                 <Platform value="Win64">False</Platform>
             </Platforms>
+            <ModelSupport>False</ModelSupport>
         </BorlandProject>
         <ProjectFileVersion>12</ProjectFileVersion>
     </ProjectExtensions>

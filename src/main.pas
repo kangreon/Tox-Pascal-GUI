@@ -18,7 +18,7 @@ uses
   ServerList, ClientAddress, libtox, StringUtils, ExtCtrls, UserStatus,
   FriendList, ControlPanel, fmUserAdd, fmNewName, UserList,
   FriendRequestController, MessageControl, MessageList, Clipbrd, FriendItem,
-  Splitter;
+  Splitter, SkinManager;
 
 type
   { TForm1 }
@@ -50,6 +50,7 @@ type
     procedure UserStatusStateChange(Sender: TObject; UserState: TState);
     procedure UserStatusChangeName(Sender: TObject);
   private
+    FSkin: TSkinManager;
     FUserList: TUserList;
     FUserStatus: TUserStatus;
     FControlPanel: TControlPanel;
@@ -130,6 +131,8 @@ var
   LeftPanel: TPanel;
   Spl: TSplitterEx;
 begin
+  FSkin := TSkinManager.Create(ExtractFilePath(ParamStr(0)) + 'skin.ini');
+
   LeftPanel := TPanel.Create(Self);
   LeftPanel.Parent := Self;
   LeftPanel.Align := alLeft;
@@ -150,12 +153,12 @@ begin
   Spl.OnSetWidth := SplitterSetWidth;
   Spl.Left := 1;
 
-  FMessageControl := TMessageControl.Create(Self, FToxCore.MessageList);
+  FMessageControl := TMessageControl.Create(Self, FToxCore.MessageList, FSkin);
   FMessageControl.Align := alClient;
   FMessageControl.Parent := Self;
   FMessageControl.OnSendTextFriend := MessageControlSendTextFriend;
 
-  FUserStatus := TUserStatus.Create(LeftPanel);
+  FUserStatus := TUserStatus.Create(LeftPanel, FSkin.UserStatus);
   FUserStatus.Parent := LeftPanel;
   FUserStatus.Align := alTop;
   FUserStatus.FriendItem := FToxCore.FriendList.MyItem;
@@ -163,12 +166,12 @@ begin
   FUserStatus.OnChangeUserName := UserStatusChangeName;
   FUserStatus.OnChangeStatus := UserStatusChangeStatus;
 
-  FControlPanel := TControlPanel.Create(LeftPanel);
+  FControlPanel := TControlPanel.Create(LeftPanel, FSkin.ControlPanel);
   FControlPanel.Parent := LeftPanel;
   FControlPanel.Align := alBottom;
   FControlPanel.OnClick := ControlPanelClick;
 
-  FUserList := TUserList.Create(LeftPanel, FToxCore.FriendList);
+  FUserList := TUserList.Create(LeftPanel, FToxCore.FriendList, FSkin.UserList);
   FUserList.Align := alClient;
   FUserList.Parent := LeftPanel;
   FUserList.OnSelectItem := UserListSelectItem;

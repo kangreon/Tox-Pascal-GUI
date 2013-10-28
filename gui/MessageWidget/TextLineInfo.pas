@@ -52,6 +52,7 @@ type
     LineHeight: Integer;
   end;
   TLineInfoArray = array of PLineInfoEx;
+  TTimeInfo = (tiNone, tiTime, tiDate);
 
   TMessageInfo = class
   private
@@ -64,6 +65,7 @@ type
     FIsMessageHeader: Boolean;
     FHeaderHeight: Integer;
     FBottomMargin: Integer;
+    FTimeInfo: TTimeInfo;
     function GetItem(Index: Integer): PLineInfoEx;
     function GetMessageHeight: Integer;
   public
@@ -73,14 +75,15 @@ type
     procedure Add(LineInfo: TLineInfoEx);
 
     property BottomPosition: Integer read FBottomPosition write FBottomPosition;
-    property BottomMargin: Integer read FBottomMargin write FBottomMargin;
+    property MessageBottomMargin: Integer read FBottomMargin write FBottomMargin;
     property CalcWidth: Integer read FCalcWidth write FCalcWidth;
     property Count: Integer read FLineCount;
-    property HeaderHeight: Integer read FHeaderHeight write FHeaderHeight;
+    property MessageHeaderHeight: Integer read FHeaderHeight write FHeaderHeight;
     property Item[Index: Integer]: PLineInfoEx read GetItem;
     property IsMessageHeader: Boolean read FIsMessageHeader write FIsMessageHeader;
     property MessageItem: TMessageItem read FMessageItem;
     property MessageHeight: Integer read GetMessageHeight;
+    property TimeInfo: TTimeInfo read FTimeInfo write FTimeInfo;
   end;
 
 implementation

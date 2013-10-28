@@ -13,8 +13,8 @@ interface
   {$I tox.inc}
 
 uses
-  Graphics, Classes, Controls, ButtonActive, ResourceImage, MessageHeaderStyle,
-  FriendItem, StringUtils, UserIcon, ImageUtils, Types;
+  Graphics, Classes, Controls, Types, ButtonActive, FriendItem, StringUtils,
+  ImageUtils, SkinMessageHeader;
 
 type
   TMessageHeader = class(TGraphicControl)
@@ -22,14 +22,14 @@ type
     FImageCall: TButtonActive;
     FImageCallVideo: TButtonActive;
     FSelectFriend: TFriendItem;
-    FUserIcon: TUserIcon;
+    FSkin: TSkinMessageHeader;
     procedure FriendUpdate(Sender: TObject);
   protected
     procedure Resize; override;
     procedure SetParent(AParent: TWinControl); override;
     procedure Paint; override;
   public
-    constructor Create(AOwner: TComponent); override;
+    constructor Create(AOwner: TComponent; Skin: TSkinMessageHeader); reintroduce;
     destructor Destroy; override;
 
     procedure SelectFriend(FriendItem: TFriendItem);
@@ -39,22 +39,22 @@ implementation
 
 { TMessageHeader }
 
-constructor TMessageHeader.Create(AOwner: TComponent);
-var
-  ResImage: TResourceImage;
+constructor TMessageHeader.Create(AOwner: TComponent; Skin: TSkinMessageHeader);
 begin
-  inherited;
-  ResImage := TResourceImage.Clone;
+  inherited Create(AOwner);
+  FSkin := Skin;
+
   FSelectFriend := nil;
   Visible := False;
 
-  FUserIcon := TUserIcon.Create;
-
   FImageCall := TButtonActive.Create(Self);
-  FImageCall.InsertImage(ResImage.MessageHeaderButtons, 0);
+  FImageCall.InsertImage(Skin.ImgAudioButton[0], Skin.ImgAudioButton[1],
+    Skin.ImgAudioButton[2]);
   FImageCall.Cursor := crHandPoint;
+
   FImageCallVideo := TButtonActive.Create(Self);
-  FImageCallVideo.InsertImage(ResImage.MessageHeaderButtons, 3);
+  FImageCallVideo.InsertImage(FSkin.ImgVideoButton[0], FSkin.ImgVideoButton[1],
+    FSkin.ImgVideoButton[2]);
   FImageCallVideo.Cursor := crHandPoint;
 end;
 
@@ -63,14 +63,13 @@ begin
   FImageCall.Free;
   FImageCallVideo.Free;
 
-  FUserIcon.Free;
   inherited;
 end;
 
 procedure TMessageHeader.Paint;
 var
   Name, Status: DataString;
-  l, t: Integer;
+  TopPos, LeftPos: Integer;
   MaxWidth: Integer;
   Size: TSize;
   Rect: TRect;
@@ -82,49 +81,40 @@ begin
   Name := FSelectFriend.UserName;
   Status := FSelectFriend.StatusMessage;
 
-  t := (ClientHeight - FUserIcon.Height) div 2;
-  l := TMHStyle.IconMarginLeft;
-  Canvas.Draw(l, t, FUserIcon.Image);
+  TopPos := (ClientHeight - FSkin.IconHeight) div 2;
+  LeftPos := FSkin.IconMarginLeft;
 
-  l := TMHStyle.UserNameMarginLeft + l + FUserIcon.Width;
+  Canvas.Draw(LeftPos, TopPos, FSkin.ImgDefIcon);
 
-  MaxWidth := FImageCall.Left - l - TMHStyle.ButtonAudioMarginLeft;
+  LeftPos := LeftPos + FSkin.IconWidth + FSkin.IconMarginRight;
+  MaxWidth := FImageCall.Left - LeftPos - FSkin.AudioMarginLeft;
 
   // Вывод имени
-  Canvas.Font.Name := TMHStyle.UserNameFontName;
-  Canvas.Font.Size := TMHStyle.UserNameSize;
-  Canvas.Font.Style := TMHStyle.UserNameStyle;
-  Canvas.Font.Color := TMHStyle.UserNameColor;
-  Canvas.Brush.Style := bsClear;
+  FSkin.SetCanvasForName(Canvas);
 
   Size := Canvas.TextExtent(Name);
-  t := ClientHeight div 2 - Size.cy - 2;
-  Rect := Bounds(l, t, MaxWidth, Size.cy);
+  TopPos := ClientHeight div 2 - Size.cy - 2;
+  Rect := Bounds(LeftPos, TopPos, MaxWidth, Size.cy);
 
   if Size.cx < MaxWidth then
-    Canvas.TextOut(l, t, Name)
+    Canvas.TextOut(LeftPos, TopPos, Name)
   else
     TextRectW(Canvas, Rect, Name, [tfEndEllipsis]);
 
   // Вывод статуса
-  Canvas.Font.Name := TMHStyle.StatusFontName;
-  Canvas.Font.Size := TMHStyle.StatusSize;
-  Canvas.Font.Style := TMHStyle.StatusStyle;
-  Canvas.Font.Color := TMHStyle.StatusColor;
-  Canvas.Brush.Style := bsClear;
+  FSkin.SetCanvasForStatus(Canvas);
 
   Size := Canvas.TextExtent(Status);
-  t := ClientHeight div 2;
-  Rect := Bounds(l, t, MaxWidth, Size.cy);
+  TopPos := ClientHeight div 2;
+  Rect := Bounds(LeftPos, TopPos, MaxWidth, Size.cy);
 
   if Size.cx < MaxWidth then
-    Canvas.TextOut(l, t, Status)
+    Canvas.TextOut(LeftPos, TopPos, Status)
   else
     TextRectW(Canvas, Rect, Status, [tfEndEllipsis]);
 
   // Вывод нижней ограничивающей линии
-  Canvas.Pen.Color := $d2d2d2;
-  Canvas.Pen.Style := psDot;
+  FSkin.SetCanvasForDivLine(Canvas);
   Canvas.MoveTo(0, ClientHeight - 1);
   Canvas.LineTo(ClientWidth, ClientHeight - 1);
 end;
@@ -135,9 +125,9 @@ begin
   FImageCallVideo.Top := (ClientHeight - FImageCallVideo.Height) div 2;
   FImageCall.Top := FImageCallVideo.Top;
 
-  FImageCallVideo.Left := ClientWidth - TMHStyle.ButtonVideoMarginRight -
-    FImageCallVideo.Width;
-  FImageCall.Left := FImageCallVideo.Left - TMHStyle.ButtonAudioMarginRight -
+  FImageCallVideo.Left := ClientWidth - FImageCallVideo.Width -
+    FSkin.VideoMarginRight;
+  FImageCall.Left := FImageCallVideo.Left - FSkin.AudioMarginLeft -
     FImageCall.Width;
 end;
 
@@ -163,9 +153,9 @@ begin
   if not Assigned(AParent) then
     Exit;
 
-  Constraints.MinHeight := TMHStyle.ControlHeight;
-  Constraints.MaxHeight := TMHStyle.ControlHeight;
-  ClientHeight := TMHStyle.ControlHeight;
+  Constraints.MinHeight := FSkin.Height;
+  Constraints.MaxHeight := FSkin.Height;
+  ClientHeight := FSkin.Height;
 
   FImageCall.Parent := AParent;
   FImageCallVideo.Parent := AParent;

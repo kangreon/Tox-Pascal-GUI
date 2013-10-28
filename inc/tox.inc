@@ -1,9 +1,16 @@
 {$IFDEF FPC}
   {$MODE Delphi}
   {$CODEPAGE UTF8}
+
+  {$IFDEF UNIX}
+    {$DEFINE FPCUNIX}
+  {$ELSE}
+    {$DEFINE FPCWIN}
+  {$ENDIF}
 {$ELSE}
   {$IF CompilerVersion >= 20}
     {$DEFINE NEW_DELPHI}
+    {$DEFINE DELPHI}
   {$ELSE}
     {$DEFINE OLD_DELPHI}
   {$IFEND}

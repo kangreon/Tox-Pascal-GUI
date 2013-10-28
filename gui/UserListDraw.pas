@@ -15,8 +15,7 @@ interface
 uses
 {$I tox-uses.inc}
   Graphics, Classes, Controls, libtox, UserIcon, ActiveRegion, FriendList,
-  UserListDrawStyle, ResourceImage, ImageUtils, SysUtils, StringUtils,
-  FriendItem;
+  ImageUtils, SysUtils, StringUtils, FriendItem, SkinUserList, SkinTypes;
 
 type
   { *  Структура, содержащая необходимую информацию для рисования элементов
@@ -39,12 +38,12 @@ type
     FCountRepaint: Integer;
     {$ENDIF}
     FDefaultUserIcon: TUserIcon;
-    FImages: TResourceImage;
     FIsActiveItem: Boolean;
     FItems: TUsers;
     FItemsCount: Integer;
     FPosition: Integer;
     FSize: Integer;
+    FSkin: TSkinUserList;
     FStopUpdate: Boolean;
     FOnChangeSize: TNotifyEvent;
 
@@ -55,10 +54,12 @@ type
       Status: TToxUserStatus; IsNewMessage: Boolean; UserIcon: TUserIcon;
       MouseState: TDownState);
     procedure DrawUserIcon(var DrawRect: TRect; Icon: TUserIcon);
-    procedure DrawUserName(var DrawRect: TRect; Name: DataString);
+    procedure DrawUserName(var DrawRect: TRect; Name: DataString;
+      MouseState: TDownState);
     procedure DrawStatusIcon(var DrawRect: TRect; Status: TToxUserStatus;
       MouseState: TDownState; IsNewMessage: Boolean);
-    procedure DrawStatusText(DrawRect: TRect; Status: DataString);
+    procedure DrawStatusText(DrawRect: TRect; Status: DataString;
+      MouseState: TDownState);
     procedure ActiveRegionMouseMessage(Sender: TObject;
       RegionMessage: TRegionMessage; const x, y: Integer; Button: TMouseButton;
       Shift: TShiftState);
@@ -72,7 +73,7 @@ type
   protected
     procedure Paint; override;
   public
-    constructor Create(AOwner: TComponent); override;
+    constructor Create(AOwner: TComponent; Skin: TSkinUserList); reintroduce;
     destructor Destroy; override;
 
     procedure AddItem(FriendItem: TFriendItem);
@@ -98,11 +99,12 @@ implementation
 { TUserListDraw }
 
 
-constructor TUserListDraw.Create(AOwner: TComponent);
+constructor TUserListDraw.Create(AOwner: TComponent; Skin: TSkinUserList);
 begin
-  inherited;
+  inherited Create(AOwner);
+
+  FSkin := Skin;
   FDefaultUserIcon := TUserIcon.Create;
-  FImages := TResourceImage.Clone;
 
   FSize := 500;
   FStopUpdate := False;
@@ -212,7 +214,7 @@ function TUserListDraw.GetItemByMousePos(x, y: Integer): Integer;
 begin
   if (x >= 0) and (x < ClientWidth) and (y >= 0) and (y < CLientHeight) then
   begin
-    Result := (y + FPosition) div TULDStyle.ItemHeight;
+    Result := (y + FPosition) div FSkin.ItemHeight;
 
     if (Result < 0) or (Result >= FItemsCount) then
       Result := -1;
@@ -347,25 +349,25 @@ procedure TUserListDraw.DrawItem(Y: Integer; UserName, StatusText: DataString;
 var
   DrawRect: TRect;
 begin
-  DrawRect := Bounds(0, Y, ClientWidth, TULDStyle.ItemHeight);
-
-  case MouseState of
-    dsActive:
-      Canvas.Brush.Color := TULDStyle.BackgroundActive;
-    dsDown:
-      Canvas.Brush.Color := TULDStyle.BackgroundSelect;
-  end;
+  DrawRect := Bounds(0, Y, ClientWidth, FSkin.ItemHeight);
 
   if MouseState <> dsNone then
   begin
+    case MouseState of
+      dsActive:
+        Canvas.Brush.Color := FSkin.ItemColorActive;
+      dsDown:
+        Canvas.Brush.Color := FSkin.ItemColorDown;
+    end;
+
     Canvas.Brush.Style := bsSolid;
     Canvas.FillRect(DrawRect);
   end;
 
   DrawUserIcon(DrawRect, UserIcon);
   DrawStatusIcon(DrawRect, Status, MouseState, IsNewMessage);
-  DrawUserName(DrawRect, UserName);
-  DrawStatusText(DrawRect, StatusText);
+  DrawUserName(DrawRect, UserName, MouseState);
+  DrawStatusText(DrawRect, StatusText, MouseState);
 end;
 
 procedure TUserListDraw.DrawStatusIcon(var DrawRect: TRect;
@@ -374,56 +376,85 @@ var
   LeftDraw, TopDraw: Integer;
   HeightItem: Integer;
   Icon: TBitmap;
+  MouseStateInt: Integer;
 begin
-  Icon := FImages.GetUserListStatusIcon(MouseState, Status, IsNewMessage);
+  MouseStateInt := Integer(MouseState);
 
-  if Assigned(Icon) then
+  case Status of
+    usNone:
+      begin
+        if IsNewMessage then
+          Icon := FSkin.ImgStateOnlineNew[MouseStateInt]
+        else
+          Icon := FSkin.ImgStateOnline[MouseStateInt];
+      end;
+
+    usAway:
+      begin
+        if IsNewMessage then
+          Icon := FSkin.ImgStateAwayNew[MouseStateInt]
+        else
+          Icon := FSkin.ImgStateAway[MouseStateInt];
+      end;
+
+    usBusy:
+      begin
+        if IsNewMessage then
+          Icon := FSkin.ImgStateBusyNew[MouseStateInt]
+        else
+          Icon := FSkin.ImgStateBusy[MouseStateInt];
+      end;
+
+//    usInvalid:
+  else
+    begin
+      if IsNewMessage then
+        Icon := FSkin.ImgStateOfflineNew[MouseStateInt]
+      else
+        Icon := FSkin.ImgStateOffline[MouseStateInt];
+    end;
+  end;
+
+  if Assigned(Icon) and (not Icon.Empty) then
   begin
     HeightItem := DrawRect.Bottom - DrawRect.Top;
     TopDraw := (HeightItem - Icon.Height) div 2 + DrawRect.Top;
-    LeftDraw := DrawRect.Right - Icon.Width - TULDStyle.StatusIconMarginRight;
-    DrawRect.Right := LeftDraw - TULDStyle.StatusIconMarginLeft;
+    LeftDraw := DrawRect.Right - Icon.Width - FSkin.StatusIconMarginRight;
+    DrawRect.Right := LeftDraw - FSkin.StatusIconMarginLeft;
 
     Canvas.Draw(LeftDraw, TopDraw, Icon);
   end;
 end;
 
-procedure TUserListDraw.DrawStatusText(DrawRect: TRect; Status: DataString);
-var
-  NewRect: TRect;
-  NewStatus: DataString;
+{ *  Рисоование текущего статуса пользователя
+  * }
+procedure TUserListDraw.DrawStatusText(DrawRect: TRect; Status: DataString;
+  MouseState: TDownState);
 begin
-  NewRect := DrawRect;
-
-  Canvas.Brush.Style := bsClear;
-  Canvas.Font.Color := TULDStyle.StatusColor;
-  {$IFDEF FPC}
-  Canvas.Font.Size := 8;
-  {$ELSE}
-  Canvas.Font.Height := TULDStyle.NameHeight;
-  {$ENDIF}
-  Canvas.Font.Name := 'Fira Sans';
-  Canvas.Font.Style := [];
-
-  NewStatus := Status;
-  TextRectW(Canvas, NewRect, NewStatus, [tfEndEllipsis]);
+  FSkin.SetCanvasForStatus(Canvas, TMouseState(MouseState));
+  TextRectEndEllipsis(Canvas, DrawRect, Status);
 end;
 
+{ *  Рисование иконки пользователя
+  * }
 procedure TUserListDraw.DrawUserIcon(var DrawRect: TRect; Icon: TUserIcon);
 var
   LeftDraw, TopDraw: Integer;
   HeightItem: Integer;
 begin
   HeightItem := DrawRect.Bottom - DrawRect.Top;
+
   TopDraw := (HeightItem - Icon.Height) div 2 + DrawRect.Top;
-  LeftDraw := DrawRect.Left + TULDStyle.IconLeft;
+  LeftDraw := DrawRect.Left + FSkin.IconLeft;
+
   DrawRect.Left := DrawRect.Left + LeftDraw + Icon.Width +
-    TULDStyle.IconMarginRight;
+    FSkin.IconMarginRight;
 
   Canvas.Draw(LeftDraw, TopDraw, Icon.Image);
 end;
 
-procedure TUserListDraw.DrawUserName(var DrawRect: TRect; Name: DataString);
+procedure TUserListDraw.DrawUserName(var DrawRect: TRect; Name: DataString;
+  MouseState: TDownState);
 var
   BlockHeight, BlockWidth, BlockTop: Integer;
   NewRect: TRect;
@@ -434,15 +465,7 @@ begin
   BlockHeight := (DrawRect.Bottom - DrawRect.Top) div 2;
   DrawRect.Top := DrawRect.Top + BlockHeight;
 
-  Canvas.Brush.Style := bsClear;
-  Canvas.Font.Color := TULDStyle.NameColor;
-  {$IFDEF FPC}
-  Canvas.Font.Size := 9;
-  {$ELSE}
-  Canvas.Font.Height := TULDStyle.NameHeight;
-  {$ENDIF}
-  Canvas.Font.Name := 'Fira Sans';
-  Canvas.Font.Style := [fsBold];
+  FSkin.SetCanvasForName(Canvas, TMouseState(MouseState));
 
   NewRect := Bounds(DrawRect.Left, BlockTop, BlockWidth, BlockHeight);
   NewRect.Top := NewRect.Top + (BlockHeight - Canvas.TextHeight('Z'));
@@ -464,6 +487,7 @@ begin
   Point.y := 0;
   Point.x := 0;
 
+  //TODO: Исправить баг с ложным фокусом
   if GetCursorPos(Point) then
   begin
     Point := ScreenToClient(Point);
@@ -473,15 +497,15 @@ begin
   end;
 
   // Зарисовка фона списка цветом по умолчанию
-  Canvas.Brush.Color := TULDStyle.BackgroundNormal;
+  Canvas.Brush.Color := FSkin.BackgroundColor;
   Canvas.Brush.Style := bsSolid;
   Canvas.FillRect(ClientRect);
 
   for i := 0 to FItemsCount - 1 do
   begin
-    TopPosition := -1 * FPosition + (TULDStyle.ItemHeight * i);
+    TopPosition := -1 * FPosition + (FSkin.ItemHeight * i);
 
-    if (TopPosition + TULDStyle.ItemHeight <= 0) then
+    if (TopPosition + FSkin.ItemHeight <= 0) then
       Continue;
 
     if (TopPosition > ClientHeight) then
@@ -495,7 +519,7 @@ begin
       FItems[i].State);
   end;
 
-  NewSize := (FItemsCount * TULDStyle.ItemHeight);
+  NewSize := (FItemsCount * FSkin.ItemHeight);
   if NewSize < 0 then
     NewSize := 0;
 

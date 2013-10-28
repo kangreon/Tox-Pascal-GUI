@@ -17,7 +17,7 @@ interface
 uses
 {$I tox-uses.inc}
   Controls, Classes, SysUtils, UserListStyle, ScrollBarNormal, Messages,
-  ActiveRegion, UserListDraw, FriendList, FriendItem, libtox;
+  ActiveRegion, UserListDraw, FriendList, FriendItem, libtox, SkinUserList;
 
 type
   { TUserList }
@@ -32,6 +32,7 @@ type
     FList: TUserListDraw;
     FListType: TListType;
     FScroll: TScrollBarNormal;
+    FSkin: TSkinUserList;
     FSortName: TSortName;
     FSortStatus: TSortStatus;
     FOnSelectItem: TProcSelectItem;
@@ -52,8 +53,8 @@ type
     procedure Resize; override;
     procedure WndProc(var Message: TMessage); override;
   public
-    constructor Create(AOwner: TComponent; FriendList: TFriendList);
-      reintroduce;
+    constructor Create(AOwner: TComponent; FriendList: TFriendList;
+      Skin: TSkinUserList); reintroduce;
 
     property Scroll: TScrollBarNormal read FScroll;
 
@@ -65,10 +66,12 @@ implementation
 
 { TUserList }
 
-constructor TUserList.Create(AOwner: TComponent; FriendList: TFriendList);
+constructor TUserList.Create(AOwner: TComponent; FriendList: TFriendList;
+  Skin: TSkinUserList);
 begin
   inherited Create(AOwner);
   FFriends := FriendList;
+  FSkin := Skin;
 
   FListType := ltFriend;
   FSortName := snDown;
@@ -85,14 +88,14 @@ begin
   ControlStyle := COntrolStyle - [csParentBackground];
   Color := TUserListStyle.BackgroundColor;
 
-  FScroll := TScrollBarNormal.Create(Self);
+  FScroll := TScrollBarNormal.Create(Self, FSkin);
   FScroll.Parent := Self;
   FScroll.Align := alRight;
   FScroll.Width := TUserListStyle.ScrollWidth;
   FScroll.PageSize := Height;
   FScroll.OnScroll := ScrollOnScroll;
 
-  FList := TUserListDraw.Create(Self);
+  FList := TUserListDraw.Create(Self, FSkin);
   FList.Align := alClient;
   FList.Parent := Self;
   FList.OnChangeSize := ListChangeSize;

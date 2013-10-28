@@ -43,7 +43,7 @@
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="24">
+    <Units Count="25">
       <Unit0>
         <Filename Value="tox.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -164,6 +164,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="MessageDraw"/>
       </Unit23>
+      <Unit24>
+        <Filename Value="gui\SkinManager\SkinBase.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="SkinBase"/>
+      </Unit24>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -174,7 +179,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="src;gui;gui\Forms;$(ProjOutDir);inc"/>
-      <OtherUnitFiles Value="gui;src;gui\Forms;sqlite;inc;gui\MessageWidget"/>
+      <OtherUnitFiles Value="gui;src;gui\Forms;sqlite;inc;gui\MessageWidget;gui\SkinManager"/>
       <UnitOutputDirectory Value="Build\dcu"/>
     </SearchPaths>
     <Parsing>

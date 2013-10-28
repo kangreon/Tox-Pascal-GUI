@@ -1,4 +1,5 @@
 DefaultUserface  BITMAP  "../Image/default-userface.bmp"
 UserstatusButtonDown  BITMAP "../Image/UserstatusButtonDown.bmp"
 ToxSkin RCDATA "../Image/ToxUISkin.png"
+NewToxUI RCDATA "../Image/NewToxUI.png"
 LoadingAnimate10 RCDATA "../Image/loading-animate-10.png"

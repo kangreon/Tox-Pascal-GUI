@@ -9,29 +9,12 @@
 program tox;
 
 {$I tox.inc}
-{$IFDEF FPC}
-  {$IFNDEF Unix}
-    {$R Resource\tox-res.rc}
-    {$R Resource\images.rc}
-  {$ELSE}
-    {$R Resource\images.rc}
-  {$ENDIF}
-{$ELSE}
-  {$R 'images.res' 'Resource\images.rc'}
-{$R 'tox-res.res' 'Resource\tox-res.rc'}
-{$ENDIF}
+{$I ResourceInclude.inc}
 
+//{$I FirstUses.inc}
 uses
-  {$IFDEF FPC}
-  {$IFDEF UNIX}
-  cthreads,
-  {$ENDIF}
-  Interfaces,
-  {$ELSE}
-  Windows,
-  {$ENDIF}
+  {$I FirstUses.inc}
   Forms,
-  Dialogs,
   main in 'src\main.pas' {Form1},
   libtox in 'src\libtox.pas',
   toxcore in 'src\toxcore.pas',
@@ -45,7 +28,6 @@ uses
   UserIcon in 'gui\UserIcon.pas',
   ResourceImage in 'gui\ResourceImage.pas',
   ImageUtils in 'gui\ImageUtils.pas',
-  UserStatusStyle in 'gui\UserStatusStyle.pas',
   ActiveRegion in 'gui\ActiveRegion.pas',
   PaintSprite in 'gui\PaintSprite.pas',
   ControlPanel in 'gui\ControlPanel.pas',
@@ -55,9 +37,7 @@ uses
   UserList in 'gui\UserList.pas',
   UserListStyle in 'gui\UserListStyle.pas',
   ScrollBarNormal in 'gui\ScrollBarNormal.pas',
-  ScrollBarNormalStyle in 'gui\ScrollBarNormalStyle.pas',
   UserListDraw in 'gui\UserListDraw.pas',
-  UserListDrawStyle in 'gui\UserListDrawStyle.pas',
   fmFriendRequest in 'gui\Forms\fmFriendRequest.pas' {FormFriendRequest},
   FriendRequestController in 'gui\FriendRequestController.pas',
   MessageControl in 'gui\MessageWidget\MessageControl.pas',
@@ -71,22 +51,16 @@ uses
   FriendBase in 'src\FriendBase.pas',
   DataBase in 'src\DataBase.pas',
   MessageHeader in 'gui\MessageWidget\MessageHeader.pas',
-  MessageHeaderStyle in 'gui\MessageWidget\MessageHeaderStyle.pas',
   MessageForm in 'gui\MessageWidget\MessageForm.pas',
-  Splitter in 'gui\Splitter.pas';
-
-{ *  Вывод сообщения об ошибке загрузки библиотеки libtoxcore
-  * }
-procedure MessageLoadToxError;
-begin
-{$IFDEF Win32}
-  ShowMessage('Cannot load library libtoxcore-0.dll');
-{$ELSE}
-  ShowMessage('Cannot load library libtoxcore-0.so');
-{$ENDIF}
-end;
-
-{$IFDEF NEW_DELPHI}
+  Splitter in 'gui\Splitter.pas',
+  SkinBase in 'gui\SkinManager\SkinBase.pas',
+  SkinManager in 'gui\SkinManager\SkinManager.pas',
+  SkinUserList in 'gui\SkinManager\SkinUserList.pas',
+  SkinUserStatus in 'gui\SkinManager\SkinUserStatus.pas',
+  SkinTypes in 'gui\SkinManager\SkinTypes.pas',
+  SkinMessageList in 'gui\SkinManager\SkinMessageList.pas',
+  SkinMessageHeader in 'gui\SkinManager\SkinMessageHeader.pas',
+  SkinControlPanel in 'gui\SkinManager\SkinControlPanel.pas';
 
 function IsRunApplication: Boolean;
 var
@@ -102,21 +76,19 @@ begin
       SetForegroundWindow(WinHandle);
   end;
 end;
-{$ENDIF}
 
 begin
-{$IFDEF NEW_DELPHI}
+{$IFDEF WINDOWS}
   if IsRunApplication then
   begin
-{$ENDIF}
     Application.Initialize;
     Application.CreateForm(TForm1, Form1);
-  if not Form1.ToxLoadError then
-      Application.Run
-    else
-      MessageLoadToxError;
-{$IFDEF NEW_DELPHI}
+    Application.Run
   end;
+{$ELSE}
+  Application.Initialize;
+  Application.CreateForm(TForm1, Form1);
+  Application.Run
 {$ENDIF}
 
 end.

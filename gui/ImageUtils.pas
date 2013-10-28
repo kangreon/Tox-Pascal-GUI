@@ -32,8 +32,20 @@ function TextExtentW(Canvas: TCanvas; const Text: DataString): TSize;
 procedure TextOutW(Canvas: TCanvas; X, Y: Integer; const Text: DataString);
 procedure TextRectW(Canvas: TCanvas; var Rect: TRect; var Text: DataString;
   TextFormat: TTextFormat = []);
+procedure TextRectEndEllipsis(Canvas: TCanvas; Rect: TRect; Text: DataString);
 
 implementation
+
+procedure TextRectEndEllipsis(Canvas: TCanvas; Rect: TRect; Text: DataString);
+var
+  TempRect: TRect;
+  TempText: DataString;
+begin
+  TempRect := Rect;
+  TempText := Text;
+
+  TextRectW(Canvas, TempRect, TempText, [TTextFormats.tfEndEllipsis]);
+end;
 
 procedure TextRectW(Canvas: TCanvas; var Rect: TRect; var Text: DataString;
   TextFormat: TTextFormat = []);

@@ -6,7 +6,7 @@
 //
 //  Copyright (c) 2013 Dmitry
 //
-//  Обновлено 14.10.2013
+//  Обновлено 01.11.2013
 //
 unit libtox;
 
@@ -17,44 +17,25 @@ type
 	TTox = Pointer;
 
 type
-  SunB = record
-    s_b1, s_b2, s_b3, s_b4: Byte;
+
+///* sa_family_t is the sockaddr_in / sockaddr_in6 family field */
+//typedef short sa_family_t;
+  sa_family_t = ShortInt;
+
+//typedef union {
+//    uint8_t  c[4];
+//    uint16_t s[2];
+//    uint32_t i;
+//} tox_IP4;
+  tox_IP4 = record
+  case Integer of
+    0: (c : array[0..3] of Byte);
+    1: (s : array[0..1] of Word);
+    2: (i : Cardinal);
   end;
 
-  SunC = record
-    s_c1, s_c2, s_c3, s_c4: AnsiChar;
-  end;
-
-  SunW = record
-    s_w1, s_w2: Word;
-  end;
-
-  in_addr = record
-    case Integer of
-      0: (S_un_b: SunB);
-      1: (S_un_c: SunC);
-      2: (S_un_w: SunW);
-      3: (S_addr: Cardinal);
-  end;
-  TInAddr = in_addr;
-  PInAddr = ^in_addr;
-
-  PToxIP4 = PInAddr;
-  TToxIP4 = TInAddr;
-
-  pin6_addr = ^in6_addr;
-  in6_addr = packed record
-  case byte of
-    0: (u6_addr8  : array[0..15] of byte);
-    1: (u6_addr16 : array[0..7] of Word);
-    2: (u6_addr32 : array[0..3] of Cardinal);
-    3: (s6_addr8  : array[0..15] of shortint);
-    4: (s6_addr   : array[0..15] of shortint);
-    5: (s6_addr16 : array[0..7] of smallint);
-    6: (s6_addr32 : array[0..3] of LongInt);
-  end;
-  TIn6Addr = in6_addr;
-  PIn6Addr = pin6_addr;
+  PToxIP4 = ^TToxIP4;
+  TToxIP4 = tox_IP4;
 
 //typedef union {
 //    uint8_t uint8[16];
@@ -63,12 +44,12 @@ type
 //    struct in6_addr in6_addr;
 //} tox_IP6;
 
-  TToxIP6 = record
+  tox_IP6 = record
     case Byte of
       0: (uint8: array[0..15] of Byte);
       1: (uint16: array[0..7] of Word);
       2: (uint32: array[0..3] of Cardinal);
-      3: (in6_addr: PIn6Addr);
+      //TODO: Надо?     3: (in6_addr: PIn6Addr);
   end;
 
 //typedef struct {
@@ -77,57 +58,28 @@ type
 //        tox_IP4 ip4;
 //        tox_IP6 ip6;
 //    };
-//} tox_IPAny;
-  TToxIPAny = record
-    family: ShortInt;
-    case Byte of
-      0: (ip4: TToxIP4);
-      1: (ip6: TToxIP6);
+//} tox_IP;
+
+  tox_IP_union = record
+    ip4: tox_IP4;
+    ip6: tox_IP6;
+  end;
+
+  tox_IP = record
+    family: sa_family_t;
+    union: tox_IP_union;
   end;
 
 ///* will replace IP_Port as soon as the complete infrastructure is in place
 // * removed the unused union and padding also */
 //typedef struct {
-//    tox_IPAny ip;
+//    tox_IP    ip;
 //    uint16_t  port;
-//} tox_IPAny_Port;
-  TToxIPAnyPort = record
-    ip: TToxIPAny;
+//} tox_IP_Port;
+  tox_IP_Port = record
+    ip: tox_IP;
     port: Word;
   end;
-
-//typedef union {
-//    struct {
-//        tox_IP4  ip;
-//        uint16_t port;
-//        /* Not used for anything right now. */
-//        uint16_t padding;
-//    };
-//    uint8_t uint8[8];
-//} tox_IP4_Port;
-
-
-  TIp4PortData = record
-    ip: TToxIP4;
-    port: Word;
-    padding: Word;
-  end;
-
-  TToxIP4Port = record
-    case Byte of
-      0: (data: TIp4PortData);
-      1: (uint8: array[0..7] of Byte);
-  end;
-
-  {$DEFINE TOX_ENABLE_IPV6}
-  {$IFDEF TOX_ENABLE_IPV6}
-    {$DEFINE TOX_ENABLE_IPV6_DEFAULT}
-    TToxIp = TToxIPAny;
-    TToxIpPort = TToxIPAnyPort;
-  {$ELSE}
-    TToxIp = TToxIP4;
-    TToxIpPort = TToxIP4Port;
-  {$ENDIF}
 
 //enum {
 //    TOX_FAERR_TOOLONG = -1,
@@ -195,6 +147,12 @@ const
   TOX_CLIENT_ID_SIZE            = 32;
   FRIEND_ADDRESS_SIZE           = (TOX_CLIENT_ID_SIZE + SizeOf(Integer) +
                                   SizeOf(Word));
+
+  TOX_PORTRANGE_FROM            = 33445;
+  TOX_PORTRANGE_TO              = 33545;
+  TOX_PORT_DEFAULT              = TOX_PORTRANGE_FROM;
+
+  TOX_ENABLE_IPV6_DEFAULT       = 1;
 
 //  enum {
 //      TOX_FILECONTROL_ACCEPT,
@@ -306,17 +264,6 @@ function tox_sendmessage_withid(tox: TTox; friendnumber: Integer; theid: Integer
 //uint32_t tox_sendaction_withid(Tox *tox, int friendnumber, uint32_t theid, uint8_t *action, uint32_t length);
 function tox_sendaction(tox: TTox; friendnumber: Integer; action: PByte; length: Integer): Integer; cdecl; external TOX_LIBRARY;
 function tox_sendaction_withid(tox: TTox; friendnumber: Integer; theid: Cardinal; action: PByte; length: Integer): Integer; cdecl; external TOX_LIBRARY;
-
-///* Set friendnumber's nickname.
-// * name must be a string of maximum MAX_NAME_LENGTH length.
-// * length must be at least 1 byte.
-// * length is the length of name with the NULL terminator.
-// *
-// *  return 0 if success.
-// *  return -1 if failure.
-// */
-//int tox_setfriendname(Tox *tox, int friendnumber, uint8_t *name, uint16_t length);
-function tox_setfriendname(Tox: TTox; friendnumber: Integer; name: PByte; length: Word): Integer; cdecl; external TOX_LIBRARY;
 
 ///* Set our nickname.
 // * name must be a string of maximum MAX_NAME_LENGTH length.
@@ -669,11 +616,12 @@ function tox_file_dataremaining(Tox: TTox; friendnumber: Integer;
 // *   to setup connections
 // */
 //void tox_bootstrap_from_ip(Tox *tox, tox_IP_Port ip_port, uint8_t *public_key);
-procedure tox_bootstrap_from_ip(Tox: TTox; ip_port: TToxIpPort;
+procedure tox_bootstrap_from_ip(Tox: TTox; ip_port: tox_IP_Port;
   public_key: PByte); cdecl; external TOX_LIBRARY;
 
 ///* Resolves address into an IP address. If successful, sends a "get nodes"
-// *   request to the given node with ip, port and public_key to setup connections
+// *   request to the given node with ip, port (in network byte order, HINT: use htons())
+// *   and public_key to setup connections
 // *
 // * address can be a hostname or an IP address (IPv4 or IPv6).
 // * if ipv6enabled is 0 (zero), the resolving sticks STRICTLY to IPv4 addresses

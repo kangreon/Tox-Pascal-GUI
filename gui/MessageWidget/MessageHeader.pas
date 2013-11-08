@@ -90,7 +90,7 @@ begin
   MaxWidth := FImageCall.Left - LeftPos - FSkin.AudioMarginLeft;
 
   // Вывод имени
-  FSkin.SetCanvasForName(Canvas);
+  FSkin.NameFont.SetCanvas(Canvas);
 
   Size := Canvas.TextExtent(Name);
   TopPos := ClientHeight div 2 - Size.cy - 2;
@@ -102,7 +102,7 @@ begin
     TextRectW(Canvas, Rect, Name, [tfEndEllipsis]);
 
   // Вывод статуса
-  FSkin.SetCanvasForStatus(Canvas);
+  FSkin.StatusFont.SetCanvas(Canvas);
 
   Size := Canvas.TextExtent(Status);
   TopPos := ClientHeight div 2;

@@ -1,3 +1,9 @@
+п»ї// SkinUserStatus.pas
+//
+// The MIT License (MIT)
+//
+// Copyright (c) 2013 Dmitry
+//
 unit SkinUserStatus;
 
 interface
@@ -36,73 +42,73 @@ type
     FImgBusy: TBitmap;
     FImgStateOffline: TBitmap;
   public
-    // Цвет фона
+    // Р¦РІРµС‚ С„РѕРЅР°
     property BackColor: TColor read FBackColor write FBackColor;
 
-    // Высота элемента
+    // Р’С‹СЃРѕС‚Р° СЌР»РµРјРµРЅС‚Р°
     property Height: Integer read FHeight write FHeight;
 
-    // Минимальная ширина элемента
+    // РњРёРЅРёРјР°Р»СЊРЅР°СЏ С€РёСЂРёРЅР° СЌР»РµРјРµРЅС‚Р°
     property MinWidth: Integer read FMinWidth write FMinWidth;
 
-    // Максимальная ширина элемента
+    // РњР°РєСЃРёРјР°Р»СЊРЅР°СЏ С€РёСЂРёРЅР° СЌР»РµРјРµРЅС‚Р°
     property MaxWidth: Integer read FMaxWidth write FMaxWidth;
 
-    // Цвет кнопки изменения статуса в нормальном состоянии
+    // Р¦РІРµС‚ РєРЅРѕРїРєРё РёР·РјРµРЅРµРЅРёСЏ СЃС‚Р°С‚СѓСЃР° РІ РЅРѕСЂРјР°Р»СЊРЅРѕРј СЃРѕСЃС‚РѕСЏРЅРёРё
     property ButtonBack: TColor read FButtonBack write FButtonBack;
 
-    // В активном состоянии
+    // Р’ Р°РєС‚РёРІРЅРѕРј СЃРѕСЃС‚РѕСЏРЅРёРё
     property ButtonBackActive: TColor read FButtonBackActive write FButtonBackActive;
 
-    // В нажатом состоянии
+    // Р’ РЅР°Р¶Р°С‚РѕРј СЃРѕСЃС‚РѕСЏРЅРёРё
     property ButtonBackDown: TColor read FButtonBackDown write FButtonBackDown;
 
-    // Ширина кнопки
+    // РЁРёСЂРёРЅР° РєРЅРѕРїРєРё
     property ButtonWidth: Integer read FButtonWidth write FButtonWidth;
 
-    // Отступ от края до иконки пользователя.
+    // РћС‚СЃС‚СѓРї РѕС‚ РєСЂР°СЏ РґРѕ РёРєРѕРЅРєРё РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ.
     property IconLeft: Integer read FIconLeft write FIconLeft;
 
-    // Отступ от иконки пользователя с правой стороны
+    // РћС‚СЃС‚СѓРї РѕС‚ РёРєРѕРЅРєРё РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ СЃ РїСЂР°РІРѕР№ СЃС‚РѕСЂРѕРЅС‹
     property IconMarginRight: Integer read FIconMarginRight write FIconMarginRight;
 
-    // Ширина иконки пользователя
+    // РЁРёСЂРёРЅР° РёРєРѕРЅРєРё РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
     property IconWidth: Integer read FIconWidth write FIconWidth;
 
-    // Высота иконки пользователя
+    // Р’С‹СЃРѕС‚Р° РёРєРѕРЅРєРё РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
     property IconHeight: Integer read FIconHeight write FIconHeight;
 
-    // Параметры шрифта для имени пользователя
+    // РџР°СЂР°РјРµС‚СЂС‹ С€СЂРёС„С‚Р° РґР»СЏ РёРјРµРЅРё РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
     property NameFontSize: Integer read FNameFontSize write FNameFontSize;
     property NameFontName: DataString read FNameFontName write FNameFontName;
     property NameFontColor: TColor read FNameFontColor write FNameFontColor;
     property NameFontStyle: TFontStyles read FNameFontStyle write FNameFontStyle;
 
-    // Параметры шрифта для статуса
+    // РџР°СЂР°РјРµС‚СЂС‹ С€СЂРёС„С‚Р° РґР»СЏ СЃС‚Р°С‚СѓСЃР°
     property StatusFontSize: Integer read FStatusFontSize write FStatusFontSize;
     property StatusFontName: DataString read FStatusFontName write FStatusFontName;
     property StatusFontColor: TColor read FStatusFontColor write FStatusFontColor;
     property StatusFontStyle: TFontStyles read FStatusFontStyle write FStatusFontStyle;
 
-    // Отступ от центра виджета до нижней части имени пользователя
+    // РћС‚СЃС‚СѓРї РѕС‚ С†РµРЅС‚СЂР° РІРёРґР¶РµС‚Р° РґРѕ РЅРёР¶РЅРµР№ С‡Р°СЃС‚Рё РёРјРµРЅРё РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
     property NameMarginBottom: Integer read FNameMarginBottom write FNameMarginBottom;
 
-    // Отступ от центра виджета до верхней части статуса пользователя
+    // РћС‚СЃС‚СѓРї РѕС‚ С†РµРЅС‚СЂР° РІРёРґР¶РµС‚Р° РґРѕ РІРµСЂС…РЅРµР№ С‡Р°СЃС‚Рё СЃС‚Р°С‚СѓСЃР° РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
     property StatusMarginTop: Integer read FStatusMarginTop write FStatusMarginTop;
 
-    // Изображение с анимацией загрузки
+    // РР·РѕР±СЂР°Р¶РµРЅРёРµ СЃ Р°РЅРёРјР°С†РёРµР№ Р·Р°РіСЂСѓР·РєРё
     property ImgLoading: TBitmap read FImgLoading write FImgLoading;
 
-    // Состояние пользователя онлайн
+    // РЎРѕСЃС‚РѕСЏРЅРёРµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РѕРЅР»Р°Р№РЅ
     property ImgStateOnline: TBitmap read FImgStateOnline write FImgStateOnline;
 
-    // Состояние пользователя отошел
+    // РЎРѕСЃС‚РѕСЏРЅРёРµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РѕС‚РѕС€РµР»
     property ImgStateAway: TBitmap read FImgStateAway write FImgStateAway;
 
-    // Состояние пользователя занят
+    // РЎРѕСЃС‚РѕСЏРЅРёРµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ Р·Р°РЅСЏС‚
     property ImgStateBusy: TBitmap read FImgBusy write FImgBusy;
 
-    // Состояние пользователя отключен
+    // РЎРѕСЃС‚РѕСЏРЅРёРµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РѕС‚РєР»СЋС‡РµРЅ
     property ImgStateOffline: TBitmap read FImgStateOffline write FImgStateOffline;
 
     function SetCanvasForName(Canvas: TCanvas): Integer;

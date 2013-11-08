@@ -16,12 +16,11 @@ interface
 
 uses
 {$I tox-uses.inc}
-  Controls, Classes, SysUtils, UserListStyle, ScrollBarNormal, Messages,
-  ActiveRegion, UserListDraw, FriendList, FriendItem, libtox, SkinUserList;
+  Controls, Classes, SysUtils, ScrollBarNormal, Messages, ActiveRegion,
+  UserListDraw, FriendList, FriendItem, libtox, SkinUserList, UserListSelect;
 
 type
   { TUserList }
-  TListType = (ltAll, ltOnline, ltFriend);
   TSortStatus = (ssUp, ssDown);
   TSortName = (snUp, snDown);
 
@@ -30,12 +29,12 @@ type
     FActiveRegion: TActiveRegion;
     FFriends: TFriendList;
     FList: TUserListDraw;
-    FListType: TListType;
     FScroll: TScrollBarNormal;
     FSkin: TSkinUserList;
     FSortName: TSortName;
     FSortStatus: TSortStatus;
     FOnSelectItem: TProcSelectItem;
+    FListSelect: TUserListSelect;
     procedure ScrollOnScroll(Sender: TObject);
     procedure ListChangeSize(Sender: TObject);
     procedure FriendsUpdate(Sender: TObject; Index: Integer);
@@ -55,8 +54,10 @@ type
   public
     constructor Create(AOwner: TComponent; FriendList: TFriendList;
       Skin: TSkinUserList); reintroduce;
+    destructor Destroy; override;
 
     property Scroll: TScrollBarNormal read FScroll;
+    property ListSelect: TUserListSelect read FListSelect;
 
     property OnSelectItem: TProcSelectItem read FOnSelectItem
       write FOnSelectItem;
@@ -73,9 +74,17 @@ begin
   FFriends := FriendList;
   FSkin := Skin;
 
-  FListType := ltFriend;
+  FListSelect := TUserListSelect.Create(ltFriend);
+  FListSelect.OnSelectItem := FriendsUpdateList;
+
   FSortName := snDown;
   FSortStatus := ssDown;
+end;
+
+destructor TUserList.Destroy;
+begin
+  FListSelect.Free;
+  inherited;
 end;
 
 { *  Процедура вызывается сразу после создания нового окна. Здесь проходит
@@ -85,13 +94,12 @@ procedure TUserList.CreateWnd;
 begin
   inherited;
   DoubleBuffered := True;
-  ControlStyle := COntrolStyle - [csParentBackground];
-  Color := TUserListStyle.BackgroundColor;
+  ControlStyle := ControlStyle - [csParentBackground];
 
   FScroll := TScrollBarNormal.Create(Self, FSkin);
   FScroll.Parent := Self;
   FScroll.Align := alRight;
-  FScroll.Width := TUserListStyle.ScrollWidth;
+  FScroll.Width := FSkin.ScrollBarWidth;
   FScroll.PageSize := Height;
   FScroll.OnScroll := ScrollOnScroll;
 
@@ -139,7 +147,7 @@ begin
     for PItem in FFriends.Item do
     begin
       Item := TFriendItem(PItem);
-      case FListType of
+      case FListSelect.ActiveItem of
         ltOnline:
           begin
             if Item.IsFriend and (Item.UserStatus <> usInvalid) then

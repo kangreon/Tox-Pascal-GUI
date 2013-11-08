@@ -1,4 +1,10 @@
-﻿unit SkinMessageList;
+﻿// SkinMessageList.pas
+//
+// The MIT License (MIT)
+//
+// Copyright (c) 2013 Dmitry
+//
+unit SkinMessageList;
 
 interface
 
@@ -9,64 +15,37 @@ type
   TSkinMessageList = class
   private
     FBackColor: TColor;
-    FTextFontColor: TColor;
-    FTextFontName: DataString;
-    FTextFontSize: Integer;
-    FTextFontStyle: TFontStyles;
-    FNameFontSize: Integer;
-    FNameFontStyle: TFontStyles;
-    FNameFontName: DataString;
-    FNameFontColor: TColor;
-    FDateFontSize: Integer;
-    FDateFontStyle: TFontStyles;
-    FDateFontName: DataString;
-    FDateFontColor: TColor;
     FSelectBackColor: TColor;
-    FTextFontColorSelect: TColor;
-    FNameFontColorSelect: TColor;
-    FDateFontColorSelect: TColor;
     FColNameWidth: Integer;
-    FTextFontColorMY: TColor;
-    FNameFontColorMy: TColor;
-    FDateFontColorMy: TColor;
     FDateFormat: DataString;
     FTimeFormat: DataString;
     FNamePositionLeft: Integer;
     FNameMarginRight: Integer;
     FMessageHeaderHeight: Integer;
     FMessageBottomMargin: Integer;
+    FTextFont: TFontSkin;
+    FNameFont: TFontSkin;
+    FDateFont: TFontSkin;
   public
+    constructor Create;
+    destructor Destroy; override;
+
     // Цвет фона
     property BackColor: TColor read FBackColor write FBackColor;
 
     // Параметры шрифта пользовательского тектста
-    property TextFontColor: TColor read FTextFontColor write FTextFontColor;
-    property TextFontColorSelect: TColor read FTextFontColorSelect write FTextFontColorSelect;
-    property TextFontColorMY: TColor read FTextFontColorMY write FTextFontColorMY;
-    property TextFontName: DataString read FTextFontName write FTextFontName;
-    property TextFontSize: Integer read FTextFontSize write FTextFontSize;
-    property TextFontStyle: TFontStyles read FTextFontStyle write FTextFontStyle;
+    property TextFont: TFontSkin read FTextFont;
 
     // Параметры шрифта имени пользователя
-    property NameFontColor: TColor read FNameFontColor write FNameFontColor;
-    property NameFontColorSelect: TColor read FNameFontColorSelect write FNameFontColorSelect;
-    property NameFontColorMy: TColor read FNameFontColorMy write FNameFontColorMy;
-    property NameFontName: DataString read FNameFontName write FNameFontName;
-    property NameFontSize: Integer read FNameFontSize write FNameFontSize;
-    property NameFontStyle: TFontStyles read FNameFontStyle write FNameFontStyle;
+    property NameFont: TFontSkin read FNameFont;
+
+    // Параметры шрифта даты и времени
+    property DateFont: TFontSkin read FDateFont;
 
     // Расстояние от левого края до имении пользователя
     property NamePositionLeft: Integer read FNamePositionLeft write FNamePositionLeft;
     // Расстояние от правого края текста до следующего элемента
     property NameMarginRight: Integer read FNameMarginRight write FNameMarginRight;
-
-    // Параметры шрифта даты и времени
-    property DateFontColor: TColor read FDateFontColor write FDateFontColor;
-    property DateFontColorSelect: TColor read FDateFontColorSelect write FDateFontColorSelect;
-    property DateFontColorMy: TColor read FDateFontColorMy write FDateFontColorMy;
-    property DateFontName: DataString read FDateFontName write FDateFontName;
-    property DateFontSize: Integer read FDateFontSize write FDateFontSize;
-    property DateFontStyle: TFontStyles read FDateFontStyle write FDateFontStyle;
 
     // Формат вывода даты
     property DateFormat: DataString read FDateFormat write FDateFormat;
@@ -97,6 +76,21 @@ implementation
 
 { TSkinMessageList }
 
+constructor TSkinMessageList.Create;
+begin
+  FTextFont := TFontSkin.Create;
+  FNameFont := TFontSkin.Create;
+  FDateFont := TFontSkin.Create;
+end;
+
+destructor TSkinMessageList.Destroy;
+begin
+  FNameFont.Free;
+  FTextFont.Free;
+  FDateFont.Free;
+  inherited;
+end;
+
 procedure TSkinMessageList.SetCanvasForDate(Canvas: TCanvas; Select: Boolean;
   IsMy: Boolean);
 begin
@@ -108,16 +102,16 @@ begin
   else
     Canvas.Brush.Style := bsClear;
 
-  Canvas.Font.Name := DateFontName;
-  Canvas.Font.Size := DateFontSize;
-  Canvas.Font.Style := DateFontStyle;
+  Canvas.Font.Name := DateFont.Name;
+  Canvas.Font.Size := DateFont.Size;
+  Canvas.Font.Style := DateFont.Styles;
 
   if Select then
-    Canvas.Font.Color := DateFontColorSelect
+    Canvas.Font.Color := DateFont.Color[1]
   else if IsMy then
-    Canvas.Font.Color := DateFontColorMY
+    Canvas.Font.Color := DateFont.Color[2]
   else
-    Canvas.Font.Color := DateFontColor;
+    Canvas.Font.Color := DateFont.Color[0];
 end;
 
 procedure TSkinMessageList.SetCanvasForName(Canvas: TCanvas; Select: Boolean;
@@ -131,16 +125,16 @@ begin
   else
     Canvas.Brush.Style := bsClear;
 
-  Canvas.Font.Name := NameFontName;
-  Canvas.Font.Size := NameFontSize;
-  Canvas.Font.Style := NameFontStyle;
+  Canvas.Font.Name := NameFont.Name;
+  Canvas.Font.Size := NameFont.Size;
+  Canvas.Font.Style := NameFont.Styles;
 
   if Select then
-    Canvas.Font.Color := NameFontColorSelect
+    Canvas.Font.Color := NameFont.Color[1]
   else if IsMy then
-    Canvas.Font.Color := NameFontColorMY
+    Canvas.Font.Color := NameFont.Color[2]
   else
-    Canvas.Font.Color := NameFontColor;
+    Canvas.Font.Color := NameFont.Color[0];
 end;
 
 procedure TSkinMessageList.SetCanvasForText(Canvas: TCanvas; Select: Boolean;
@@ -154,16 +148,16 @@ begin
   else
     Canvas.Brush.Style := bsClear;
 
-  Canvas.Font.Name := TextFontName;
-  Canvas.Font.Size := TextFontSize;
-  Canvas.Font.Style := TextFontStyle;
+  Canvas.Font.Name := TextFont.Name;
+  Canvas.Font.Size := TextFont.Size;
+  Canvas.Font.Style := TextFont.Styles;
 
   if Select then
-    Canvas.Font.Color := TextFontColorSelect
+    Canvas.Font.Color := TextFont.Color[1]
   else if IsMy then
-    Canvas.Font.Color := TextFontColorMY
+    Canvas.Font.Color := TextFont.Color[2]
   else
-    Canvas.Font.Color := TextFontColor;
+    Canvas.Font.Color := TextFont.Color[0];
 end;
 
 end.

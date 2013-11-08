@@ -18,7 +18,7 @@ uses
   ServerList, ClientAddress, libtox, StringUtils, ExtCtrls, UserStatus,
   FriendList, ControlPanel, fmUserAdd, fmNewName, UserList,
   FriendRequestController, MessageControl, MessageList, Clipbrd, FriendItem,
-  Splitter, SkinManager;
+  Splitter, SkinManager, TabControl;
 
 type
   { TForm1 }
@@ -56,6 +56,7 @@ type
     FControlPanel: TControlPanel;
     FToxLoadError: Boolean;
     FMessageControl: TMessageControl;
+    FTabControl: TTabControl;
     procedure InitGui;
     procedure ControlPanelClick(Sender: TObject; Button: TControlButton);
     procedure RequestOnAddFriend(Sender: TObject;
@@ -86,6 +87,8 @@ procedure TForm1.FormCreate(Sender: TObject);
 begin
   ClientHeight := 500;
   ClientWidth := 750;
+  Constraints.MinWidth := Width;
+  Constraints.MinHeight := Height;
 
   Position := poScreenCenter;
 
@@ -118,8 +121,7 @@ begin
   FRequestConrtoller := TFriendRequestController.Create(Self);
   FRequestConrtoller.OnAddFriend := RequestOnAddFriend;
 
-  //ActivityList.Lines.Add(FToxCore.YourAddress.DataHex);
-  FToxCore.StartTox;
+  //FToxCore.StartTox;
 
   InitGui;
 end;
@@ -147,11 +149,14 @@ begin
   LeftPanel.Constraints.MinWidth := USER_LIST_MIN_WIDTH;
   LeftPanel.Constraints.MaxWidth := USER_LIST_MAX_WIDTH;
 
+  //TODO: Исправить глюки под Linux
+  {$IFNDEF FPCUNIX}
   Spl := TSplitterEx.Create(Self);
   Spl.Parent := Self;
   Spl.ControlResize := LeftPanel;
   Spl.OnSetWidth := SplitterSetWidth;
   Spl.Left := 1;
+  {$ENDIF}
 
   FMessageControl := TMessageControl.Create(Self, FToxCore.MessageList, FSkin);
   FMessageControl.Align := alClient;
@@ -160,6 +165,7 @@ begin
 
   FUserStatus := TUserStatus.Create(LeftPanel, FSkin.UserStatus);
   FUserStatus.Parent := LeftPanel;
+  FUserStatus.Top := 0;
   FUserStatus.Align := alTop;
   FUserStatus.FriendItem := FToxCore.FriendList.MyItem;
   FUserStatus.OnChangeState := UserStatusStateChange;
@@ -173,8 +179,15 @@ begin
 
   FUserList := TUserList.Create(LeftPanel, FToxCore.FriendList, FSkin.UserList);
   FUserList.Align := alClient;
-  FUserList.Parent := LeftPanel;
   FUserList.OnSelectItem := UserListSelectItem;
+
+  FTabControl := TTabControl.Create(Self, FSkin.TabControl, FUserList.ListSelect);
+  FTabControl.Parent := LeftPanel;
+
+  //Для правильной расстановки компонентов в Lazarus
+  FTabControl.Top := FUserList.Top + FUserList.Height + 20;
+
+  FUserList.Parent := LeftPanel;
 end;
 
 { *  Освобождение памяти
@@ -286,15 +299,7 @@ end;
 
 procedure TForm1.ToxUserStatus(Sender: TObject; FriendNumber: Integer;
   Kind: TToxUserStatus);
-var
-  Status: DataString;
 begin
-  case Kind of
-    usNone: Status := 'none';
-    usAway: Status := 'away';
-    usBusy: Status := 'busy';
-    usInvalid: Status := 'invalid';
-  end;
 
   //ActivityList.Lines.Add('User ' + IntToStr(FriendNumber) + ' change user status to ' + Status);
 end;

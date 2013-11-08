@@ -44,7 +44,8 @@ type
       X, Y: Integer); override;
     procedure WndProc(var Message: TMessage); override;
   public
-    procedure SetRect(Rect: TRect);
+    procedure SetRect(Rect: TRect); overload;
+    procedure SetRect(Rect, OwnRect: TRect); overload;
 
     property OnCursorMessage: TProcCursorMessage read FOnCursorMessage write FOnCursorMessage;
   end;
@@ -54,11 +55,27 @@ const
   CM_BASE                   = $B000;
   CM_MOUSEENTER             = CM_BASE + 19;
   CM_MOUSELEAVE             = CM_BASE + 20;
+
+  function RectWidth(Rect: TRect): Integer; inline;
+  function RectHeight(Rect: TRect): Integer; inline;
 {$ENDIF}
 
 implementation
 
 { TActiveRegion }
+
+{$IFDEF FPC}
+function RectWidth(Rect: TRect): Integer;
+begin
+  Result := Rect.Right - Rect.Left;
+end;
+
+function RectHeight(Rect: TRect): Integer;
+begin
+  Result := Rect.Bottom - Rect.Top;
+end;
+
+{$ENDIF}
 
 procedure TActiveRegion.CursorMessage(RegionMessage: TRegionMessage; const x,
   y: Integer; Button: TMouseButton; Shift: TShiftState);
@@ -118,6 +135,18 @@ procedure TActiveRegion.MouseUp(Button: TMouseButton; Shift: TShiftState; X,
 begin
   inherited;
   EventCursorMessage(rmMouseUp, X, Y, Button, Shift);
+end;
+
+procedure TActiveRegion.SetRect(Rect, OwnRect: TRect);
+begin
+  if Left <> Rect.Left + OwnRect.Left then
+    Left := Rect.Left + OwnRect.Left;
+  if Top <> Rect.Top + OwnRect.Top then
+    Top := Rect.Top + OwnRect.Top;
+  if Width <> RectWidth(Rect) + OwnRect.Left then
+    Width := RectWidth(Rect) + OwnRect.Left;
+  if Height <> RectHeight(Rect) + OwnRect.Top then
+    Height := RectHeight(Rect) + OwnRect.Top;
 end;
 
 procedure TActiveRegion.SetRect(Rect: TRect);

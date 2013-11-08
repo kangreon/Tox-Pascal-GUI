@@ -1,4 +1,10 @@
-﻿unit SkinMessageHeader;
+﻿// SkinMessageHeader.pas
+//
+// The MIT License (MIT)
+//
+// Copyright (c) 2013 Dmitry
+//
+unit SkinMessageHeader;
 
 interface
 
@@ -10,14 +16,6 @@ type
   private
     FBackColor: TColor;
     FHeight: Integer;
-    FNameFontSize: Integer;
-    FNameFontStyle: TFontStyles;
-    FNameFontName: DataString;
-    FNameFontColor: TColor;
-    FStatusFontName: DataString;
-    FStatusFontColor: TColor;
-    FStatusFontSize: Integer;
-    FStatusFontStyle: TFontStyles;
     FIconMarginLeft: Integer;
     FIconMarginRight: Integer;
     FAudioMarginLeft: Integer;
@@ -30,23 +28,22 @@ type
     FIconHeight: Integer;
     FDivLineColor: TColor;
     FDivLineStyle: TPenStyle;
+    FNameFont: TFontSkin;
+    FStatusFont: TFontSkin;
   public
+    constructor Create;
+    destructor Destroy; override;
+
     // Цвет фона
     property BackColor: TColor read FBackColor write FBackColor;
     // Высота компонента
     property Height: Integer read FHeight write FHeight;
 
     // Настройки шрифта для имени пользователя
-    property NameFontColor: TColor read FNameFontColor write FNameFontColor;
-    property NameFontName: DataString read FNameFontName write FNameFontName;
-    property NameFontSize: Integer read FNameFontSize write FNameFontSize;
-    property NameFontStyle: TFontStyles read FNameFontStyle write FNameFontStyle;
+    property NameFont: TFontSkin read FNameFont;
 
     // Параметры шрифта для статуса
-    property StatusFontSize: Integer read FStatusFontSize write FStatusFontSize;
-    property StatusFontName: DataString read FStatusFontName write FStatusFontName;
-    property StatusFontColor: TColor read FStatusFontColor write FStatusFontColor;
-    property StatusFontStyle: TFontStyles read FStatusFontStyle write FStatusFontStyle;
+    property StatusFont: TFontSkin read FStatusFont;
 
     // Расстояния от краев иконки пользователя до др. компонентов
     property IconMarginLeft: Integer read FIconMarginLeft write FIconMarginLeft;
@@ -72,8 +69,6 @@ type
     // Стандартная иконка пользователя
     property ImgDefIcon: TBitmap read FImgDefIcon write FImgDefIcon;
 
-    procedure SetCanvasForName(Canvas: TCanvas);
-    procedure SetCanvasForStatus(Canvas: TCanvas);
     procedure SetCanvasForDivLine(Canvas: TCanvas);
   end;
 
@@ -81,29 +76,24 @@ implementation
 
 { TSkinMessageHeader }
 
+constructor TSkinMessageHeader.Create;
+begin
+  FNameFont := TFontSkin.Create;
+  FStatusFont := TFontSkin.Create;
+end;
+
+destructor TSkinMessageHeader.Destroy;
+begin
+  FStatusFont.Free;
+  FNameFont.Free;
+  inherited;
+end;
+
 procedure TSkinMessageHeader.SetCanvasForDivLine(Canvas: TCanvas);
 begin
   Canvas.Pen.Width := 1;
   Canvas.Pen.Style := DivLineStyle;
   Canvas.Pen.Color := DivLineColor;
-end;
-
-procedure TSkinMessageHeader.SetCanvasForName(Canvas: TCanvas);
-begin
-  Canvas.Brush.Style := bsClear;
-  Canvas.Font.Name := NameFontName;
-  Canvas.Font.Size := NameFontSize;
-  Canvas.Font.Style := NameFontStyle;
-  Canvas.Font.Color := NameFontColor;
-end;
-
-procedure TSkinMessageHeader.SetCanvasForStatus(Canvas: TCanvas);
-begin
-  Canvas.Brush.Style := bsClear;
-  Canvas.Font.Name := StatusFontName;
-  Canvas.Font.Size := StatusFontSize;
-  Canvas.Font.Style := StatusFontStyle;
-  Canvas.Font.Color := StatusFontColor;
 end;
 
 end.

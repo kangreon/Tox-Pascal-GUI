@@ -8,6 +8,7 @@
     {$DEFINE FPCWIN}
   {$ENDIF}
 {$ELSE}
+  {$DEFINE WINDOWS}
   {$IF CompilerVersion >= 20}
     {$DEFINE NEW_DELPHI}
     {$DEFINE DELPHI}

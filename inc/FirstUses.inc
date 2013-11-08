@@ -1,5 +1,5 @@
 {$IFDEF FPCUNIX}
-  cthreads,
+  cthreads, Interfaces,
 {$ENDIF}
 
 {$IFDEF FPCWIN}

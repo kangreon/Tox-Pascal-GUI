@@ -131,7 +131,6 @@
             <Form>FormNewName</Form>
         </DCCReference>
         <DCCReference Include="gui\UserList.pas"/>
-        <DCCReference Include="gui\UserListStyle.pas"/>
         <DCCReference Include="gui\ScrollBarNormal.pas"/>
         <DCCReference Include="gui\UserListDraw.pas"/>
         <DCCReference Include="gui\Forms\fmFriendRequest.pas">
@@ -159,6 +158,12 @@
         <DCCReference Include="gui\SkinManager\SkinMessageList.pas"/>
         <DCCReference Include="gui\SkinManager\SkinMessageHeader.pas"/>
         <DCCReference Include="gui\SkinManager\SkinControlPanel.pas"/>
+        <DCCReference Include="gui\SkinManager\SkinTabControl.pas"/>
+        <DCCReference Include="gui\TabControl\TabControl.pas"/>
+        <DCCReference Include="gui\TabControl\TabSelectList.pas"/>
+        <DCCReference Include="gui\TabControl\TabRequest.pas"/>
+        <DCCReference Include="gui\SkinManager\SkinTabList.pas"/>
+        <DCCReference Include="gui\UserListSelect.pas"/>
         <RcCompile Include="Resource\images.rc">
             <Form>images.res</Form>
         </RcCompile>

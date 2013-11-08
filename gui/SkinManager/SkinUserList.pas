@@ -1,3 +1,9 @@
+п»ї// SkinUserList.pas
+//
+// The MIT License (MIT)
+//
+// Copyright (c) 2013 Dmitry
+//
 unit SkinUserList;
 
 interface
@@ -16,20 +22,10 @@ type
     FIconMarginRight: Integer;
     FStatusIconMarginLeft: Integer;
     FStatusIconMarginRight: Integer;
-    FNameHeight: DataString;
-    FNameFontSize: Integer;
-    FStatusFontName: DataString;
-    FStatusFontSize: Integer;
-    FNameFontColot: TColor;
-    FStatusFontColor: TColor;
     FImgStateOnline: TStateImage;
     FImgStateAway: TStateImage;
     FImgBusy: TStateImage;
     FImgStateOffline: TStateImage;
-    FNameFontColorActive: TColor;
-    FNameFontColorDown: TColor;
-    FStatusFontColorActive: TColor;
-    FStatusFontColorDown: TColor;
     FImgStateOnlineNew: TStateImage;
     FImgStateAwayNew: TStateImage;
     FImgBusyNew: TStateImage;
@@ -43,133 +39,92 @@ type
     FScrollbarCenterColor: TColor;
     FScrollbarCenterColorDown: TColor;
     FScrollbarCenterColorActive: TColor;
+    FNameFont: TFontSkin;
+    FStatusFont: TFontSkin;
   public
-    // Цвет фона компонента
+    constructor Create;
+    destructor Destroy; override;
+
+    // Р¦РІРµС‚ С„РѕРЅР° РєРѕРјРїРѕРЅРµРЅС‚Р°
     property BackgroundColor: TColor read FBackgroundColor write FBackgroundColor;
 
-    // Цвет выделенного элемента+
+    // Р¦РІРµС‚ РІС‹РґРµР»РµРЅРЅРѕРіРѕ СЌР»РµРјРµРЅС‚Р°+
     property ItemColorActive: TColor read FItemColorActive write FItemColorActive;
 
-    // Цвет нажатого элемента
+    // Р¦РІРµС‚ РЅР°Р¶Р°С‚РѕРіРѕ СЌР»РµРјРµРЅС‚Р°
     property ItemColorDown: TColor read FItemColorDown write FItemColorDown;
 
-    // Высота элемента списка
+    // Р’С‹СЃРѕС‚Р° СЌР»РµРјРµРЅС‚Р° СЃРїРёСЃРєР°
     property ItemHeight: Integer read FItemHeight write FItemHeight;
 
-    // Расстояние от края элемента до иконки пользователя
+    // Р Р°СЃСЃС‚РѕСЏРЅРёРµ РѕС‚ РєСЂР°СЏ СЌР»РµРјРµРЅС‚Р° РґРѕ РёРєРѕРЅРєРё РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
     property IconLeft: Integer read FIconLeft write FIconLeft;
 
-    // Отступ от иконки пользователя с правой стороны
+    // РћС‚СЃС‚СѓРї РѕС‚ РёРєРѕРЅРєРё РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ СЃ РїСЂР°РІРѕР№ СЃС‚РѕСЂРѕРЅС‹
     property IconMarginRight: Integer read FIconMarginRight write FIconMarginRight;
 
-    // Отступ от иконки статуса с правой стороны
+    // РћС‚СЃС‚СѓРї РѕС‚ РёРєРѕРЅРєРё СЃС‚Р°С‚СѓСЃР° СЃ РїСЂР°РІРѕР№ СЃС‚РѕСЂРѕРЅС‹
     property StatusIconMarginLeft: Integer read FStatusIconMarginLeft write FStatusIconMarginLeft;
 
-    // Отступ от иконки с левой стороны
+    // РћС‚СЃС‚СѓРї РѕС‚ РёРєРѕРЅРєРё СЃ Р»РµРІРѕР№ СЃС‚РѕСЂРѕРЅС‹
     property StatusIconMarginRight: Integer read FStatusIconMarginRight write FStatusIconMarginRight;
 
-    // Имя шрифта для имени пользователя
-    property NameFontName: DataString read FNameHeight write FNameHeight;
+    // РЁСЂРёС„С‚ РґР»СЏ РёРјРµРЅРё РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
+    property NameFont: TFontSkin read FNameFont;
+    // РЁСЂРёС„С‚ РґР»СЏ СЃС‚Р°С‚СѓСЃР° РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
+    property StatusFont: TFontSkin read FStatusFont;
 
-    // Размер шрифта для имени пользователя
-    property NameFontSize: Integer read FNameFontSize write FNameFontSize;
-
-    // Цвет шрифта для имени пользователя
-    property NameFontColor: TColor read FNameFontColot write FNameFontColot;
-    property NameFontColorActive: TColor read FNameFontColorActive write FNameFontColorActive;
-    property NameFontColorDown: TColor read FNameFontColorDown write FNameFontColorDown;
-
-    // Название шрфта для статуса пользователя
-    property StatusFontName: DataString read FStatusFontName write FStatusFontName;
-
-    // Размер шрифта для статуса пользователя
-    property StatusFontSize: Integer read FStatusFontSize write FStatusFontSize;
-
-    // Цвет шрифта для статуса пользователя
-    property StatusFontColor: TColor read FStatusFontColor write FStatusFontColor;
-    property StatusFontColorActive: TColor read FStatusFontColorActive write FStatusFontColorActive;
-    property StatusFontColorDown: TColor read FStatusFontColorDown write FStatusFontColorDown;
-
-    // Состояние пользователя онлайн
+    // РЎРѕСЃС‚РѕСЏРЅРёРµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РѕРЅР»Р°Р№РЅ
     property ImgStateOnline: TStateImage read FImgStateOnline write FImgStateOnline;
     property ImgStateOnlineNew: TStateImage read FImgStateOnlineNew write FImgStateOnlineNew;
 
-    // Состояние пользователя отошел
+    // РЎРѕСЃС‚РѕСЏРЅРёРµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РѕС‚РѕС€РµР»
     property ImgStateAway: TStateImage read FImgStateAway write FImgStateAway;
     property ImgStateAwayNew: TStateImage read FImgStateAwayNew write FImgStateAwayNew;
 
-    // Состояние пользователя занят
+    // РЎРѕСЃС‚РѕСЏРЅРёРµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ Р·Р°РЅСЏС‚
     property ImgStateBusy: TStateImage read FImgBusy write FImgBusy;
     property ImgStateBusyNew: TStateImage read FImgBusyNew write FImgBusyNew;
 
-    // Состояние пользователя отключен
+    // РЎРѕСЃС‚РѕСЏРЅРёРµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РѕС‚РєР»СЋС‡РµРЅ
     property ImgStateOffline: TStateImage read FImgStateOffline write FImgStateOffline;
     property ImgStateOfflineNew: TStateImage read FImgStateOfflineNew write FImgStateOfflineNew;
 
-    // Верхняя часть полосы прокрутки
+    // Р’РµСЂС…РЅСЏСЏ С‡Р°СЃС‚СЊ РїРѕР»РѕСЃС‹ РїСЂРѕРєСЂСѓС‚РєРё
     property ImgScrollBarTop: TStateImage read FImgScrollBarTop write FImgScrollBarTop;
-    //TODO: Не используется
+    //TODO: РќРµ РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ
     property ImgScrollBarCenter: TStateImage read FImgScrollBarCenter write FImgScrollBarCenter;
     property ImgScrollBarBottom: TStateImage read FImgScrollBarBottom write FImgScrollBarBottom;
 
-    // Цвет заднего фона полосы прокрутки
+    // Р¦РІРµС‚ Р·Р°РґРЅРµРіРѕ С„РѕРЅР° РїРѕР»РѕСЃС‹ РїСЂРѕРєСЂСѓС‚РєРё
     property ScrollBarBack: TColor read FScrollBarBack write FScrollBarBack;
 
-    // Цвет центральной части полосы прокрутки
+    // Р¦РІРµС‚ С†РµРЅС‚СЂР°Р»СЊРЅРѕР№ С‡Р°СЃС‚Рё РїРѕР»РѕСЃС‹ РїСЂРѕРєСЂСѓС‚РєРё
     property ScrollbarCenterColor: TColor read FScrollbarCenterColor write FScrollbarCenterColor;
     property ScrollbarCenterColorActive: TColor read FScrollbarCenterColorActive write FScrollbarCenterColorActive;
     property ScrollbarCenterColorDown: TColor read FScrollbarCenterColorDown write FScrollbarCenterColorDown;
 
-    // Минимальная высода центральной части полосы прокрутки
+    // РњРёРЅРёРјР°Р»СЊРЅР°СЏ РІС‹СЃРѕРґР° С†РµРЅС‚СЂР°Р»СЊРЅРѕР№ С‡Р°СЃС‚Рё РїРѕР»РѕСЃС‹ РїСЂРѕРєСЂСѓС‚РєРё
     property ScrollBarMinCenterHeight: Integer read FScrollBarMinCenterHeight write FScrollBarMinCenterHeight;
-    // Ширина полосы прокрутки
+    // РЁРёСЂРёРЅР° РїРѕР»РѕСЃС‹ РїСЂРѕРєСЂСѓС‚РєРё
     property ScrollBarWidth: Integer read FScrollBarWidth write FScrollBarWidth;
-
-    procedure SetCanvasForName(Canvas: TCanvas; MouseState: TMouseState);
-    procedure SetCanvasForStatus(Canvas: TCanvas; MouseState: TMouseState);
   end;
 
 implementation
 
 { TSkinUserList }
 
-procedure TSkinUserList.SetCanvasForName(Canvas: TCanvas; MouseState: TMouseState);
+constructor TSkinUserList.Create;
 begin
-  Canvas.Brush.Style := bsClear;
-  Canvas.Font.Name := NameFontName;
-  Canvas.Font.Style := [fsBold]; //TODO: исправить
-  Canvas.Font.Size := NameFontSize;
-
-  case MouseState of
-    msNone:
-      Canvas.Font.Color := NameFontColor;
-
-    msActive:
-      Canvas.Font.Color := NameFontColorActive;
-
-    msDown:
-      Canvas.Font.Color := NameFontColorDown;
-  end;
-
+  FNameFont := TFontSkin.Create;
+  FStatusFont := TFontSkin.Create;
 end;
 
-procedure TSkinUserList.SetCanvasForStatus(Canvas: TCanvas; MouseState: TMouseState);
+destructor TSkinUserList.Destroy;
 begin
-  Canvas.Brush.Style := bsClear;
-  Canvas.Font.Name := StatusFontName;
-  Canvas.Font.Style := []; //TODO: исправить
-  Canvas.Font.Size := StatusFontSize;
-
-  case MouseState of
-    msNone:
-      Canvas.Font.Color := StatusFontColor;
-
-    msActive:
-      Canvas.Font.Color := StatusFontColorActive;
-
-    msDown:
-      Canvas.Font.Color := StatusFontColorDown;
-  end;
+  FNameFont.Free;
+  FStatusFont.Free;
+  inherited;
 end;
 
 end.

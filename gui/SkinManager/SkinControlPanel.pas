@@ -1,3 +1,9 @@
+п»ї// SkinControlPanel.pas
+//
+// The MIT License (MIT)
+//
+// Copyright (c) 2013 Dmitry
+//
 unit SkinControlPanel;
 
 interface
@@ -16,15 +22,15 @@ type
     FImgNewGroup: TStateImage;
     FImgSettings: TStateImage;
   public
-    // Цвет фона компонента
+    // Р¦РІРµС‚ С„РѕРЅР° РєРѕРјРїРѕРЅРµРЅС‚Р°
     property BackColor: TColor read FBackColor write FBackColor;
 
-    // Высота компонента
+    // Р’С‹СЃРѕС‚Р° РєРѕРјРїРѕРЅРµРЅС‚Р°
     property Height: Integer read FHeight write FHeight;
 
-    // Расстояние от левого края до первого элемента
+    // Р Р°СЃСЃС‚РѕСЏРЅРёРµ РѕС‚ Р»РµРІРѕРіРѕ РєСЂР°СЏ РґРѕ РїРµСЂРІРѕРіРѕ СЌР»РµРјРµРЅС‚Р°
     property MarginLeft: Integer read FMarginLeft write FMarginLeft;
-    // Расстояние от последнего элемента до правого края компонента
+    // Р Р°СЃСЃС‚РѕСЏРЅРёРµ РѕС‚ РїРѕСЃР»РµРґРЅРµРіРѕ СЌР»РµРјРµРЅС‚Р° РґРѕ РїСЂР°РІРѕРіРѕ РєСЂР°СЏ РєРѕРјРїРѕРЅРµРЅС‚Р°
     property MarginRight: Integer read FMarginRight write FMarginRight;
 
     property ImgNewFriend: TStateImage read FImgNewFriend write FImgNewFriend;

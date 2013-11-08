@@ -29,7 +29,8 @@ type
 {$ENDIF}
 
 function TextExtentW(Canvas: TCanvas; const Text: DataString): TSize;
-procedure TextOutW(Canvas: TCanvas; X, Y: Integer; const Text: DataString);
+procedure TextOutW(Canvas: TCanvas; X, Y: Integer; const Text: DataString); overload;
+procedure TextOutW(Canvas: TCanvas; Rect: TRect; const Text: DataString); overload;
 procedure TextRectW(Canvas: TCanvas; var Rect: TRect; var Text: DataString;
   TextFormat: TTextFormat = []);
 procedure TextRectEndEllipsis(Canvas: TCanvas; Rect: TRect; Text: DataString);
@@ -82,6 +83,11 @@ begin
       Windows.GetTextExtentPoint32W(TCanvasEx(Canvas).Handle, PWideChar(Text), Length(Text), Result);
     {$ENDIF}
   {$ENDIF}
+end;
+
+procedure TextOutW(Canvas: TCanvas; Rect: TRect; const Text: DataString);
+begin
+  TextOutW(Canvas, Rect.Left, Rect.Top, Text);
 end;
 
 procedure TextOutW(Canvas: TCanvas; X, Y: Integer; const Text: DataString);

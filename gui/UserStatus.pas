@@ -305,6 +305,7 @@ begin
   inherited;
 
   Canvas.Brush.Color := FSkin.BackColor;
+  Canvas.Brush.Style := TBrushStyle.bsSolid;
   DrawRect := ClientRect;
   Canvas.FillRect(DrawRect);
 

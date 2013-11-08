@@ -431,7 +431,7 @@ end;
 procedure TUserListDraw.DrawStatusText(DrawRect: TRect; Status: DataString;
   MouseState: TDownState);
 begin
-  FSkin.SetCanvasForStatus(Canvas, TMouseState(MouseState));
+  FSkin.StatusFont.SetCanvas(Canvas, TMouseState(MouseState));
   TextRectEndEllipsis(Canvas, DrawRect, Status);
 end;
 
@@ -465,7 +465,7 @@ begin
   BlockHeight := (DrawRect.Bottom - DrawRect.Top) div 2;
   DrawRect.Top := DrawRect.Top + BlockHeight;
 
-  FSkin.SetCanvasForName(Canvas, TMouseState(MouseState));
+  FSkin.NameFont.SetCanvas(Canvas, TMouseState(MouseState));
 
   NewRect := Bounds(DrawRect.Left, BlockTop, BlockWidth, BlockHeight);
   NewRect.Top := NewRect.Top + (BlockHeight - Canvas.TextHeight('Z'));

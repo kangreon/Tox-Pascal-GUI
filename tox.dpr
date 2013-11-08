@@ -35,7 +35,6 @@ uses
   fmUserAdd in 'gui\Forms\fmUserAdd.pas' {FormUserAdd},
   fmNewName in 'gui\Forms\fmNewName.pas' {FormNewName},
   UserList in 'gui\UserList.pas',
-  UserListStyle in 'gui\UserListStyle.pas',
   ScrollBarNormal in 'gui\ScrollBarNormal.pas',
   UserListDraw in 'gui\UserListDraw.pas',
   fmFriendRequest in 'gui\Forms\fmFriendRequest.pas' {FormFriendRequest},
@@ -60,12 +59,19 @@ uses
   SkinTypes in 'gui\SkinManager\SkinTypes.pas',
   SkinMessageList in 'gui\SkinManager\SkinMessageList.pas',
   SkinMessageHeader in 'gui\SkinManager\SkinMessageHeader.pas',
-  SkinControlPanel in 'gui\SkinManager\SkinControlPanel.pas';
+  SkinControlPanel in 'gui\SkinManager\SkinControlPanel.pas',
+  SkinTabControl in 'gui\SkinManager\SkinTabControl.pas',
+  TabControl in 'gui\TabControl\TabControl.pas',
+  TabSelectList in 'gui\TabControl\TabSelectList.pas',
+  TabRequest in 'gui\TabControl\TabRequest.pas',
+  SkinTabList in 'gui\SkinManager\SkinTabList.pas',
+  UserListSelect in 'gui\UserListSelect.pas';
 
 function IsRunApplication: Boolean;
 var
   WinHandle: THandle;
 begin
+  {$IFDEF WINDOWS}
   CreateMutex(nil, True, 'fvb8r4hf7483hverhbv834vu8ndrsuifvhb847hvbiv4h87ghvy');
   Result := GetLastError <> ERROR_ALREADY_EXISTS;
 
@@ -75,7 +81,9 @@ begin
     if WinHandle <> 0 then
       SetForegroundWindow(WinHandle);
   end;
+  {$ENDIF}
 end;
+
 
 begin
 {$IFDEF WINDOWS}

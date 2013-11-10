@@ -166,7 +166,7 @@ const
   TOX_FILECONTROL_FINISHED      = 3;
   TOX_FILECONTROL_RESUME_BROKEN = 4;
 
-  TOX_LIBRARY = {$IFDEF Win32}'libtoxcore-0.dll'{$ENDIF}
+  TOX_LIBRARY = {$IFDEF WINDOWS}'libtoxcore-0.dll'{$ENDIF}
                 {$IFDEF Unix}'libtoxcore.so'{$ENDIF};
 
 ///*  return FRIEND_ADDRESS_SIZE byte address to give to others.

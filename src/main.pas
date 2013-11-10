@@ -131,7 +131,11 @@ end;
 procedure TForm1.InitGui;
 var
   LeftPanel: TPanel;
+  {$IFDEF DELPHI}
+  Spl: TSplitter;
+  {$ELSE}
   Spl: TSplitterEx;
+  {$ENDIF}
 begin
   FSkin := TSkinManager.Create(ExtractFilePath(ParamStr(0)) + 'skin.ini');
 
@@ -150,12 +154,20 @@ begin
   LeftPanel.Constraints.MaxWidth := USER_LIST_MAX_WIDTH;
 
   //TODO: Исправить глюки под Linux
-  {$IFNDEF FPCUNIX}
-  Spl := TSplitterEx.Create(Self);
+  {$IFDEF DELPHI}
+  Spl := TSplitter.Create(Self);
   Spl.Parent := Self;
-  Spl.ControlResize := LeftPanel;
-  Spl.OnSetWidth := SplitterSetWidth;
+  Spl.Align := alLeft;
+  Spl.ResizeStyle := TResizeStyle.rsUpdate;
   Spl.Left := 1;
+  {$ELSE}
+    {$IFNDEF FPCUNIX}
+    Spl := TSplitterEx.Create(Self);
+    Spl.Parent := Self;
+    Spl.ControlResize := LeftPanel;
+    Spl.OnSetWidth := SplitterSetWidth;
+    Spl.Left := 1;
+    {$ENDIF}
   {$ENDIF}
 
   FMessageControl := TMessageControl.Create(Self, FToxCore.MessageList, FSkin);
@@ -242,72 +254,64 @@ end;
 procedure TForm1.ToxOnAction(Sender: TObject; FriendNumber: Integer;
   Action: DataString);
 begin
-  //ActivityList.Lines.Add('Action from user ' + IntToStr(FriendNumber) +
-  //  ' with text: ' + Action);
+
 end;
 
 procedure TForm1.ToxOnConnect(Sender: TObject);
 begin
-  //ActivityList.Lines.Add('connect');
   FUserStatus.State := sOnline;
 end;
 
 procedure TForm1.ToxOnConnecting(Sender: TObject; ServerCount: Integer);
 begin
-  //ActivityList.Lines.Add('Try connect to ' + IntToStr(ServerCount));
   FUserStatus.State := sLoading;
 end;
 
 procedure TForm1.ToxConnectionStatus(Sender: TObject; FriendNumber: Integer;
   Status: Byte);
 begin
-  //ActivityList.Lines.Add('User ' + IntToStr(FriendNumber) +
-  //  ' change connection status to ' + IntToStr(Status));
+
 end;
 
 procedure TForm1.ToxOnDisconnect(Sender: TObject);
 begin
-  //ActivityList.Lines.Add('desconnect');
   FUserStatus.State := sOffline;
 end;
 
 procedure TForm1.ToxFriendMessage(Sender: TObject; Friend: TFriendItem;
   MessageStr: DataString);
 begin
-  //ActivityList.Lines.Add('New message from user ' + Friend.UserName +
-  //  ' with text: ' + MessageStr);
+
 end;
 
 procedure TForm1.ToxFriendRequest(Sender: TObject; ClientAddress: TFriendAddress;
   HelloMessage: DataString);
 begin
-  //ActivityList.Lines.Add('User ' + ClientAddress.DataHex + ' send request with text: ' + HelloMessage);
   FRequestConrtoller.InsertRequest(ClientAddress, HelloMessage);
 end;
 
 procedure TForm1.ToxNameChange(Sender: TObject; FriendNumber: Integer;
   NewName: DataString);
 begin
-  //ActivityList.Lines.Add('User ' + IntToStr(FriendNumber) + ' change name to ' + NewName)
+
 end;
 
 procedure TForm1.ToxStatusMessage(Sender: TObject; FriendNumber: Integer;
   NewStatus: DataString);
 begin
-  //ActivityList.Lines.Add('User ' + IntToStr(FriendNumber) + ' change status message to ' + NewStatus);
+
 end;
 
 procedure TForm1.ToxUserStatus(Sender: TObject; FriendNumber: Integer;
   Kind: TToxUserStatus);
 begin
 
-  //ActivityList.Lines.Add('User ' + IntToStr(FriendNumber) + ' change user status to ' + Status);
 end;
 
 procedure TForm1.ToxReadReceipt(Sender: TObject; FriendNumber, Receipt: Integer
   );
 begin
-  //ActivityList.Lines.Add('User ' + IntToStr(FriendNumber) + ' read you message ' + IntToStr(Receipt));
+
 end;
 
 {*  Событие на выбор пользователем состояния

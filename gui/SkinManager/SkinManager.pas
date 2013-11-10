@@ -14,7 +14,7 @@ interface
 uses
   SkinBase, Graphics, StringUtils, SkinUserList, SysUtils, SkinUserStatus,
   SkinTypes, SkinMessageList, SkinMessageHeader, SkinControlPanel,
-  SkinTabControl, SkinTabList;
+  SkinTabControl, SkinTabList, Dialogs;
 
 type
   TArrayArrayInt = array of array of Integer;
@@ -84,6 +84,15 @@ begin
   LoadTabControl;
   LoadTabList;
 
+  if False then
+  begin
+    try
+      MessageDlg('Load Skin Error. Read file error.log for more information.',
+        TMsgDlgType.mtError, [mbOK], 0);
+    finally
+      Halt(0);
+    end;
+  end;
 end;
 
 destructor TSkinManager.Destroy;

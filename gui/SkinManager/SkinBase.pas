@@ -12,15 +12,26 @@ unit SkinBase;
 interface
   {$I tox.inc}
 
+  {$IFDEF FPC}
+    {$DEFINE PNGPLUS}
+  {$ENDIF}
+
 uses
   {$IFDEF DELPHI}
   PngImage,
   {$ENDIF}
+  {$IFDEF PNGPLUS}
+  lazaruspng,
+  {$ENDIF}
   Graphics, SysUtils, IniFiles, StringUtils, Math, Classes, Types, SkinTypes;
 
 type
-  {$IFDEF FPC}
-  TPngImage = TPortableNetworkGraphic;
+  {$IFDEF PNGPLUS}
+  TPngImage = TLazarusPng;
+  {$ELSE}
+    {$IFDEF FPC}
+    TPngImage = TPortableNetworkGraphic;
+    {$ENDIF}
   {$ENDIF}
 
   TSkinBase =  class abstract

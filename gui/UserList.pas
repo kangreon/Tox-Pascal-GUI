@@ -128,6 +128,8 @@ end;
  *}
 procedure TUserList.FriendsUpdate(Sender: TObject; Index: Integer);
 begin
+  //TODO: В случае изменения состояния пользователя, перезагрузить весь активный
+  //  список
   FList.UpdateItem(Index);
   SortList(True);
 end;
@@ -140,6 +142,8 @@ var
   Item: TFriendItem;
   PItem: Pointer;
 begin
+  // TODO: Восстанавливать выделенный элемент после перезагрузки
+
   FList.BeginUpdate;
   try
     FList.Clear;

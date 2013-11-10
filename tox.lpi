@@ -178,8 +178,8 @@
       <Filename Value="Build\tox"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="src;gui;gui\Forms;$(ProjOutDir);inc"/>
-      <OtherUnitFiles Value="gui;src;gui\Forms;sqlite;inc;gui\MessageWidget;gui\SkinManager"/>
+      <IncludeFiles Value="src;gui;gui\Forms;$(ProjOutDir);inc;Resource"/>
+      <OtherUnitFiles Value="gui;src;gui\Forms;sqlite;inc;gui\MessageWidget;gui\SkinManager;Resource"/>
       <UnitOutputDirectory Value="Build\dcu"/>
     </SearchPaths>
     <Parsing>

@@ -65,7 +65,8 @@ uses
   TabSelectList in 'gui\TabControl\TabSelectList.pas',
   TabRequest in 'gui\TabControl\TabRequest.pas',
   SkinTabList in 'gui\SkinManager\SkinTabList.pas',
-  UserListSelect in 'gui\UserListSelect.pas';
+  UserListSelect in 'gui\UserListSelect.pas',
+  lazaruspng in 'gui\SkinManager\lazaruspng.pas';
 
 function IsRunApplication: Boolean;
 var

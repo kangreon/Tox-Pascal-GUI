@@ -5,7 +5,7 @@
         <FrameworkType>VCL</FrameworkType>
         <MainSource>tox.dpr</MainSource>
         <Base>True</Base>
-        <Config Condition="'$(Config)'==''">Debug</Config>
+        <Config Condition="'$(Config)'==''">Release</Config>
         <Platform Condition="'$(Platform)'==''">Win32</Platform>
         <TargetedPlatforms>1</TargetedPlatforms>
         <AppType>Application</AppType>
@@ -164,6 +164,7 @@
         <DCCReference Include="gui\TabControl\TabRequest.pas"/>
         <DCCReference Include="gui\SkinManager\SkinTabList.pas"/>
         <DCCReference Include="gui\UserListSelect.pas"/>
+        <DCCReference Include="gui\SkinManager\lazaruspng.pas"/>
         <RcCompile Include="Resource\images.rc">
             <Form>images.res</Form>
         </RcCompile>
@@ -239,7 +240,6 @@
                 <Platform value="Win32">True</Platform>
                 <Platform value="Win64">False</Platform>
             </Platforms>
-            <ModelSupport>False</ModelSupport>
         </BorlandProject>
         <ProjectFileVersion>12</ProjectFileVersion>
     </ProjectExtensions>

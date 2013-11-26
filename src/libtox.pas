@@ -6,7 +6,7 @@
 //
 //  Copyright (c) 2013 Dmitry
 //
-//  Обновлено 01.11.2013
+//  Обновлено 27.11.2013
 //
 unit libtox;
 
@@ -140,6 +140,10 @@ type
 //  Function(Tox *tox, int friendnumber, uint8_t filenumber, uint8_t *data, uint16_t length, void *userdata)
   TProcFileData = procedure(Tox: TTox; friendnumber: Integer; filenumber: Byte;
     data: PByte; length: Word; userdata: Pointer); cdecl;
+
+// Function(Tox *tox, int groupnumber, void *userdata)
+  TProcGroupNamelistchange = procedure(Tox: TTox; groupnumber: Integer;
+    userdata: Pointer); cdecl;
 
 const
   TOX_MAX_NAME_LENGTH           = 128;
@@ -442,6 +446,16 @@ procedure tox_callback_group_invite(tox: TTox; CallBack: TProcGroupInvite;
 procedure tox_callback_group_message(Tox: TTox; CallBack: TProcGroupMessage;
   userdata: Pointer); cdecl; external TOX_LIBRARY;
 
+///* Set callback function for peer name list changes.
+// *
+// * It gets called every time the name list changes(new peer/name, deleted peer)
+// *  Function(Tox *tox, int groupnumber, void *userdata)
+// */
+//
+//void tox_callback_group_namelistchange(Tox *tox, void (*function)(Tox *tox, int, void *), void *userdata);
+procedure tox_callback_group_namelistchange(Tox: TTox; CallBack: TProcGroupNamelistchange;
+  userdata: Pointer); cdecl; external TOX_LIBRARY;
+
 ///* Creates a new groupchat and puts it in the chats array.
 // *
 // * return group number on success.
@@ -492,6 +506,42 @@ function tox_join_groupchat(Tox: TTox; friendnumber: Integer;
 //int tox_group_message_send(Tox *tox, int groupnumber, uint8_t *message, uint32_t length);
 function tox_group_message_send(Tox: TTox; groupnumber: Integer; message: PByte;
   length: Integer): Integer; cdecl; external TOX_LIBRARY;
+
+///* Return the number of peers in the group chat on success.
+// * return -1 on failure
+// */
+//int tox_group_number_peers(Tox *tox, int groupnumber);
+function tox_group_number_peers(Tox: TTox; groupnumber: Integer)
+  : Integer; cdecl; external TOX_LIBRARY;
+
+///* List all the peers in the group chat.
+// *
+// * Copies the names of the peers to the name[length][TOX_MAX_NAME_LENGTH] array.
+// *
+// * returns the number of peers on success.
+// *
+// * return -1 on failure.
+// */
+//int tox_group_copy_names(Tox *tox, int groupnumber, uint8_t names[][TOX_MAX_NAME_LENGTH], uint16_t length);
+function tox_group_copy_names(Tox: TTox; groupnumber: Integer; names: PByte;
+  length: Word): Integer; //TODO: Исправить параметр names
+  cdecl; external TOX_LIBRARY;
+
+///* Return the number of chats in the instance m.
+// * You should use this to determine how much memory to allocate
+// * for copy_chatlist. */
+//uint32_t tox_count_chatlist(Tox *tox);
+function tox_count_chatlist(Tox: TTox): Cardinal; cdecl; external TOX_LIBRARY;
+
+///* Copy a list of valid chat IDs into the array out_list.
+// * If out_list is NULL, returns 0.
+// * Otherwise, returns the number of elements copied.
+// * If the array was too small, the contents
+// * of out_list will be truncated to list_size. */
+//uint32_t tox_copy_chatlist(Tox *tox, int *out_list, uint32_t list_size);
+function tox_copy_chatlist(Tox: TTox; out_list: PInteger; list_size: Cardinal)
+  : Cardinal; cdecl; external TOX_LIBRARY;
+
 
 ///****************FILE SENDING FUNCTIONS*****************/
 ///* NOTE: This how to will be updated.

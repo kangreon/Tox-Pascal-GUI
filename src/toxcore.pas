@@ -263,7 +263,7 @@ begin
 
   data := GetUtf8Text(HelloMessage, data_length);
   try
-    ret := tox_addfriend(FTox, Address.DataBin, data, data_length);
+    ret := tox_add_friend(FTox, Address.DataBin, data, data_length);
     if (ret < 0) and (ret >= -8) then
     begin
       Result := TToxFaerr(ret);
@@ -285,7 +285,7 @@ end;
 
 function TToxCore.AddFriendNoRequest(Address: TFriendAddress): Boolean;
 begin
-  Result := tox_addfriend_norequest(FTox, Address.DataBin) <> -1;
+  Result := tox_add_friend_norequest(FTox, Address.DataBin) <> -1;
 end;
 
 { *  Инициализация библиотеки Tox, загрузка начальных данных, соединение
@@ -696,14 +696,14 @@ begin
     FIsLoadLibrary := True;
 
   // Start callback function
-  tox_callback_friendrequest(FTox, OnFriendRequest_, Self);
-  tox_callback_friendmessage(FTox, OnFriendMessage_, Self);
+  tox_callback_friend_request(FTox, OnFriendRequest_, Self);
+  tox_callback_friend_message(FTox, OnFriendMessage_, Self);
   tox_callback_action(FTox, OnAction_, Self);
-  tox_callback_namechange(FTox, OnNameChange_, Self);
-  tox_callback_statusmessage(FTox, OnStatusMessage_, Self);
-  tox_callback_userstatus(FTox, OnUserStatus_, Self);
+  tox_callback_name_change(FTox, OnNameChange_, Self);
+  tox_callback_status_message(FTox, OnStatusMessage_, Self);
+  tox_callback_user_status(FTox, OnUserStatus_, Self);
   tox_callback_read_receipt(FTox, OnReadReceipt_, Self);
-  tox_callback_connectionstatus(FTox, OnConnectionStatus_, Self);
+  tox_callback_connection_status(FTox, OnConnectionStatus_, Self);
 
   // Load/save client data
   data := FSettings.LoadData(size);
@@ -721,7 +721,7 @@ begin
   // Getting your address
   data := GetMemory(FRIEND_ADDRESS_SIZE);
   try
-    tox_getaddress(FTox, data);
+    tox_get_address(FTox, data);
     FYourAddress.DataBin := data;
   finally
     FreeMemory(data);
@@ -730,7 +730,7 @@ begin
   // Получение собственного имени
   data := GetMemory(TOX_MAX_NAME_LENGTH);
   try
-    size := tox_getselfname(FTox, data, TOX_MAX_NAME_LENGTH);
+    size := tox_get_self_name(FTox, data, TOX_MAX_NAME_LENGTH);
     if size >= 1 then
       FUserName := GetTextFromUTF8Byte(data, size)
     else
@@ -742,7 +742,7 @@ begin
   // Получение собственного статуса
   data := GetMemory(TOX_MAX_STATUSMESSAGE_LENGTH);
   try
-    size := tox_copy_self_statusmessage(FTox, data, TOX_MAX_STATUSMESSAGE_LENGTH);
+    size := tox_get_self_status_message(FTox, data, TOX_MAX_STATUSMESSAGE_LENGTH);
     if size >= 1 then
       FStatusMessage := GetTextFromUTF8Byte(data, size)
     else
@@ -772,22 +772,22 @@ begin
       FriendList.ClearFriend;
 
     i := 0;
-    while tox_getclient_id(FTox, i, data) = 0 do
+    while tox_get_client_id(FTox, i, data) = 0 do
     begin
       ClientId := TClientId.Create(Data);
       try
         Item := FriendList.Add(ClientId, i);
 
         // Получение имени пользователя
-        size := tox_getname(FTox, i, name);
+        size := tox_get_name(FTox, i, name);
         if size > 0 then
           Item.UserName := GetTextFromUTF8Byte(name, size);
 
         // Копирование статуса
-        size := tox_get_statusmessage_size(FTox, i);
+        size := tox_get_status_message_size(FTox, i);
         Status := GetMemory(size);
         try
-          tox_copy_statusmessage(FTox, i, Status, size);
+          tox_get_status_message(FTox, i, Status, size);
           Item.StatusMessage := GetTextFromUTF8Byte(Status, size);
         finally
           FreeMemory(Status);
@@ -839,7 +839,7 @@ begin
 
     Data := GetUtf8Text(Text, DataLength);
     try
-      tox_sendmessage(FTox, Friend.Number, Data, DataLength);
+      tox_send_message(FTox, Friend.Number, Data, DataLength);
     finally
       FreeMem(Data);
     end;
@@ -855,7 +855,7 @@ begin
   FFriendList.MyItem.StatusMessage := Value;
   Data := GetUtf8Text(Value, DataLength);
   try
-    tox_set_statusmessage(FTox, Data, DataLength)
+    tox_set_status_message(FTox, Data, DataLength)
   finally
     FreeMemory(Data);
   end;
@@ -873,7 +873,7 @@ begin
   Data := GetUtf8Text(Value, DataLength);
   try
     if FConnectState = csOnline then
-      tox_setname(FTox, Data, DataLength);
+      tox_set_name(FTox, Data, DataLength);
   finally
     FreeMemory(Data);
   end;

@@ -14,7 +14,8 @@ interface
 
 uses
   {$I tox-uses.inc}
-  {$IFDEF Win32}ShFolder,{$ENDIF} IniFiles, Classes, ServerList, SysUtils;
+  {$IFDEF Win32}ShFolder,{$ENDIF} IniFiles, Classes, ServerList, SysUtils,
+  StringUtils;
 
 type
   TSettings = class
@@ -25,6 +26,8 @@ type
     FServerList: TServerList;
     FUseIPv6: Boolean;
     FUserListWidth: Integer;
+    FDefUserName: DataString;
+    FDefUserStatus: DataString;
     function GetConfigPath: string;
     function GetHomePath: string;
     procedure SetUserName(const Value: string);
@@ -41,6 +44,8 @@ type
     property ServerList: TServerList read FServerList;
 
     property ConfigPath: string read GetConfigPath;
+    property DefUserName: DataString read FDefUserName;
+    property DefUserStatus: DataString read FDefUserStatus;
     property UseIPv6: Boolean read FUseIPv6 write SetUseIPv6;
     property UseIPv6Int: Byte read GetUseIPv6Int;
     property UserName: string read FUserName write SetUserName;
@@ -81,6 +86,8 @@ begin
   FDataStream := TFileStream.Create(FileData, OpenMode);
 
   FUserName := {$IFDEF FPC}UTF8Encode{$ENDIF}(FIniFile.ReadString('user', 'name', DEFAULT_USER_NAME));
+  FDefUserName := {$IFDEF FPC}UTF8Encode{$ENDIF}('Измените имя');
+  FDefUserStatus := {$IFDEF FPC}UTF8Encode{$ENDIF}('');
   FUseIPv6 := False;
 
   FUserListWidth := FIniFile.ReadInteger('UserList', 'Width', USER_LIST_MIN_WIDTH);

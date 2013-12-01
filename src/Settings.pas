@@ -30,6 +30,7 @@ type
     procedure SetUserName(const Value: string);
     procedure SetUseIPv6(const Value: Boolean);
     procedure SetUserListWidth(const Value: Integer);
+    function GetUseIPv6Int: Byte;
   public
     constructor Create;
     destructor Destroy; override;
@@ -41,6 +42,7 @@ type
 
     property ConfigPath: string read GetConfigPath;
     property UseIPv6: Boolean read FUseIPv6 write SetUseIPv6;
+    property UseIPv6Int: Byte read GetUseIPv6Int;
     property UserName: string read FUserName write SetUserName;
 
     // Настройки списка пользователей
@@ -164,6 +166,14 @@ begin
     FUserName := Value;
     FIniFile.WriteString('user', 'name', {$IFDEF FPC}UTF8Decode{$ENDIF}(Value));
   end;
+end;
+
+function TSettings.GetUseIPv6Int: Byte;
+begin
+  if UseIPv6 then
+    Result := 1
+  else
+    Result := 0;
 end;
 
 end.

@@ -6,7 +6,7 @@
 //
 //  Copyright (c) 2013 Dmitry
 //
-//  Обновлено 01.12.2013
+//  Обновлено 04.12.2013
 //
 unit libtox;
 
@@ -310,7 +310,7 @@ function tox_get_name(tox: TTox; friendnumber: Integer; name: PByte): Integer; c
 //int tox_set_status_message(Tox *tox, uint8_t *status, uint16_t length);
 //int tox_set_userstatus(Tox *tox, TOX_USERSTATUS status);
 function tox_set_status_message(tox: TTox; status: PByte; length: Word): Integer; cdecl; external TOX_LIBRARY;
-function tox_set_userstatus(tox: TTox; status: Integer): Integer; cdecl; external TOX_LIBRARY;
+function tox_set_user_status(tox: TTox; status: Integer): Integer; cdecl; external TOX_LIBRARY;
 
 ///*  return the length of friendnumber's status message, including null.
 // *  Pass it into malloc

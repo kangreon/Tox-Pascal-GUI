@@ -342,7 +342,7 @@ end;
 procedure TToxCore.SetUserStatus(Status: TToxUserStatus);
 begin
   if IsToxConnect then
-    tox_set_userstatus(FTox, Integer(Status));
+    tox_set_user_status(FTox, Integer(Status));
 end;
 
 { *  Выбор серверов из списка и подключение к ним

@@ -4,9 +4,9 @@
 //
 //  The MIT License (MIT)
 //
-//  Copyright (c) 2013 Dmitry
+//  Copyright (c) 2013-2014 Dmitry
 //
-//  Обновлено 04.12.2013
+//  Обновлено 30.01.2014
 //
 unit libtox;
 
@@ -109,6 +109,14 @@ type
   PToxUserStatus = ^TToxUserStatus;
   TToxUserStatus = (usNone, usAway, usBusy, usInvalid);
 
+  //typedef enum {
+  //    TOX_CHAT_CHANGE_PEER_ADD,
+  //    TOX_CHAT_CHANGE_PEER_DEL,
+  //    TOX_CHAT_CHANGE_PEER_NAME,
+  //} TOX_CHAT_CHANGE;
+  TToxChatChange = (TOX_CHAT_CHANGE_PEER_ADD, TOX_CHAT_CHANGE_PEER_DEL,
+    TOX_CHAT_CHANGE_PEER_NAME);
+
   TProcFriendRequest = procedure(public_key: PByte; data: PByte; length: Word; UserData: Pointer); cdecl;
   TProcFriendMessage = procedure(tox: TTox; FriendNumber: Integer; message: PByte; length: Word; UserData: Pointer); cdecl;
   TProcAction = procedure(tox: TTox; FriendNumber: Integer; Action: PByte; length: Word; UserData: Pointer); cdecl;
@@ -145,11 +153,16 @@ type
   TProcGroupNamelistchange = procedure(Tox: TTox; groupnumber: Integer;
     userdata: Pointer); cdecl;
 
+// Function(Tox *tox, int groupnumber, int friendgroupnumber, uint8_t * action, uint16_t length, void *userdata)
+  TProcGroupAction = procedure(Tox: TTox; GroupNumber: Integer;
+    FriendGroupNumber: Integer; Action: PByte; Length: Word;
+      UserDate: Pointer); cdecl;
+
 const
   TOX_MAX_NAME_LENGTH           = 128;
   TOX_MAX_STATUSMESSAGE_LENGTH  = 128;
   TOX_CLIENT_ID_SIZE            = 32;
-  FRIEND_ADDRESS_SIZE           = (TOX_CLIENT_ID_SIZE + SizeOf(Integer) +
+  TOX_FRIEND_ADDRESS_SIZE       = (TOX_CLIENT_ID_SIZE + SizeOf(Integer) +
                                   SizeOf(Word));
 
   TOX_PORTRANGE_FROM            = 33445;
@@ -173,7 +186,7 @@ const
   TOX_LIBRARY = {$IFDEF WINDOWS}'libtoxcore-0.dll'{$ENDIF}
                 {$IFDEF Unix}'libtoxcore.so'{$ENDIF};
 
-///*  return FRIEND_ADDRESS_SIZE byte address to give to others.
+///*  return TOX_FRIEND_ADDRESS_SIZE byte address to give to others.
 // * format: [client_id (32 bytes)][nospam number (4 bytes)][checksum (2 bytes)]
 // */
 //void tox_get_address(Tox *tox, uint8_t *address);
@@ -181,7 +194,7 @@ procedure tox_get_address(tox: TTox; address: PByte); cdecl; external TOX_LIBRAR
 
 ///* Add a friend.
 // * Set the data that will be sent along with friend request.
-// * address is the address of the friend (returned by getaddress of the friend you wish to add) it must be FRIEND_ADDRESS_SIZE bytes. TODO: add checksum.
+// * address is the address of the friend (returned by getaddress of the friend you wish to add) it must be TOX_FRIEND_ADDRESS_SIZE bytes. TODO: add checksum.
 // * data is the data and length is the length.
 // *
 // *  return the friend number if success.
@@ -376,8 +389,8 @@ procedure tox_callback_friend_message(tox: TTox; CallBack: TProcFriendMessage; U
 ///* Set the function that will be executed when an action from a friend is received.
 // *  Function format is: function(int friendnumber, uint8_t * action, uint32_t length)
 // */
-//void tox_callback_action(Tox *tox, void (*function)(Tox *tox, int, uint8_t *, uint16_t, void *), void *userdata);
-procedure tox_callback_action(tox: TTox; CallBack: TProcAction; UserData: Pointer); cdecl; external TOX_LIBRARY;
+//void tox_callback_friend_action(Tox *tox, void (*function)(Tox *tox, int, uint8_t *, uint16_t, void *), void *userdata);
+procedure tox_callback_friend_action(tox: TTox; CallBack: TProcAction; UserData: Pointer); cdecl; external TOX_LIBRARY;
 
 ///* Set the callback for name changes.
 // *  function(int friendnumber, uint8_t *newname, uint16_t length)
@@ -446,6 +459,15 @@ procedure tox_callback_group_invite(tox: TTox; CallBack: TProcGroupInvite;
 procedure tox_callback_group_message(Tox: TTox; CallBack: TProcGroupMessage;
   userdata: Pointer); cdecl; external TOX_LIBRARY;
 
+///* Set the callback for group actions.
+// *
+// *  Function(Tox *tox, int groupnumber, int friendgroupnumber, uint8_t * action, uint16_t length, void *userdata)
+// */
+//void tox_callback_group_action(Tox *tox, void (*function)(Tox *tox, int, int, uint8_t *, uint16_t, void *),
+//                               void *userdata);
+procedure tox_callback_group_action(Tox: TTox; CallBack: TProcGroupAction;
+  UserData: Pointer); cdecl; external TOX_LIBRARY;
+
 ///* Set callback function for peer name list changes.
 // *
 // * It gets called every time the name list changes(new peer/name, deleted peer)
@@ -506,6 +528,14 @@ function tox_join_groupchat(Tox: TTox; friendnumber: Integer;
 //int tox_group_message_send(Tox *tox, int groupnumber, uint8_t *message, uint32_t length);
 function tox_group_message_send(Tox: TTox; groupnumber: Integer; message: PByte;
   length: Integer): Integer; cdecl; external TOX_LIBRARY;
+
+///* send a group action
+// * return 0 on success
+// * return -1 on failure
+// */
+//int tox_group_action_send(Tox *tox, int groupnumber, uint8_t *action, uint32_t length);
+function tox_group_action_send(Tox: TTox; GroupNumber: Integer; Action: PByte;
+  Length: Cardinal): Integer; cdecl; external TOX_LIBRARY;
 
 ///* Return the number of peers in the group chat on success.
 // * return -1 on failure
@@ -767,10 +797,42 @@ function tox_size(tox: TTox): Integer; cdecl; external TOX_LIBRARY;
 //void tox_save(Tox *tox, uint8_t *data);
 procedure tox_save(tox: TTox; data: PByte); cdecl; external TOX_LIBRARY;
 
-///* Load the messenger from data of size length. */
+///* Load the messenger from data of size length.
+// *
+// *  returns 0 on success
+// *  returns -1 on failure
+// */
 //int tox_load(Tox *tox, uint8_t *data, uint32_t length);
 function tox_load(tox: TTox; data: PByte; length: Integer): Integer; cdecl;
   external TOX_LIBRARY;
+
+///* return the size of data to pass to messenger_save_encrypted(...)
+// */
+//uint32_t tox_size_encrypted(Tox *tox);
+function tox_size_encrypted(Tox: TTox): Cardinal; cdecl; external TOX_LIBRARY;
+
+///* Save the messenger, encrypting the data with key of length key_length
+// *
+// * This functions simply calls and then encrypt the output of tox_save(..)
+// * with crypto_secretbox(...) from NaCl/libsodium with the key
+// * given to crypto_secretbox(...) being the SHA256 sum of the key
+// * passed to this function.
+// *
+// * return 0 on success.
+// * return -1 on failure.
+// */
+//int tox_save_encrypted(Tox *tox, uint8_t *data, uint8_t *key, uint16_t key_length);
+function tox_save_encrypted(Tox: TTOx; data: PByte; key: PByte; KeyLength: Word)
+  : Integer; cdecl; external TOX_LIBRARY;
+
+///* Load the messenger from data of size length encrypted with key of key_length.
+// *
+// * return 0 on success.
+// * return -1 on failure.
+// */
+//int tox_load_encrypted(Tox *tox, uint8_t *data, uint32_t length, uint8_t *key, uint16_t key_length);
+function tox_load_encrypted(Tox: TTox; data: PByte; Length: Cardinal; Key: PByte;
+  KeyLength: Word): Integer; cdecl; external TOX_LIBRARY;
 
 implementation
 

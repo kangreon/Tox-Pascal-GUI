@@ -395,7 +395,7 @@ begin
   // Start callback function
   tox_callback_friend_request(FTox, OnFriendRequest_, Self);
   tox_callback_friend_message(FTox, OnFriendMessage_, Self);
-  tox_callback_action(FTox, OnAction_, Self);
+  tox_callback_friend_action(FTox, OnAction_, Self);
   tox_callback_name_change(FTox, OnNameChange_, Self);
   tox_callback_status_message(FTox, OnStatusMessage_, Self);
   tox_callback_user_status(FTox, OnUserStatus_, Self);
@@ -416,7 +416,7 @@ begin
   end;
 
   // Getting your address
-  data := GetMemory(FRIEND_ADDRESS_SIZE);
+  data := GetMemory(TOX_FRIEND_ADDRESS_SIZE);
   try
     tox_get_address(FTox, data);
     FYourAddress.DataBin := data;

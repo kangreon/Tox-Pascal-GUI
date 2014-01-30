@@ -103,16 +103,16 @@ end;
 
 constructor TFriendAddress.Create;
 begin
-  FDataBin := GetMemory(FRIEND_ADDRESS_SIZE);
-  SetLength(FDataHex, FRIEND_ADDRESS_SIZE * 2);
+  FDataBin := GetMemory(TOX_FRIEND_ADDRESS_SIZE);
+  SetLength(FDataHex, TOX_FRIEND_ADDRESS_SIZE * 2);
 
   Clear;
 end;
 
 constructor TFriendAddress.Create(Value: PByte);
 begin
-  FDataBin := GetMemory(FRIEND_ADDRESS_SIZE);
-  SetLength(FDataHex, FRIEND_ADDRESS_SIZE * 2);
+  FDataBin := GetMemory(TOX_FRIEND_ADDRESS_SIZE);
+  SetLength(FDataHex, TOX_FRIEND_ADDRESS_SIZE * 2);
 
   Clear;
   DataBin := Value;
@@ -130,8 +130,8 @@ end;
 
 constructor TFriendAddress.Create(Value: DataString);
 begin
-  FDataBin := GetMemory(FRIEND_ADDRESS_SIZE);
-  SetLength(FDataHex, FRIEND_ADDRESS_SIZE * 2);
+  FDataBin := GetMemory(TOX_FRIEND_ADDRESS_SIZE);
+  SetLength(FDataHex, TOX_FRIEND_ADDRESS_SIZE * 2);
 
   Clear;
   DataHex := Value;
@@ -166,9 +166,9 @@ end;
 
 procedure TFriendAddress.SetDataBin(const Value: PByte);
 begin
-  CopyMemory(FDataBin, Value, FRIEND_ADDRESS_SIZE);
-  DataHex := bin_to_hex_string(Value, FRIEND_ADDRESS_SIZE);
-  if Length(DataHex) = FRIEND_ADDRESS_SIZE * 2 then
+  CopyMemory(FDataBin, Value, TOX_FRIEND_ADDRESS_SIZE);
+  DataHex := bin_to_hex_string(Value, TOX_FRIEND_ADDRESS_SIZE);
+  if Length(DataHex) = TOX_FRIEND_ADDRESS_SIZE * 2 then
     FValidAddress := True
   else
   begin
@@ -183,13 +183,13 @@ var
 begin
   FValidAddress := False;
 
-  if Length(Value) = FRIEND_ADDRESS_SIZE * 2 then
+  if Length(Value) = TOX_FRIEND_ADDRESS_SIZE * 2 then
   begin
     FDataHex := Value;
 
     data := hex_string_to_bin(Value);
     try
-      CopyMemory(FDataBin, data, FRIEND_ADDRESS_SIZE);
+      CopyMemory(FDataBin, data, TOX_FRIEND_ADDRESS_SIZE);
     finally
       FValidAddress := True;
       FreeMemory(data);

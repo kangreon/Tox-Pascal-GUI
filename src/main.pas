@@ -18,7 +18,8 @@ uses
   ServerList, ClientAddress, libtox, StringUtils, ExtCtrls, UserStatus,
   FriendList, ControlPanel, fmUserAdd, fmNewName, UserList,
   FriendRequestController, MessageControl, MessageList, Clipbrd, FriendItem,
-  Splitter, SkinManager, TabControl;
+  Splitter, SkinManager, TabControl, fmProfileSelect, ProfileLoader,
+  SkinProfileSelect;
 
 type
   { TForm1 }
@@ -54,7 +55,6 @@ type
     FUserList: TUserList;
     FUserStatus: TUserStatus;
     FControlPanel: TControlPanel;
-    FToxLoadError: Boolean;
     FMessageControl: TMessageControl;
     FTabControl: TTabControl;
     procedure InitGui;
@@ -67,8 +67,12 @@ type
       const Text: DataString);
     procedure DestrGui;
     procedure SplitterSetWidth(Sender: TObject; NewWidth: Integer);
+    procedure CloseProfile(Sender: TObject);
+    procedure InitSkin;
+    procedure StartTox(Profile: TProfileLoader);
+    procedure SelectProfile(Skin: TSkinProfileSelect);
   public
-    property ToxLoadError: Boolean read FToxLoadError;
+    property Skin: TSkinManager read FSkin;
   end;
 
 var
@@ -81,10 +85,12 @@ implementation
 procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   DestrGui;
+  Application.Terminate;
 end;
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
+  // Установка ограничения на минимальный размер главного окна
   ClientHeight := 500;
   ClientWidth := 750;
   Constraints.MinWidth := Width;
@@ -94,36 +100,39 @@ begin
 
   Caption := 'Demo Tox GUI';
   Application.Title := Caption;
-  FToxLoadError := False;
 
   FSettings := TSettings.Create;
-  FToxCore := TToxCore.Create(FSettings);
 
-  if not FToxCore.IsLoadLibrary then
+  InitSkin;
+  SelectProfile(FSkin.ProfileSelect);
+end;
+
+procedure TForm1.SelectProfile(Skin: TSkinProfileSelect);
+var
+  FormProfile: TFormProfileSelect;
+begin
+  FormProfile := TFormProfileSelect.Create(Self);
+  FormProfile.InsertSkin(Skin);
+  FormProfile.OnCloseEx := CloseProfile;
+  FormProfile.Settings := FSettings;
+  FormProfile.Show;
+end;
+
+procedure TForm1.CloseProfile(Sender: TObject);
+begin
+  if TFormProfileSelect(Sender).IsSelectedProfile then
   begin
-    // Не удалось загрузить библиотеку Tox
-    FToxLoadError := True;
-    Exit;
+    StartTox(TFormProfileSelect(Sender).Profile);
+  end
+  else
+  begin
+    Close;
   end;
+end;
 
-  FToxCore.OnConnect := ToxOnConnect;
-  FToxCore.OnConnecting := ToxOnConnecting;
-  FToxCore.OnDisconnect := ToxOnDisconnect;
-  FToxCore.OnFriendRequest := ToxFriendRequest;
-  FToxCore.OnFriendMessage := ToxFriendMessage;
-  FToxCore.OnNameChange := ToxNameChange;
-  FToxCore.OnAction := ToxOnAction;
-  FToxCore.OnStatusMessage := ToxStatusMessage;
-  FToxCore.OnUserStatus := ToxUserStatus;
-  FToxCore.OnReadReceipt := ToxReadReceipt;
-  FToxCore.OnConnectioStatus := ToxConnectionStatus;
-
-  FRequestConrtoller := TFriendRequestController.Create(Self);
-  FRequestConrtoller.OnAddFriend := RequestOnAddFriend;
-
-  //FToxCore.StartTox;
-
-  InitGui;
+procedure TForm1.InitSkin;
+begin
+  FSkin := TSkinManager.Create(ExtractFilePath(ParamStr(0)) + 'skin.ini');
 end;
 
 {*  Создание компонентов для отображения GUI
@@ -137,8 +146,6 @@ var
   Spl: TSplitterEx;
   {$ENDIF}
 begin
-  FSkin := TSkinManager.Create(ExtractFilePath(ParamStr(0)) + 'skin.ini');
-
   LeftPanel := TPanel.Create(Self);
   LeftPanel.Parent := Self;
   LeftPanel.Align := alLeft;
@@ -159,30 +166,33 @@ begin
   Spl.Parent := Self;
   Spl.Align := alLeft;
   Spl.ResizeStyle := TResizeStyle.rsUpdate;
-  Spl.Left := 1;
   {$ELSE}
     {$IFNDEF FPCUNIX}
     Spl := TSplitterEx.Create(Self);
     Spl.Parent := Self;
     Spl.ControlResize := LeftPanel;
     Spl.OnSetWidth := SplitterSetWidth;
-    Spl.Left := 1;
     {$ENDIF}
   {$ENDIF}
+  // Для правильного размещения элемента
+  Spl.Left := LeftPanel.Width + 1;
 
+  // Компонент вывода сообщений пользователей
   FMessageControl := TMessageControl.Create(Self, FToxCore.MessageList, FSkin);
   FMessageControl.Align := alClient;
   FMessageControl.Parent := Self;
   FMessageControl.OnSendTextFriend := MessageControlSendTextFriend;
 
+  // Компонент вывода информации о активном пользователе
   FUserStatus := TUserStatus.Create(LeftPanel, FSkin.UserStatus);
   FUserStatus.Parent := LeftPanel;
-  FUserStatus.Top := 0;
+  FUserStatus.Top := 1;
   FUserStatus.Align := alTop;
   FUserStatus.FriendItem := FToxCore.FriendList.MyItem;
   FUserStatus.OnChangeState := UserStatusStateChange;
   FUserStatus.OnChangeUserName := UserStatusChangeName;
   FUserStatus.OnChangeStatus := UserStatusChangeStatus;
+  Application.ProcessMessages;
 
   FControlPanel := TControlPanel.Create(LeftPanel, FSkin.ControlPanel);
   FControlPanel.Parent := LeftPanel;
@@ -190,16 +200,17 @@ begin
   FControlPanel.OnClick := ControlPanelClick;
 
   FUserList := TUserList.Create(LeftPanel, FToxCore.FriendList, FSkin.UserList);
+  FUserList.Parent := LeftPanel;
   FUserList.Align := alClient;
   FUserList.OnSelectItem := UserListSelectItem;
 
   FTabControl := TTabControl.Create(Self, FSkin.TabControl, FUserList.ListSelect);
   FTabControl.Parent := LeftPanel;
+  FTabControl.Top := FUserStatus.Height + 1;
 
   //Для правильной расстановки компонентов в Lazarus
   FTabControl.Top := FUserList.Top + FUserList.Height + 20;
 
-  FUserList.Parent := LeftPanel;
 end;
 
 { *  Освобождение памяти
@@ -210,6 +221,31 @@ begin
   FUserList.Free;
   FControlPanel.Free;
   FUserStatus.Free;
+end;
+
+{ *  Создание и запуск Tox и всех зависимых классов
+  * }
+procedure TForm1.StartTox(Profile: TProfileLoader);
+begin
+  FToxCore := TToxCore.Create(FSettings, Profile);
+  FToxCore.OnConnect := ToxOnConnect;
+  FToxCore.OnConnecting := ToxOnConnecting;
+  FToxCore.OnDisconnect := ToxOnDisconnect;
+  FToxCore.OnFriendRequest := ToxFriendRequest;
+  FToxCore.OnFriendMessage := ToxFriendMessage;
+  FToxCore.OnNameChange := ToxNameChange;
+  FToxCore.OnAction := ToxOnAction;
+  FToxCore.OnStatusMessage := ToxStatusMessage;
+  FToxCore.OnUserStatus := ToxUserStatus;
+  FToxCore.OnReadReceipt := ToxReadReceipt;
+  FToxCore.OnConnectioStatus := ToxConnectionStatus;
+
+  FRequestConrtoller := TFriendRequestController.Create(Self);
+  FRequestConrtoller.OnAddFriend := RequestOnAddFriend;
+
+  Show;
+
+  InitGui;
 end;
 
 procedure TForm1.SplitterSetWidth(Sender: TObject; NewWidth: Integer);

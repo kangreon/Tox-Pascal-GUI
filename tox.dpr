@@ -4,7 +4,7 @@
 //
 // The MIT License (MIT)
 //
-// Copyright (c) 2013 Dmitry
+// Copyright (c) 2013-2014 Dmitry
 //
 program tox;
 
@@ -66,7 +66,11 @@ uses
   TabRequest in 'gui\TabControl\TabRequest.pas',
   SkinTabList in 'gui\SkinManager\SkinTabList.pas',
   UserListSelect in 'gui\UserListSelect.pas',
-  lazaruspng in 'gui\SkinManager\lazaruspng.pas';
+  lazaruspng in 'gui\SkinManager\lazaruspng.pas',
+  ProfileLoader in 'src\ProfileLoader.pas',
+  fmProfileSelect in 'gui\Forms\fmProfileSelect.pas' {FormProfileSelect},
+  SkinProfileSelect in 'gui\SkinManager\SkinProfileSelect.pas',
+  ControlUtils in 'gui\ControlUtils.pas';
 
 function IsRunApplication: Boolean;
 var
@@ -85,13 +89,13 @@ begin
   {$ENDIF}
 end;
 
-
 begin
 {$IFDEF WINDOWS}
   if IsRunApplication then
   begin
     Application.Initialize;
     Application.CreateForm(TForm1, Form1);
+    Application.ShowMainForm := False;
     Application.Run
   end;
 {$ELSE}

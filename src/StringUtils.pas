@@ -5,7 +5,7 @@
 //
 //  The MIT License (MIT)
 //
-//  Copyright (c) 2013 Dmitry
+//  Copyright (c) 2013-2014 Dmitry
 //
 unit StringUtils;
 
@@ -15,13 +15,34 @@ interface
 type
   DataString = {$IFDEF NEW_DELPHI}string{$ELSE}WideString{$ENDIF};
 
-function GetTextFromUTF8Byte(data: PByte; data_size: Integer): DataString;
-function GetUtf8Text(text: DataString; out data_size: Integer): PByte;
+function ConvertTextToForm(Text: string): string; inline;
+
+function MemoryToString(data: PByte; data_size: Integer): DataString;
+function StringToMemory(text: DataString; out data_size: Integer): PByte;
 
 implementation
 
-// Конвертирует строку в кодировку UTF8
-function GetUtf8Text(text: DataString; out data_size: Integer): PByte;
+{ *  Подготавливает текст для вывода на форму. Использовать эту функцию для
+  *  совместимости с FPC компилятором.
+  * }
+function ConvertTextToForm(Text: string): string; inline;
+begin
+  Result := {$IFDEF FPC}UTF8Encode{$ENDIF}(Text);
+end;
+
+{ *  Подготавливает текст для работы с ним после получения из формы. Использовать
+  *  для совместимости с FPC компилятором.
+  * }
+function ConvertFormToText(Value: string): string; inline;
+begin
+  Result := {$IFDEF FPC}UTF8Decode{$ENDIF}(Value);
+end;
+
+{ *  Конвертирует строку в UTF8 кодировку и сохраняет в память.
+  *  Возвращает адрес памяти начала строки и размер. Резуьтатирующая строка
+  *  содержит последний символ #0 \0
+  * }
+function StringToMemory(text: DataString; out data_size: Integer): PByte;
 var
   {$IFDEF NEW_DELPHI}
     {$IFDEF FPC}
@@ -51,7 +72,7 @@ begin
   data_size := data_length;
 end;
 
-function GetTextFromUTF8Byte(data: PByte; data_size: Integer): DataString;
+function MemoryToString(data: PByte; data_size: Integer): DataString;
 var
   {$IFDEF NEW_DELPHI}
     {$IFDEF FPC}

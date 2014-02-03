@@ -13,7 +13,7 @@ begin
   if Assigned(ToxThread) then
   begin
     ClientAddress := TFriendAddress.Create(public_key);
-    HelloMessage := GetTextFromUTF8Byte(data, length);
+    HelloMessage := MemoryToString(data, length);
     ToxThread.DoFriendRequest(ClientAddress, HelloMessage);
   end;
 end;
@@ -28,7 +28,7 @@ begin
 
   if Assigned(ToxThread) then
   begin
-    MessageStr := GetTextFromUTF8Byte(message, length);
+    MessageStr := MemoryToString(message, length);
     ToxThread.DoFriendMessage(FriendNumber, MessageStr);
   end;
 end;
@@ -43,7 +43,7 @@ begin
 
   if Assigned(ToxThread) then
   begin
-    MessageStr := GetTextFromUTF8Byte(Action, length);
+    MessageStr := MemoryToString(Action, length);
     ToxThread.DoAction(FriendNumber, MessageStr);
   end;
 end;
@@ -58,7 +58,7 @@ begin
 
   if Assigned(ToxThread) then
   begin
-    NewNameStr := GetTextFromUTF8Byte(NewName, length);
+    NewNameStr := MemoryToString(NewName, length);
     ToxThread.DoNameChange(FriendNumber, NewNameStr);
   end;
 end;
@@ -73,7 +73,7 @@ begin
 
   if Assigned(ToxThread) then
   begin
-    NewStatusStr := GetTextFromUTF8Byte(NewStatus, length);
+    NewStatusStr := MemoryToString(NewStatus, length);
     ToxThread.DoStatusMessage(FriendNumber, NewStatusStr);
   end;
 end;

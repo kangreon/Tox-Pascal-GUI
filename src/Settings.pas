@@ -15,7 +15,7 @@ interface
 uses
   {$I tox-uses.inc}
   {$IFDEF Win32}ShFolder,{$ENDIF} IniFiles, Classes, ServerList, SysUtils,
-  StringUtils;
+  StringUtils, Math;
 
 type
   TSettings = class
@@ -28,12 +28,16 @@ type
     FUserListWidth: Integer;
     FDefUserName: DataString;
     FDefUserStatus: DataString;
+    FLastProfile: Integer;
+    FProfileSizeMax: Integer;
     function GetConfigPath: string;
     function GetHomePath: string;
     procedure SetUserName(const Value: string);
     procedure SetUseIPv6(const Value: Boolean);
     procedure SetUserListWidth(const Value: Integer);
     function GetUseIPv6Int: Byte;
+    procedure SetLastProfile(const Value: Integer);
+    procedure SetMaxProfileSize(const Value: Integer);
   public
     constructor Create;
     destructor Destroy; override;
@@ -44,7 +48,7 @@ type
     property ServerList: TServerList read FServerList;
 
     property ConfigPath: string read GetConfigPath;
-    property DefUserName: DataString read FDefUserName;
+    property DefaultUserName: DataString read FDefUserName;
     property DefUserStatus: DataString read FDefUserStatus;
     property UseIPv6: Boolean read FUseIPv6 write SetUseIPv6;
     property UseIPv6Int: Byte read GetUseIPv6Int;
@@ -52,6 +56,10 @@ type
 
     // Настройки списка пользователей
     property UserListWidth: Integer read FUserListWidth write SetUserListWidth;
+
+    // Настройки профилей
+    property LastProfile: Integer read FLastProfile write SetLastProfile;
+    property ProfileSizeMax: Integer read FProfileSizeMax write SetMaxProfileSize;
   end;
 
 const
@@ -89,6 +97,10 @@ begin
   FDefUserName := {$IFDEF FPC}UTF8Encode{$ENDIF}('Измените имя');
   FDefUserStatus := {$IFDEF FPC}UTF8Encode{$ENDIF}('');
   FUseIPv6 := False;
+
+  FLastProfile := FIniFile.ReadInteger('profile', 'index', -1);
+  // Стразу проверяет промежуток размеров изменяет значение в файле в случае отличия
+  ProfileSizeMax := FIniFile.ReadInteger('profile', 'size', 2 * 1024 * 1024);
 
   FUserListWidth := FIniFile.ReadInteger('UserList', 'Width', USER_LIST_MIN_WIDTH);
 end;
@@ -150,6 +162,25 @@ begin
   FDataStream.Size := 0;
   FDataStream.Position := 0;
   FDataStream.Write(Data^, Size);
+end;
+
+procedure TSettings.SetLastProfile(const Value: Integer);
+begin
+  if FLastProfile <> Value then
+  begin
+    FLastProfile := Value;
+    FIniFile.WriteInteger('profile', 'index', Value);
+  end;
+end;
+
+procedure TSettings.SetMaxProfileSize(const Value: Integer);
+begin
+  if FProfileSizeMax <> Value then
+  begin
+    FProfileSizeMax := Max(Value, 512 * 1024);
+    FProfileSizeMax := Min(FProfileSizeMax, 10 * 1024 * 1024);
+    FIniFile.WriteInteger('profile', 'size', FProfileSizeMax);
+  end;
 end;
 
 procedure TSettings.SetUseIPv6(const Value: Boolean);

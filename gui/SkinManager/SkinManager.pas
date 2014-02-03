@@ -14,7 +14,7 @@ interface
 uses
   SkinBase, Graphics, StringUtils, SkinUserList, SysUtils, SkinUserStatus,
   SkinTypes, SkinMessageList, SkinMessageHeader, SkinControlPanel,
-  SkinTabControl, SkinTabList, Dialogs;
+  SkinTabControl, SkinTabList, Dialogs, SkinProfileSelect;
 
 type
   TArrayArrayInt = array of array of Integer;
@@ -28,6 +28,7 @@ type
     FControlPanel: TSkinControlPanel;
     FTabControl: TSkinTabControl;
     FTabList: TSkinTabList;
+    FProfileSelect: TSkinProfileSelect;
     procedure LoadMessageList;
     procedure LoadUserList;
     procedure LoadUserStatus;
@@ -39,6 +40,7 @@ type
     function LoadStateImage(Name: DataString; IsTransporent: Boolean;
       TransporentColor: array of TColor;
       DefPosition: array of Integer): TStateImage;
+    procedure LoadProfileSelect;
   public
     constructor Create(SettingsFile: DataString); override;
     destructor Destroy; override;
@@ -46,6 +48,7 @@ type
     property ControlPanel: TSkinControlPanel read FControlPanel;
     property MessageHeader: TSkinMessageHeader read FMessageHeader;
     property MessageList: TSkinMessageList read FMessageList;
+    property ProfileSelect: TSkinProfileSelect read FProfileSelect;
     property TabControl: TSkinTabControl read FTabControl;
     property UserList: TSkinUserList read FUserList;
     property UserStatus: TSkinUserStatus read FUserStatus write FUserStatus;
@@ -61,6 +64,7 @@ const
   SECTION_CONTROL_PANEL = 'ControlPanel';
   SECTION_TAB_CONTROL = 'TabControl';
   SECTION_TAB_LIST = 'TabList';
+  SECTION_PROFILE_SELECT = 'ProfileSelect';
 
 { TSkinManager }
 
@@ -75,6 +79,7 @@ begin
   FControlPanel := TSkinControlPanel.Create;
   FTabControl := TSkinTabControl.Create;
   FTabList := TSkinTabList.Create;
+  FProfileSelect := TSkinProfileSelect.Create;
 
   LoadUserList;
   LoadUserStatus;
@@ -83,6 +88,7 @@ begin
   LoadControlPanel;
   LoadTabControl;
   LoadTabList;
+  LoadProfileSelect;
 
   if False then
   begin
@@ -104,6 +110,7 @@ begin
   FControlPanel.Free;
   FTabControl.Free;
   FTabList.Free;
+  FProfileSelect.Free;
 
   Save; // TODO: Убрать
 
@@ -604,6 +611,38 @@ begin
   FUserStatus.ImgStateOffline := LoadImage(
     'StateOffline', True, FUserStatus.BackColor, 132, 0, 22, 22
   );
+end;
+
+procedure TSkinManager.LoadProfileSelect;
+var
+  Item: TSkinProfileSelect;
+begin
+  SelectSection(SECTION_PROFILE_SELECT);
+  Item := FProfileSelect;
+
+  Item.BackColor := ReadColor('Bacground', 241, 242, 242);
+  Item.LeftBarColor := ReadColor('LeftBar', 28, 28, 28);
+  Item.LeftBarWidth := Read('LeftBar.Width', 221);
+
+  Item.LogoTox := LoadImage(
+    'Profile.Logo', True, Item.LeftBarColor, 333, 45, 168, 55
+  );
+
+  Item.IconSelection := LoadImage(
+    'IconSelection', True, Item.BackColor, 180, 64, 17, 34
+  );
+
+  Item.LeftButtonHeight := Read('LeftButton.Height', 37);
+  Item.DivisionLineMargin := Read('DivisitionLine.Margin', 10);
+
+  LoadFont(Item.MenuFont, 'Menu', 'DejaVu Sans Condensed', 8, [
+    RGB(141, 143, 146),
+    RGB(241, 242, 242),
+    RGB(190, 190, 190)
+  ], []);
+
+  LoadFont(Item.LabelFont, 'Label', 'DejaVu Sans Condensed', 8, clBlack, []);
+  LoadFont(Item.EditFont, 'Edit', 'DejaVu Sans Condensed', 9, clBlack, []);
 end;
 
 procedure TSkinManager.Save;

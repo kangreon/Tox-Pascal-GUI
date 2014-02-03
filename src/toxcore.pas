@@ -4,7 +4,7 @@
 //
 //  The MIT License (MIT)
 //
-//  Copyright (c) 2013 Dmitry
+//  Copyright (c) 2013-2014 Dmitry
 //
 unit toxcore;
 
@@ -14,7 +14,7 @@ interface
 uses
   {$I tox-uses.inc}
   Classes, Settings, ServerList, SysUtils, libtox, ClientAddress, StringUtils,
-  FriendList, MessageList, FriendItem, DataBase;
+  FriendList, MessageList, FriendItem, DataBase, ProfileLoader;
 
 type
   TConnectionStatus = (csOnline, csConnecting, csOffline);
@@ -48,6 +48,7 @@ type
     FOnConnect: TNotifyEvent;
     FOnDisconnect: TNotifyEvent;
     FOnConnecting: TProcConnecting;
+    FProfile: TProfileLoader;
     FYourAddress: TFriendAddress;
     FStartThread: Boolean;
     FTempAddress: TFriendAddress;
@@ -67,9 +68,8 @@ type
     FOnReadReceipt: TProcReadReceipt;
     FOnConnectioStatus: TProcConnectioStatus;
     FFriendList: TFriendList;
-    FIsLoadLibrary: Boolean;
-    FUserName: DataString;
-    FStatusMessage: DataString;
+    FSelfName: DataString;
+    FSelfStatus: DataString;
 
     procedure DoFriendRequest(FriendAddress: TFriendAddress;
       HelloMessage: DataString);
@@ -106,10 +106,12 @@ type
     procedure EventConnectioStatusSyn;
 
     function IsToxConnect: Boolean;
-    procedure InitTox;
+    procedure InitTox(ATox: TTox);
     procedure InitConnection;
     procedure SaveData;
     procedure SetUserName(const Value: DataString);
+    function GetSelfName: DataString;
+    function GetSelfStatus: DataString;
     function GetUserName(FriendIndex: Integer): DataString;
     function GetUserStatus(FriendIndex: Integer): DataString;
 
@@ -119,10 +121,11 @@ type
     function IsConnected: Boolean;
     function BootstrapFromAddress(Address: string; Port: Word;
       IsUseIpV6: Boolean; PublicKeyHex: string): Boolean;
+
   protected
     procedure Execute; override;
   public
-    constructor Create(Settings: TSettings);
+    constructor Create(Settings: TSettings; AProfile: TProfileLoader);
 
     function AddFriend(Address: TFriendAddress; HelloMessage: DataString;
       out FriendNumber: Integer): TToxFaerr;
@@ -135,10 +138,9 @@ type
 
     property ConnectState: TConnectionStatus read FConnectionStatus;
     property FriendList: TFriendList read FFriendList;
-    property IsLoadLibrary: Boolean read FIsLoadLibrary;
     property MessageList: TMessageList read FMessageList;
-    property StatusMessage: DataString read FStatusMessage write SetStatusMessage;
-    property UserName: DataString read FUserName write SetUserName;
+    property StatusMessage: DataString read FSelfStatus write SetStatusMessage;
+    property UserName: DataString read FSelfName write SetUserName;
     property YourAddress: TFriendAddress read FYourAddress;
 
     property OnAction: TProcAction read FOnAction write FOnAction;
@@ -165,31 +167,33 @@ implementation
 { *  Инициализация библиотеки Tox, загрузка начальных данных, соединение
   *  с базой данных, загрузка пользователей.
   * }
-constructor TToxCore.Create(Settings: TSettings);
+constructor TToxCore.Create(Settings: TSettings; AProfile: TProfileLoader);
 begin
   inherited Create(True);
 
   FSettings := Settings;
-  FYourAddress := TFriendAddress.Create;
+  FProfile := AProfile;
+  FConfigPath := FSettings.ConfigPath;
+  FYourAddress := AProfile.Address;
+
+  InitTox(AProfile.Tox);
 
   FConnectionStatus := csOffline;
   FStartThread := False;
-
-  InitTox;
 
   FDataBase := TDataBase.Create(FSettings);
   FDataBase.LoadBase;
 
   FFriendList := TFriendList.Create(FDataBase.FriendBase, FYourAddress,
-    FUserName, FStatusMessage);
+    FSelfName, FSelfStatus);
   FFriendList.OnNewFriend := FriendListNewFriend;
 
   FMessageList := TMessageList.Create(FDataBase, FFriendList);
 
   UpdateFriends(True);
 
-  FUserName := FFriendList.MyItem.UserName;
-  FStatusMessage := FFriendList.MyItem.StatusMessage;
+  FSelfName := FFriendList.MyItem.UserName;
+  FSelfStatus := FFriendList.MyItem.StatusMessage;
 end;
 
 procedure TToxCore.StartTox;
@@ -220,10 +224,6 @@ begin
   begin
     if (FConnectionStatus = csOffline) then
     begin
-      // Остановка работы TOX
-      tox_kill(FTox);
-      FTox := nil;
-
       EventDisconnect;
 
       // Ожидание действий пользователя
@@ -233,9 +233,9 @@ begin
       end;
 
       if Self.Terminated then
+      begin
         Exit;
-
-      InitTox;
+      end;
     end;
 
     Inc(conn_try);
@@ -248,8 +248,8 @@ begin
       FConnectionStatus := csOnline;
 
       // Изменение имени пользователя и статуса
-      UserName := FUserName;
-      StatusMessage := FStatusMessage;
+      UserName := FSelfName;
+      StatusMessage := FSelfStatus;
 
       EventConnect;
     end
@@ -285,7 +285,7 @@ begin
   if not IsToxConnect then
     Exit;
 
-  data := GetUtf8Text(HelloMessage, data_length);
+  data := StringToMemory(HelloMessage, data_length);
   try
     ret := tox_add_friend(FTox, Address.DataBin, data, data_length);
     if (ret < 0) and (ret >= -8) then
@@ -328,7 +328,7 @@ begin
   begin
     FMessageList.SetMessage(Friend, Text, True);
 
-    Data := GetUtf8Text(Text, DataLength);
+    Data := StringToMemory(Text, DataLength);
     try
       tox_send_message(FTox, Friend.Number, Data, DataLength);
     finally
@@ -374,23 +374,10 @@ end;
 
 { *   Инициальзация библиотеки Tox, загрузка настроек из файла, получение
   *   собственного адреса и загрузка списка друзей.
-  *
   * }
-procedure TToxCore.InitTox;
-var
-  data: PByte;
-  size: Integer;
+procedure TToxCore.InitTox(ATox: TTox);
 begin
-  FConfigPath := FSettings.ConfigPath;
-
-  FTox := tox_new(FSettings.UseIPv6Int);
-  if not Assigned(FTox) then
-  begin
-    FIsLoadLibrary := False;
-    Exit;
-  end
-  else
-    FIsLoadLibrary := True;
+  FTox := ATox;
 
   // Start callback function
   tox_callback_friend_request(FTox, OnFriendRequest_, Self);
@@ -402,63 +389,9 @@ begin
   tox_callback_read_receipt(FTox, OnReadReceipt_, Self);
   tox_callback_connection_status(FTox, OnConnectionStatus_, Self);
 
-  // Load/save client data
-  data := FSettings.LoadData(size);
-  try
-    if size > 0 then
-      tox_load(FTox, data, size)
-    else
-    begin
-      Self.SaveData;
-    end;
-  finally
-    FreeMemory(data);
-  end;
-
-  // Getting your address
-  data := GetMemory(TOX_FRIEND_ADDRESS_SIZE);
-  try
-    tox_get_address(FTox, data);
-    FYourAddress.DataBin := data;
-  finally
-    FreeMemory(data);
-  end;
-
   // Получение собственного имени
-  if Trim(FUserName) = '' then
-  begin
-    data := GetMemory(TOX_MAX_NAME_LENGTH);
-    try
-      size := tox_get_self_name(FTox, data, TOX_MAX_NAME_LENGTH);
-      if size > 0 then
-        FUserName := GetTextFromUTF8Byte(data, size)
-      else
-        FUserName := '';
-    finally
-      FreeMemory(data);
-    end;
-  end;
-
-  if Trim(FUserName) = '' then
-    FUserName := FSettings.DefUserName;
-
-  // Получение собственного статуса
-  if Trim(FStatusMessage) = '' then
-  begin
-    data := GetMemory(TOX_MAX_STATUSMESSAGE_LENGTH);
-    try
-      size := tox_get_self_status_message(FTox, data, TOX_MAX_STATUSMESSAGE_LENGTH);
-      if size > 0 then
-        FStatusMessage := GetTextFromUTF8Byte(data, size)
-      else
-        FStatusMessage := '';
-    finally
-      FreeMemory(data);
-    end;
-  end;
-
-  if Trim(FUserName) = '' then
-    FUserName := FSettings.DefUserName;
+  FSelfName := GetSelfName;
+  FSelfStatus := GetSelfStatus;
 end;
 
 { *  Обновляет список друзей путем загрузки всего списка и сверкой с уже
@@ -507,24 +440,9 @@ begin
 end;
 
 procedure TToxCore.SaveData;
-var
-  size: Integer;
-  savedata: PByte;
 begin
-  if not Assigned(FTox) then
-    Exit;
-
-  size := tox_size(FTox);
-  savedata := GetMemory(size);
-  try
-    if size > 0 then
-    begin
-      tox_save(FTox, savedata);
-      FSettings.SaveData(savedata, size);
-    end;
-  finally
-    FreeMemory(savedata);
-  end;
+  //TODO: Добавить обработку ошибок
+  FProfile.SaveData;
 end;
 
 procedure TToxCore.SetStatusMessage(const Value: DataString);
@@ -532,12 +450,12 @@ var
   Data: PByte;
   DataLength: Integer;
 begin
-  FStatusMessage := Value;
+  FSelfStatus := Value;
   FFriendList.MyItem.StatusMessage := Value;
 
   if IsToxConnect then
   begin
-    Data := GetUtf8Text(Value, DataLength);
+    Data := StringToMemory(Value, DataLength);
     try
       tox_set_status_message(FTox, Data, DataLength)
     finally
@@ -553,12 +471,12 @@ var
   Data: PByte;
   DataLength: Integer;
 begin
-  FUserName := Value;
+  FSelfName := Value;
   FFriendList.MyItem.UserName := Value;
 
   if IsToxConnect then
   begin
-    Data := GetUtf8Text(Value, DataLength);
+    Data := StringToMemory(Value, DataLength);
     try
       tox_set_name(FTox, Data, DataLength);
     finally
@@ -597,6 +515,50 @@ begin
   FMessageList.InsertFriend(Friend);
 end;
 
+{ *  Возвращает собственное имя из загруженного профиля Tox
+  * }
+function TToxCore.GetSelfName: DataString;
+var
+  Data: PByte;
+  Size: Integer;
+begin
+  Result := FSettings.DefaultUserName;
+
+  Data := GetMemory(TOX_MAX_NAME_LENGTH);
+  try
+    Size := tox_get_self_name(FTox, Data, TOX_MAX_NAME_LENGTH);
+
+    if Size > 0 then
+    begin
+      Result := MemoryToString(Data, Size)
+    end;
+  finally
+    FreeMemory(data);
+  end;
+end;
+
+{ *  Возвращает собственный статус, сохраненный в файле профиля Tox
+  * }
+function TToxCore.GetSelfStatus: DataString;
+var
+  Data: PByte;
+  Size: Integer;
+begin
+  Result := '';
+
+  Data := GetMemory(TOX_MAX_STATUSMESSAGE_LENGTH);
+  try
+    Size := tox_get_self_status_message(FTox, Data, TOX_MAX_STATUSMESSAGE_LENGTH);
+
+    if Size > 0 then
+    begin
+      Result := MemoryToString(Data, Size)
+    end;
+  finally
+    FreeMemory(Data);
+  end;
+end;
+
 { *  Возврашает имя друга FriendIndex
   * }
 function TToxCore.GetUserName(FriendIndex: Integer): DataString;
@@ -611,7 +573,7 @@ begin
     DataSize := tox_get_name(FTox, FriendIndex, NameData);
     if DataSize > 0 then
     begin
-      Result := GetTextFromUTF8Byte(NameData, DataSize);
+      Result := MemoryToString(NameData, DataSize);
     end;
   finally
     FreeMemory(NameData);
@@ -635,7 +597,7 @@ begin
       MessageSize := tox_get_status_message(FTox, FriendIndex, StatusData, DataSize);
       if MessageSize > 0 then
       begin
-        Result := GetTextFromUTF8Byte(StatusData, MessageSize);
+        Result := MemoryToString(StatusData, MessageSize);
       end;
     finally
       FreeMemory(StatusData)
@@ -657,8 +619,6 @@ function TToxCore.IsToxConnect: Boolean;
 begin
   Result := IsConnected and (FConnectionStatus = csOnline);
 end;
-
-
 
 { *  ВЫЗОВЫ СОБЫТИЙ ЭТОГО КЛАССА
   * }

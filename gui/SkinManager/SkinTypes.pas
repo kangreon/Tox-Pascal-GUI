@@ -27,6 +27,8 @@ type
 
     procedure SetCanvas(Canvas: TCanvas); overload;
     procedure SetCanvas(Canvas: TCanvas; State: TMouseState); overload;
+    procedure SetFont(Font: TFont);
+
 
     property Name: DataString read FName write FName;
     property Size: Integer read FSize write FSize;
@@ -115,6 +117,14 @@ begin
   Canvas.Font.Size := Size;
   Canvas.Font.Color := Color[Integer(State)];
   Canvas.Font.Style := Styles;
+end;
+
+procedure TFontSkin.SetFont(Font: TFont);
+begin
+  Font.Name := Name;
+  Font.Size := Size;
+  Font.Color := Color[0];
+  Font.Style := Styles;
 end;
 
 end.

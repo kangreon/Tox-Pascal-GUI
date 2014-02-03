@@ -18,11 +18,6 @@
         <CfgParent>Base</CfgParent>
         <Base>true</Base>
     </PropertyGroup>
-    <PropertyGroup Condition="('$(Platform)'=='Win64' and '$(Base)'=='true') or '$(Base_Win64)'!=''">
-        <Base_Win64>true</Base_Win64>
-        <CfgParent>Base</CfgParent>
-        <Base>true</Base>
-    </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Debug' or '$(Cfg_1)'!=''">
         <Cfg_1>true</Cfg_1>
         <CfgParent>Base</CfgParent>
@@ -53,11 +48,6 @@
         <Icon_MainIcon>$(BDS)\bin\delphi_PROJECTICON.ico</Icon_MainIcon>
         <DCC_DcuOutput>.\Build\DCU</DCC_DcuOutput>
         <DCC_ExeOutput>.\Build</DCC_ExeOutput>
-        <DCC_E>false</DCC_E>
-        <DCC_N>false</DCC_N>
-        <DCC_S>false</DCC_S>
-        <DCC_F>false</DCC_F>
-        <DCC_K>false</DCC_K>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <DCC_DcuOutput>.\Build\DCU</DCC_DcuOutput>
@@ -69,15 +59,11 @@
         <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
     </PropertyGroup>
-    <PropertyGroup Condition="'$(Base_Win64)'!=''">
-        <DCC_UsePackage>bindcompvcl;dbexpress;IndyIPClient;bindcompdbx;vclie;vcltouch;bindcompfmx;websnap;CustomIPTransport;VclSmp;dsnap;IndyIPServer;rtl;dbrtl;IndySystem;vcl;IndyCore;bindcomp;inetdb;IndyIPCommon;dsnapcon;DBXInterBaseDriver;inet;DataSnapCommon;vclx;xmlrtl;vclimg;webdsnap;inetdbxpress;dbxcds;DbxCommonDriver;IndyProtocols;vclactnband;bindengine;vcldb;soaprtl;vcldsnap;$(DCC_UsePackage)</DCC_UsePackage>
-    </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1)'!=''">
         <DCC_DcuOutput>.\Build\DCU</DCC_DcuOutput>
         <BRCC_OutputDir>.\Resource</BRCC_OutputDir>
         <DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
         <DCC_DebugDCUs>true</DCC_DebugDCUs>
-        <DCC_Optimize>false</DCC_Optimize>
         <DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
         <DCC_DebugInfoInExe>true</DCC_DebugInfoInExe>
         <DCC_RemoteDebug>true</DCC_RemoteDebug>
@@ -88,13 +74,10 @@
         <VerInfo_Locale>1033</VerInfo_Locale>
         <BRCC_OutputDir>.\Resource</BRCC_OutputDir>
         <DCC_DcuOutput>.\Build\DCU</DCC_DcuOutput>
-        <DCC_RemoteDebug>false</DCC_RemoteDebug>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
-        <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
         <DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
         <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
-        <DCC_DebugInformation>False</DCC_DebugInformation>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
         <DCC_ExeOutput>.\Build</DCC_ExeOutput>
@@ -165,6 +148,13 @@
         <DCCReference Include="gui\SkinManager\SkinTabList.pas"/>
         <DCCReference Include="gui\UserListSelect.pas"/>
         <DCCReference Include="gui\SkinManager\lazaruspng.pas"/>
+        <DCCReference Include="src\ProfileLoader.pas"/>
+        <DCCReference Include="gui\Forms\fmProfileSelect.pas">
+            <Form>FormProfileSelect</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
+        <DCCReference Include="gui\SkinManager\SkinProfileSelect.pas"/>
+        <DCCReference Include="gui\ControlUtils.pas"/>
         <RcCompile Include="Resource\images.rc">
             <Form>images.res</Form>
         </RcCompile>
@@ -238,7 +228,6 @@
             <Deployment/>
             <Platforms>
                 <Platform value="Win32">True</Platform>
-                <Platform value="Win64">False</Platform>
             </Platforms>
         </BorlandProject>
         <ProjectFileVersion>12</ProjectFileVersion>

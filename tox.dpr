@@ -70,7 +70,8 @@ uses
   ProfileLoader in 'src\ProfileLoader.pas',
   fmProfileSelect in 'gui\Forms\fmProfileSelect.pas' {FormProfileSelect},
   SkinProfileSelect in 'gui\SkinManager\SkinProfileSelect.pas',
-  ControlUtils in 'gui\ControlUtils.pas';
+  ControlUtils in 'gui\ControlUtils.pas',
+  TabView in 'gui\TabControl\TabView.pas';
 
 function IsRunApplication: Boolean;
 var

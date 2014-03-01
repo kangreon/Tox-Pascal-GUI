@@ -19,7 +19,7 @@ uses
   FriendList, ControlPanel, fmUserAdd, fmNewName, UserList,
   FriendRequestController, MessageControl, MessageList, Clipbrd, FriendItem,
   Splitter, SkinManager, TabControl, fmProfileSelect, ProfileLoader,
-  SkinProfileSelect;
+  SkinProfileSelect, TabSelectList, TabRequest;
 
 type
   { TForm1 }
@@ -57,6 +57,8 @@ type
     FControlPanel: TControlPanel;
     FMessageControl: TMessageControl;
     FTabControl: TTabControl;
+    FTabSelectList: TTabSelectList;
+    FTabRequest: TTabRequest;
     procedure InitGui;
     procedure ControlPanelClick(Sender: TObject; Button: TControlButton);
     procedure RequestOnAddFriend(Sender: TObject;
@@ -204,9 +206,18 @@ begin
   FUserList.Align := alClient;
   FUserList.OnSelectItem := UserListSelectItem;
 
-  FTabControl := TTabControl.Create(Self, FSkin.TabControl, FUserList.ListSelect);
+  FTabSelectList := TTabSelectList.Create(Self, FSkin.TabControl);
+  FTabRequest := TTabRequest.Create(Self, FSkin.TabControl);
+
+  FTabControl := TTabControl.Create(Self);
   FTabControl.Parent := LeftPanel;
+  FTabControl.Align := alTop;
   FTabControl.Top := FUserStatus.Height + 1;
+  FTabControl.Color := Skin.TabControl.BackColor;
+  FTabControl.Add(FTabSelectList);
+  FTabControl.Add(FTabRequest);
+
+
 
   //Для правильной расстановки компонентов в Lazarus
   FTabControl.Top := FUserList.Top + FUserList.Height + 20;

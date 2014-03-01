@@ -155,6 +155,7 @@
         </DCCReference>
         <DCCReference Include="gui\SkinManager\SkinProfileSelect.pas"/>
         <DCCReference Include="gui\ControlUtils.pas"/>
+        <DCCReference Include="gui\TabControl\TabView.pas"/>
         <RcCompile Include="Resource\images.rc">
             <Form>images.res</Form>
         </RcCompile>

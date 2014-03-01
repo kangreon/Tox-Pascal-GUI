@@ -12,10 +12,11 @@ unit TabRequest;
 interface
 
 uses
-  Classes, Graphics, Controls, SkinTabControl, StringUtils, SysUtils;
+  Classes, Graphics, Controls, SkinTabControl, StringUtils, SysUtils, TabView,
+  ActiveRegion;
 
 type
-  TTabRequest = class(TGraphicControl)
+  TTabRequest = class(TTabView)
   private
     FRequestCount: Integer;
     FOnUpdateRequest: TNotifyEvent;
@@ -23,10 +24,11 @@ type
     procedure SetRequestCount(Value: Integer);
     procedure EventUpdateRequest;
   protected
-    procedure Paint; override;
+    procedure DoCreate; override;
   public
-    constructor Create(AOwner: TComponent; Skin: TSkinTabControl); reintroduce;
-    destructor Destroy; override;
+    procedure CursorMessage(RegionMessage: TRegionMessage; x, y: Integer;
+      Button: TMouseButton; Shift: TShiftState); override;
+    function GetHeight: Integer; override;
 
     property RequestCount: Integer read FRequestCount;
     property RequestCountText: DataString read FRequestCountText;
@@ -38,18 +40,20 @@ implementation
 
 { TTabRequest }
 
-constructor TTabRequest.Create(AOwner: TComponent; Skin: TSkinTabControl);
+procedure TTabRequest.CursorMessage(RegionMessage: TRegionMessage; x,
+  y: Integer; Button: TMouseButton; Shift: TShiftState);
 begin
-  inherited Create(AOwner);
-  FRequestCount := -1;
-  SetRequestCount(1);
-  Height := 30;
+  inherited;
+
 end;
 
-destructor TTabRequest.Destroy;
+procedure TTabRequest.DoCreate;
 begin
-
   inherited;
+  FRequestCount := -1;
+  SetRequestCount(1);
+  ColorTheme := ct2;
+  TabColor := Skin.ButtonRequestColor[0];
 end;
 
 procedure TTabRequest.EventUpdateRequest;
@@ -58,10 +62,9 @@ begin
     FOnUpdateRequest(Self);
 end;
 
-procedure TTabRequest.Paint;
+function TTabRequest.GetHeight: Integer;
 begin
-  inherited;
-
+  Result := 50;
 end;
 
 procedure TTabRequest.SetRequestCount(Value: Integer);
@@ -87,9 +90,7 @@ begin
     end;
   end;
 
-  {$IFDEF FPC}
-  FRequestCountText := UTF8Encode(FRequestCountText);
-  {$ENDIF}
+  TextHeader := ConvertTextToForm(FRequestCountText);
 end;
 
 end.
